@@ -1,0 +1,264 @@
+@use "sass:math";
+
+//Fontawesome
+@import "/node_modules/@fortawesome/fontawesome-free/css/all.min.css";
+
+// Fonts
+@import url("https://fonts.bunny.net/css?family=Nunito");
+@import url("https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;900&display=swap");
+
+// Bootstrap
+@import "bootstrap/scss/bootstrap";
+
+// Toastr
+@import 'toastr/toastr';
+
+$app_url: "https://nmsware.com";
+
+// Body
+$body-bg: #ffffff;
+
+// Typography
+$theme-blue: #52bbdd;
+$theme-grey: #f3f3f3;
+$theme-text-grey: #8d8d8d;
+$theme-secondary-text-color: #333;
+$font-family-sans-serif: "Nunito", sans-serif;
+$font-size-base: 0.9rem;
+$line-height-base: 1.6;
+$theme-roboto: "Roboto", sans-serif;
+
+.table-responsive {
+    padding-bottom: 10px;
+    &::-webkit-scrollbar-thumb {
+        background: #b1b1b1;
+    }
+    &::-webkit-scrollbar-thumb:hover {
+        background: #888888;
+    }
+}
+
+.hero-container {
+    padding-left: 150px;
+    padding-right: 150px;
+
+    @media screen and (max-width: 1440px) {
+        padding-left: 100px;
+        padding-right: 100px;
+    }
+
+    @media screen and (max-width: 1024px) {
+        padding-left: 60px;
+        padding-right: 60px;
+    }
+
+    @media screen and (max-width: 500px) {
+        padding-left: 7vw;
+        padding-right: 7vw;
+    }
+}
+
+.primary-btn {
+    border-radius: 20px;
+    background: linear-gradient(80deg, #66daf2 -40.79%, #06468e 92.58%);
+    padding: 8px 22px;
+    color: #fff !important;
+    text-decoration: none;
+    font-size: 15px;
+    text-align: center;
+    border: none;
+    outline: none;
+
+    @media screen and (max-width: 1024px) {
+        font-size: 13px;
+    }
+
+    @media screen and (max-width: 425px) {
+        font-size: 4vw;
+    }
+
+    &.border {
+        border: 1px solid #fff;
+    }
+
+    &.submit-btn {
+        border-radius: 5px !important;
+    }
+
+    &.border-only {
+        border: $theme-blue 2px solid !important;
+        background: none !important;
+        color: $theme-blue !important;
+        font-weight: bold;
+    }
+}
+
+.heading {
+
+    h3 {
+        color: $theme-secondary-text-color;
+        font-family: $theme-roboto;
+        font-size: 30px;
+        font-style: normal;
+        font-weight: 500;
+        text-align: left;
+         
+        &::after {
+            background-color: $theme-blue;
+            width: 70px;
+            height: 4px;
+            border-radius: 20px;
+            display: block;
+            content: "";
+
+            @media screen and (max-width: 1500px) {
+                width: 60px;
+            }
+
+            @media screen and (max-width: 500px) {
+                width: 50px;
+            }
+        }
+
+        span {
+            color: $theme-blue;
+        }
+
+        @media screen and (max-width: 1500px) {
+            font-size: 25px;
+        }
+
+        @media screen and (max-width: 500px) {
+            font-size: 19px;
+        }
+    }
+
+    h2 {
+        text-align: center;
+        color: $theme-secondary-text-color;
+        font-family: $theme-roboto;
+        font-size: 48px;
+        font-style: normal;
+        font-weight: 600;
+
+        span {
+            color: $theme-blue;
+        }
+
+        &::after {
+            background-color: $theme-blue;
+            width: 70px;
+            height: 4px;
+            border-radius: 20px;
+            display: block;
+            content: "";
+            margin: auto;
+
+            @media screen and (max-width: 425px) {
+                width: 40px;
+                height: 3px;
+            }
+        }
+
+        @media screen and (max-width: 1500px) {
+            font-size: 38px;
+        }
+
+        @media screen and (max-width: 992px) {
+            font-size: 33px;
+        }
+
+        @media screen and (max-width: 425px) {
+            font-size: 29px;
+        }
+    }
+
+    p {
+        color: $theme-text-grey;
+        font-family: $theme-roboto;
+        font-size: 16px;
+        font-style: normal;
+        font-weight: 400;
+        margin-top: 30px;
+
+        @media screen and (max-width: 1500px) {
+            font-size: 14px;
+        }
+
+        @media screen and (max-width: 1500px) {
+            font-size: 13px;
+            margin-top: 20px;
+        }
+
+        span {
+            color: $theme-blue;
+        }
+
+        a {
+            color: $theme-blue;
+            text-decoration: none;
+        }
+    }
+}
+
+.hide {
+    visibility: hidden;
+}
+
+.text-xs-center {
+    @media screen and (max-width: 575px) {
+        text-align: center !important;
+    }
+}
+
+.bg-grey {
+    background-color: $theme-grey;
+}
+
+.input {
+    .label {
+        color: $theme-secondary-text-color;
+        font-family: $theme-roboto;
+        font-size: 14px;
+        font-style: normal;
+        font-weight: 500;
+        margin-bottom: 5px;
+    }
+
+    input,
+    textarea,select {
+        width: 100%;
+        border-radius: 3px;
+        border: 1px solid #EDEDED;
+        background: #fff;
+        outline: none;
+        color: $theme-secondary-text-color;
+        font-family: $theme-roboto;
+        font-size: 14px;
+        font-style: normal;
+        font-weight: 200;
+        padding: 5px 15px;
+
+        &::placeholder {
+            color: #D1D1D1;
+        }
+    }
+}
+
+.control-text-overflow {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.pos-status-success {
+    border-left: 4px solid rgb(0, 128, 0);
+}
+
+.pos-status-warning {
+    border-left: 4px solid rgb(255, 215, 0);
+}
+
+.pos-status-danger {
+    border-left: 4px solid rgb(255, 0, 0);
+}

@@ -1,0 +1,41 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
+    {
+        Schema::create('repairs', function (Blueprint $table) {
+            $table->id();
+            $table->string("bill_no");
+            $table->string("model_no")->nullable();
+            $table->string("serial_no")->nullable();
+            $table->text("fault")->nullable();
+            $table->text("note")->nullable();
+            $table->float("advance", 10, 2)->default(0);
+            $table->float("total", 10, 2)->default(0);
+            $table->float("cost", 10, 2)->default(0);
+            $table->string("customer");
+            $table->string("cashier");
+            $table->string("spares")->nullable();
+            $table->string("status", 100);
+            $table->string("pos_code");
+            $table->text("invoice")->nullable();
+            $table->timestamps();
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::dropIfExists('repairs');
+    }
+};
