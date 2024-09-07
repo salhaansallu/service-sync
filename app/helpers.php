@@ -521,7 +521,7 @@ function sanitize($data)
 function login_redirect($path)
 {
     if ($path == "get_path") {
-        return !get_Cookie('login_redirect') ? '/' : get_Cookie('login_redirect');
+        return !get_Cookie('login_redirect') ? '/account/overview' : get_Cookie('login_redirect');
     }
     return set_Cookie('login_redirect', $path);
 }

@@ -18,11 +18,11 @@ use Twocheckout_Error;
 class paymentController extends Controller
 {
 
-    public function __construct()
-    {
-        Twocheckout::privateKey(env('2C_PRIVATE_KEY'));
-        Twocheckout::sellerId(env('2C_SELLER_ID'));
-    }
+    // public function __construct()
+    // {
+    //     Twocheckout::privateKey(env('2C_PRIVATE_KEY'));
+    //     Twocheckout::sellerId(env('2C_SELLER_ID'));
+    // }
 
     public function checkout(Request $request)
     {

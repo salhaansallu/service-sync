@@ -69,7 +69,7 @@ Route::get('/customer-copy/{pos_id}/{id}', function ($pos_id, $id){
 
 //Route::post('/contact', [ContactController::class, 'create'])->name('contact');
 
-Route::get('/create-account', [UserDataController::class, 'index']);
+//Route::get('/create-account', [UserDataController::class, 'index']);
 
 Route::get('/account/overview', [accountController::class, 'index']);
 Route::get('/account/details', [accountController::class, 'details']);
@@ -191,12 +191,12 @@ Route::get('/signin', function() {
     return view('auth.login');
 });
 
-Route::get('/signup', function() {
-   return view('auth.register');
-});
+//Route::get('/signup', function() {
+//   return view('auth.register');
+//});
 
-Route::post('/signup', [RegisterController::class, 'register'])->name('signup');
+//Route::post('/signup', [RegisterController::class, 'register'])->name('signup');
 
-Route::post('/create-account', [UserDataController::class, 'store']);
+//Route::post('/create-account', [UserDataController::class, 'store']);
 
 Route::post('/signin', [LoginController::class, 'userLogin'])->name('userLogin');
