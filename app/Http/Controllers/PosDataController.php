@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Credit;
+use App\Models\customers;
 use App\Models\orderProducts;
 use App\Models\orders;
 use App\Models\posData;
@@ -122,7 +123,7 @@ class PosDataController extends Controller
             Repairs::where('bill_no', $bill_no)->where('pos_code', $this->company()->pos_code)->update([
                 "status" => "Delivered",
                 "updated_at" => date('d-m-Y H:i:s'),
-            ]);    
+            ]);
 
             $inName = str_replace(' ', '-', str_replace('.', '-', $bill_no)) . '-Delivery-' . date('d-m-Y-h-i-s') . '-' . rand(0, 9999999) . '.pdf';
 
@@ -140,6 +141,89 @@ class PosDataController extends Controller
             }
 
             return response(json_encode(array("error" => 1, "msg" => "Error while proceeding, please try again later")));
+        }
+        return response(json_encode(array("error" => 1, "msg" => "Not logged in")));
+    }
+
+    public function salesCheckout(Request $request)
+    {
+        if (Auth::check() && $this->check()) {
+            $request = filter_var_array($request->input('params'), FILTER_SANITIZE_STRING);
+            $cashin = sanitize($request['cashin']);
+            $spares = $request['products'];
+            $customer = sanitize($request['customer']);
+            $bill_no = 1001;
+            $getBillNo = Repairs::where('pos_code', company()->pos_code)->orderBy('id', 'DESC')->first();
+            $bill_no = $getBillNo && $getBillNo->count() > 0 ? (int)$getBillNo->bill_no + 1 : 1001;
+            $total = 0;
+            $cost = 0;
+            $parts = [];
+            $invoice_pro = [];
+
+            if (customers::where('pos_code', company()->pos_code)->where('id', $customer)->get()->count() == 0) {
+                return response(json_encode(array("error" => 1, "msg" => "Invalid Customer")));
+            }
+
+            foreach ($spares as $key => $value) {
+                $stock = Products::where('sku', $value['id'])->where('pos_code', company()->pos_code)->get();
+                if ($stock->count() > 0) {
+                    Products::where('id', $value['id'])->where('pos_code', company()->pos_code)->update([
+                        "qty" => (float)$stock[0]['qty'] - $value['qty']
+                    ]);
+                    $cost += (float)$stock[0]['cost'] * (float)$value['qty'];
+                    $total += (float)$stock[0]['price'] * (float)$value['qty'];
+                    $parts[] = $stock[0]['id'];
+
+                    $invoice_pro[] = array(
+                        "name" => $stock[0]["pro_name"],
+                        "unit" => $stock[0]["price"],
+                        "qty" => $value['qty'],
+                    );
+                }
+            }
+
+            if ($cashin < $total) {
+                $credit = new Credit();
+                $credit->customer_id = $customer;
+                $credit->ammount = $total - $cashin;
+                $credit->pos_code = $this->company()->pos_code;
+                $credit->order_id = $bill_no;
+                $credit->save();
+            }
+
+            $repair = new Repairs();
+                $repair->bill_no = $bill_no;
+                $repair->model_no = "";
+                $repair->serial_no = "";
+                $repair->fault = "";
+                $repair->note = "";
+                $repair->advance = 0;
+                $repair->spares = json_encode($parts);
+                $repair->total = $total;
+                $repair->cost = $cost;
+                $repair->customer = $customer;
+                $repair->cashier = Auth::user()->id;
+                $repair->status = "Delivered";
+                $repair->pos_code = company()->pos_code;
+
+                if ($repair->save()) {
+
+                    $inName = str_replace(' ', '-', str_replace('.', '-', $bill_no)) . '-Invoice-' . date('d-m-Y-h-i-s') . '-' . rand(0, 9999999) . '.pdf';
+
+                    $generate_invoice = generateSalesInvoice($bill_no, $inName, $invoice_pro, $cashin);
+
+                    if ($generate_invoice->generated == true) {
+
+                        Repairs::where('bill_no', $bill_no)->where('pos_code', company()->pos_code)->update([
+                            "invoice" => $inName,
+                        ]);
+
+                        return response(json_encode(array("error" => 0, "msg" => "Checkout Successful", "invoiceURL" => $generate_invoice->url)));
+                    } 
+                    else {
+                        return response(json_encode(array("error" => 0, "msg" => "Checkout Successful, Couldn't print invoice: " . $generate_invoice->msg)));
+                    }
+                }
         }
         return response(json_encode(array("error" => 1, "msg" => "Not logged in")));
     }

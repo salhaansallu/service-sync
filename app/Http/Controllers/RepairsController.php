@@ -38,9 +38,18 @@ class RepairsController extends Controller
             $total = sanitize($request->input('total'));
             $note = sanitize($request->input('note'));
             $spares = $request->input('spares');
+            $service_cost = $request->input('service_cost');
             $status = sanitize($request->input('status'));
             $parts = [];
             $cost = 0;
+
+            if (!is_numeric($service_cost)) {
+                return response(json_encode(array("error" => 1, "msg" => "Invalid service cost format")));
+            }
+
+            if (!count($spares) > 0 && !$service_cost > 0) {
+                return response(json_encode(array("error" => 1, "msg" => "Please enter atleast 1 spare or enter service charge")));
+            }
 
             foreach ($spares as $key => $value) {
                 $stock = Products::where('id', $value['id'])->where('pos_code', company()->pos_code)->get();
@@ -51,6 +60,10 @@ class RepairsController extends Controller
                     $cost += (float)$stock[0]['cost'] * (float)$value['qty'];
                     $parts[] = $value['id'];
                 }
+            }
+
+            if (is_numeric($service_cost) && $service_cost > 0) {
+                $cost += ($service_cost / 100) * $total;
             }
 
             $update =  Repairs::where('bill_no', $bill_no)->where('pos_code', company()->pos_code)->update([

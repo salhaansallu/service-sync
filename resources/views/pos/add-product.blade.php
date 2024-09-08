@@ -65,16 +65,14 @@
                                             <div class="help-block with-errors"></div>
                                         </div>
                                     </div>
-                                    {{-- <div class="col-md-6">
+                                    <div class="col-md-6">
                                         <div class="form-group">
-                                            <label>Price <span class="text-danger">*</span></label>
+                                            <label>Price (only if the part is listed for sale)</label>
                                             <input type="text" class="form-control" placeholder="Enter Price"
                                                 name="price"
-                                                value="@isset($product){{ $product->price }}@endisset"
-                                                data-errors="Please Enter Price." required>
-                                            <div class="help-block with-errors"></div>
+                                                value="@isset($product){{ $product->price }} @else{{ '0' }}@endisset">
                                         </div>
-                                    </div> --}}
+                                    </div>
                                     <div class="col-md-6">
                                         <div class="form-group">
                                             <label>Stock <span class="text-danger">*</span></label>

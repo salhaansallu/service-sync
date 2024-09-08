@@ -827,6 +827,158 @@ function generateInvoice($order_id, $inName, $bill_type)
     return (object)array('generated' => true, 'url' => '/invoice/'.$bill_type.'/' . $inName);
 }
 
+function generateSalesInvoice($order_id, $inName, $products, $cashin)
+{
+    $company = PosDataController::company();
+    $repairs = Repairs::where('bill_no', $order_id)->where('pos_code', $company->pos_code)->get()[0];
+    $customer = getCustomer($repairs->customer);
+    //$qr_code_image = generateQR("https://nmsware.com/customer-copy/" . $company->pos_code . "/" . $order_id);
+    //$POSSettings = POSSettings();
+
+    $html = '
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Document</title>
+            <style>
+                @page { 
+                    margin: 10px;
+                    height: auto;
+                    width: 210mm;
+                 }
+                body { margin: 10px; }
+            </style>
+        </head>
+        <body style="font-family: Arial, sans-serif;">
+
+            <!-- Header -->
+            <div style="text-align: center; margin-bottom: 20px; margin-top: 30px;">
+                <h1 style="margin: 0;">' . $company->company_name . '</h1>
+                <p style="margin: 0;">' . getUserData($company->admin_id)->address . '</p>
+                <p style="margin: 0;">Tel: ' . formatPhoneNumber(getUserData($company->admin_id)->phone) . '</p>
+                <p style="margin: 0;">www.wefix.lk</p>
+                <h2 style="margin: 20px 0;">Sales Note</h2>
+            </div>
+
+            <!-- Customer Details -->
+            <div style="margin-bottom: 20px;">
+                <table style="width: 100%; border-collapse: collapse;">
+                    <tr>
+                        <th colspan="3" style="background-color: #000; color: #fff;padding: 5px;">Customer Details</th>
+                    </tr>
+                    <tr>
+                        <td style="width: 33%; padding: 5px; border: 1px solid black;">Customer Name</td>
+                        <td style="width: 33%; padding: 5px; border: 1px solid black;">Customer Mobile</td>
+                        <td style="width: 33%; padding: 5px; border: 1px solid black;">Customer Address</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 5px; border: 1px solid black;">' . $customer->name . '</td>
+                        <td style="padding: 5px; border: 1px solid black;">' . $customer->phone . '</td>
+                        <td style="padding: 5px; border: 1px solid black;">' . $customer->address . '</td>
+                    </tr>
+                </table>
+            </div>
+
+            <!-- Bill Info -->
+            <div style="margin-bottom: 20px;">
+                <table style="width: 100%; border-collapse: collapse;">
+                    <tr>
+                        <th style="width: 50%; padding: 8px; border: 1px solid black; text-align: left;">Bill No</th>
+                        <th style="width: 50%; padding: 8px; border: 1px solid black; text-align: left;">Date</th>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px; border: 1px solid black;">' . $repairs->bill_no . '</td>
+                        <td style="padding: 8px; border: 1px solid black;">' . date('d-m-Y H:i:s', strtotime($repairs->created_at)) . '</td>
+                    </tr>
+                </table>
+            </div>
+
+            <!-- Item Details -->
+            <div style="margin-bottom: 20px;">
+                <table style="width: 100%; border-collapse: collapse;">
+                    <tr>
+                        <th style="background-color: #000; color: #fff;padding: 5px; border: 1px solid black; text-align: left;">Description</th>
+                        <th style="background-color: #000; color: #fff;padding: 5px; border: 1px solid black; text-align: left;">Unit Price</th>
+                        <th style="background-color: #000; color: #fff;padding: 5px; border: 1px solid black; text-align: left;">QTY</th>
+                        <th style="background-color: #000; color: #fff;padding: 5px; border: 1px solid black; text-align: left;">Total</th>
+                    </tr>
+        ';
+
+        foreach ($products as $key => $pro) {
+            $html .= '
+            
+            <tr>
+                <td style="padding: 5px; border: 1px solid black;">' . $pro['name'] . '</td>
+                <td style="padding: 5px; border: 1px solid black;">' . currency($pro['unit'], '') . '</td>
+                <td style="padding: 5px; border: 1px solid black;">' . $pro['qty'] . '</td>
+                <td style="padding: 5px; border: 1px solid black;">' . currency($pro['unit'] * $pro['qty'], '') . '</td>
+            </tr>
+
+            ';
+        }
+
+        $html .='            
+                </table>
+            </div>
+
+            <!-- Total -->
+            <div style="margin-bottom: 20px;">
+                <table style="width: 30%; border-collapse: collapse;margin-left: auto;">
+                    <tr>
+                        <td style="padding: 5px; text-align: right;font-size: 20px;font-weight: 800;">Total:</td>
+                        <td style="padding: 5px; text-align: right;font-size: 20px;font-weight: 800; width: 230px;">'. currency($repairs->total, 'LKR') .'</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 5px; text-align: right;">Cash Paid:</td>
+                        <td style="padding: 5px; text-align: right; width: 230px;">'. currency($cashin, 'LKR') .'</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 5px; text-align: right;">Balance:</td>
+                        <td style="padding: 5px; text-align: right; width: 230px;">'. currency(((float)$repairs->total - (float)$cashin), 'LKR') .'</td>
+                    </tr>
+                </table>
+            </div>
+
+            
+    ';
+
+    $html .= '
+        <!-- Signature Section -->
+        <div style="border-top: 1px solid black; border-bottom: 1px solid black;">
+            <table style="width: 100%; border-top: 1px solid black;">
+                <tr>
+                    <td style="padding: 10px; text-align: center; border-right: 1px solid black; width: 50%;">
+                        <p>_____________________</p>
+                        <p style="margin-top: 5px;">Customer Signature</p>
+                    </td>
+                    <td style="padding: 10px; text-align: center; width: 50%;">
+                        <p style="margin-bottom: 10px;"><strong>' . getUser(Auth::user()->id)->fname . '</strong></p>
+                        <p style="margin-top: 5px;">Cashier</p>
+                    </td>
+                </tr>
+            </table>
+        </div>
+
+        <!-- Footer -->
+        <p style="text-align: center; font-weight: bold; border: 1px solid black;margin: 0;padding: 10px;">Thank You Please Come Again</p>
+
+        </body>
+        </html>
+    ';
+    // $connector = new FilePrintConnector("/dev/usb/lp0");
+    // $printer = new Printer($connector);
+
+    $pdf = new Dompdf();
+    $pdf->setPaper("A4", "portrait");
+    $pdf->loadHtml($html, 'UTF-8');
+    $pdf->render();
+    $path = public_path('invoice/checkout/' . $inName);
+    file_put_contents($path, $pdf->output());
+
+    return (object)array('generated' => true, 'url' => '/invoice/checkout/' . $inName);
+}
+
 function generateCreditPay($totalDue, $paid, $customer, $datetime, $bill_name)
 {
 

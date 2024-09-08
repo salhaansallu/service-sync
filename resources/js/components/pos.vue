@@ -13,12 +13,27 @@
             </div>
 
             <div class="favourits">
+                <button @click="goToDashboard" class="primary-btn submit-btn border-only"><i
+                        class="fa-solid fa-chart-line"></i>Dashboard</button>
+            </div>
+
+            <div class="favourits">
                 <button @click="newOrder('show')" class="primary-btn submit-btn border-only"><i
                         class="fa-solid fa-plus"></i>New Order</button>
             </div>
 
+            <div class="favourits">
+                <button @click="newCustomer('show')" class="primary-btn submit-btn border-only"><i
+                        class="fa-solid fa-user-plus"></i>Customers</button>
+            </div>
+
+            <div class="favourits">
+                <button @click="newSale('show')" class="primary-btn submit-btn border-only"><i
+                        class="fa-solid fa-cash-register"></i>Sales</button>
+            </div>
+
             <!-- <div class="favourits">
-                <button class="primary-btn submit-btn border-only"><i class="fa-solid fa-screwdriver-wrench"></i>Open Drawer</button>
+                <button @click="newOrder('show')" class="primary-btn submit-btn border-only"><i class="fa-solid fa-cash-register"></i>Generate Coupon</button>
             </div> -->
 
             <div class="categories">
@@ -298,6 +313,13 @@
                                 </div>
                             </div>
 
+                            <div class="col-6 mt-3" v-if="spareCount == 0">
+                                <div class="input">
+                                    <label for="" class="mb-1">Service Cost (%)</label>
+                                    <input ref="finish_service_cost" type="text" placeholder="Service Cost" value="10">
+                                </div>
+                            </div>
+
                             <div class="col-6 mt-3">
                                 <div class="input">
                                     <label for="" class="mb-1">Status</label>
@@ -327,6 +349,90 @@
             </div>
         </div>
     </div>
+
+    <div class="modal fade" id="NewCustomer" tabindex="-1" role="dialog" aria-labelledby="NewCustomer"
+        aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+        <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-body d-flex" style="justify-content: center;">
+                    <div class="product-wrp mt-1">
+                        <div class="existingcustomer mb-4 border" style="max-height: 400px; overflow-y: auto;">
+                            <div class="fs-5 mb-2 p-4">Existing Customers</div>
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th scope="col">#</th>
+                                        <th scope="col">Name</th>
+                                        <th scope="col">Mobile</th>
+                                        <th scope="col">Address</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr v-for="(cus, index) in users" :key="index">
+                                        <th scope="row">{{ index + 1 }}</th>
+                                        <td>{{ cus.name }}</td>
+                                        <td>{{ cus.phone }}</td>
+                                        <td>{{ cus.address.substr(0, 30) }}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="row justify-content-between">
+                            <div class="col-12">
+                                <div class="fs-5 mb-1">Create New Customer</div>
+                            </div>
+                            <div class="col-6 mt-3">
+                                <div class="input">
+                                    <label for="" class="mb-1">Customer Name</label>
+                                    <input ref="cus_name" type="text" placeholder="Customer Name" value="">
+                                </div>
+                            </div>
+
+                            <div class="col-6 mt-3">
+                                <div class="input">
+                                    <label for="" class="mb-1">Customer Mobile</label>
+                                    <input ref="cus_mobile" type="text" placeholder="Customer Mobile" value="">
+                                </div>
+                            </div>
+
+                            <div class="col-6 mt-3">
+                                <div class="input">
+                                    <label for="" class="mb-1">Customer Address</label>
+                                    <input ref="cus_address" type="text" placeholder="Customer Address" value="">
+                                </div>
+                            </div>
+
+                            <div class="col-12 mt-4">
+                                <button @click="createCustomer()" class="primary-btn submit-btn">Save</button>
+                                <button @click="newCustomer('hide')"
+                                    style="background: transparent; color: red !important; border: red 1px solid;"
+                                    class="primary-btn submit-btn mx-4">Close</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="NewSale" tabindex="-1" role="dialog" aria-labelledby="NewSale" aria-hidden="true"
+        data-bs-backdrop="static" data-bs-keyboard="false">
+        <div class="modal-dialog modal-fullscreen" role="document">
+            <div class="modal-content">
+                <div class="modal-body bg-grey p-0">
+                    <div class="product-wrp mt-1">
+                        <div class="row">
+                            <div class="col-12 mt-4">
+                                <button @click="newSale('hide')" style="background: transparent; color: red !important; border: red 1px solid;"
+                                    class="primary-btn submit-btn mx-4"><i class="fa-solid fa-arrow-left-long mx-2"></i> Back To POS</button>
+                            </div>
+                        </div>
+                    </div>
+                    <sale_pos/>
+                </div>
+            </div>
+        </div>
+    </div>
 </template>
 
 <script>
@@ -336,9 +442,13 @@ import toastr from 'toastr';
 import { validateName, checkEmpty, validateCountry, validatePhone, getUrlParam, currency } from '../custom';
 import axios from 'axios';
 import printJS from 'print-js';
+import sale_pos from './sale_pos.vue';
 
 export default {
     props: ['app_url'],
+    components: {
+        sale_pos
+    },
     data() {
         return {
             name: 'pos',
@@ -359,8 +469,17 @@ export default {
         loadModal(action) {
             $("#loadingModal").modal(action);
         },
+        goToDashboard() {
+            window.location.href = '/dashboard';
+        },
         newOrder(action) {
             $("#NewOrder").modal(action);
+        },
+        newCustomer(action) {
+            $("#NewCustomer").modal(action);
+        },
+        newSale(action) {
+            $("#NewSale").modal(action);
         },
         finishOrder(action, bill_no = 0) {
             $("#FinishOrder").modal(action);
@@ -399,7 +518,7 @@ export default {
         updateOrder() {
             if (this.selectedRepair.length > 0) {
                 console.log(this.selectedRepair);
-                
+
                 this.$refs["subtotal"].innerText = currency(this.selectedRepair[0]["total"], this.posData.currency);
                 this.$refs["order_advance"].innerText = currency(this.selectedRepair[0]["advance"], this.posData.currency);
                 this.$refs["order_total"].innerText = currency((this.selectedRepair[0]["total"] - this.selectedRepair[0]["advance"]), this.posData.currency);
@@ -535,6 +654,7 @@ export default {
                 var note = this.$refs.finish_note.value;
                 var status = this.$refs.finish_status.value;
                 var sparePro = [];
+                var service_cost = 0;
 
                 if (total.trim() == "") {
                     toastr.error("Please enter a total amount", "Error");
@@ -544,6 +664,18 @@ export default {
                 if (status.trim() == "") {
                     toastr.error("Please select a status", "Error");
                     return;
+                }
+
+                if (this.spareCount > 0) {
+                    for (let i = 1; i <= this.spareCount; i++) {
+                        sparePro.push({
+                            id: this.$refs["finish_spare_" + i][0].value,
+                            qty: this.$refs["qty_finish_spare_" + i][0].value,
+                        });
+                    }
+                }
+                else if (this.$refs.finish_service_cost != undefined) {
+                    service_cost = this.$refs.finish_service_cost.value;
                 }
 
                 for (let i = 1; i <= this.spareCount; i++) {
@@ -560,6 +692,7 @@ export default {
                     total: total,
                     note: note,
                     spares: sparePro,
+                    service_cost: service_cost,
                     status: status,
 
                 }).catch(function (error) {
@@ -639,6 +772,46 @@ export default {
             }
             this.loadModal("hide");
         },
+        async createCustomer() {
+            var name = this.$refs.cus_name.value;
+            var mobile = this.$refs.cus_mobile.value;
+            var address = this.$refs.cus_address.value;
+
+            if (name.trim() == "") {
+                toastr.error("Please enter customer name", "Error");
+                return;
+            }
+
+            if (mobile.trim() == "") {
+                toastr.error("Please enter customer number", "Error");
+                return;
+            }
+
+            const { data } = await axios.post('/dashboard/customer/create', {
+                name: name,
+                phone: mobile,
+                address: address
+            }).catch(function (error) {
+                if (error.response) {
+                    this.loadModal("hide");
+                }
+            });
+            this.loadModal("hide");
+
+            if (data.error == "0") {
+                this.loadModal("hide");
+                this.$refs.cus_name.value = "";
+                this.$refs.cus_mobile.value = "";
+                this.$refs.cus_address.value = "";
+                this.getCustomers();
+                this.newOrder('hide');
+            }
+            else {
+                this.loadModal("hide");
+                toastr.error(data.msg, "Error");
+            }
+            this.loadModal("hide");
+        },
         getStatus(status) {
             if (status == "Repaired") {
                 return 'success'
@@ -653,7 +826,7 @@ export default {
             }
         },
         spareCountUpdate(op) {
-            if (op == '-' && this.spareCount >= 2) {
+            if (op == '-' && this.spareCount >= 1) {
                 this.spareCount--;
             }
         }
@@ -664,6 +837,7 @@ export default {
     },
     mounted() {
         //
+
     }
 }
 </script>

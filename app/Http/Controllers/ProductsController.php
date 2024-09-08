@@ -105,6 +105,7 @@ class ProductsController extends Controller
             $code = str_replace(' ', '', $code);
             //$category = sanitize($request->input('category'));
             (float)$cost = sanitize($request->input('cost'));
+            (float)$price = sanitize($request->input('price'));
             //(float)$price = sanitize($request->input('price'));
             (float)$stock = sanitize($request->input('stock'));
             $supplier = sanitize($request->input('supplier'));
@@ -118,6 +119,8 @@ class ProductsController extends Controller
                 return response(json_encode(array("error" => 1, "msg" => "Please Use Only Numbers For Cost")));
             } elseif (!is_numeric($stock)) {
                 return response(json_encode(array("error" => 1, "msg" => "Please Use Only Numbers For Stock")));
+            }elseif (!is_numeric($price)) {
+                return response(json_encode(array("error" => 1, "msg" => "Please Use Only Numbers For Price")));
             } elseif (empty($name) || empty($code) || empty($cost) || empty($stock) || empty($supplier)) {
                 return response(json_encode(array("error" => 1, "msg" => "Please Fill All Required Fields Marked In '*'")));
             }
@@ -144,6 +147,7 @@ class ProductsController extends Controller
             $product->pro_name = $name;
             $product->sku = $code;
             $product->cost = $cost;
+            $product->price = $price;
             $product->qty = $stock;
             $product->pro_image = $imageName;
             $product->pos_code = company()->pos_code;
@@ -153,7 +157,7 @@ class ProductsController extends Controller
                 return response(json_encode(array("error" => 0, "msg" => "Product Created Successfully")));
             }
 
-            return response(json_encode(array("error" => 1, "msg" => "Something went wrong please, try again later")));
+            return response(json_encode(array("error" => 1, "msg" => "Something went wrong, please try again later")));
         }
     }
 

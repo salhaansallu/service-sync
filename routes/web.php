@@ -107,6 +107,7 @@ Route::post('/pos/get_spares', [ProductsController::class, 'getSpares']);
 //Route::post('/pos/add-favourits', [ProductsController::class, 'addFavourits']);
 //Route::post('/pos/remove-favourits', [ProductsController::class, 'removeFavourits']);
 Route::post('/pos/checkout', [PosDataController::class, 'checkout']);
+Route::post('/pos/sales/checkout', [PosDataController::class, 'salesCheckout']);
 //Route::post('/pos/save', [PosDataController::class, 'save']);
 //Route::post('/pos/get_saved_orders', [PosDataController::class, 'getSavedOrders']);
 

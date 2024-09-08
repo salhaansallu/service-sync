@@ -60,7 +60,7 @@
                             <tr class="ligth ligth-data">
                                 <th class="text-start">Bill number</th>
                                 <th class="text-start">Total</th>
-                                <th class="text-start">Spare Cost</th>
+                                <th class="text-start">Cost</th>
                                 <th class="text-start">Profit</th>
                                 <th class="text-start">Customer</th>
                                 <th class="text-start">Sales date</th>

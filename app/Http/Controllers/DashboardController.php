@@ -240,7 +240,11 @@ class DashboardController extends Controller
             $result = [];
             if ($report[0]->spares != NULL) {
                 foreach (json_decode($report[0]->spares) as $key => $value) {
-                    $result[] = Products::where('id', $value)->get()[0];
+                    $data = Products::where('id', $value)->get();
+
+                    if ($data->count() > 0) {
+                        $result[] = $data[0];
+                    }
                 }
 
                 return response(json_encode($result));
