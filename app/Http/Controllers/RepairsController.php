@@ -8,6 +8,7 @@ use App\Models\Repairs;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use SMS;
 
 class RepairsController extends Controller
 {
@@ -66,15 +67,21 @@ class RepairsController extends Controller
                 $cost += ($service_cost / 100) * $total;
             }
 
-            $update =  Repairs::where('bill_no', $bill_no)->where('pos_code', company()->pos_code)->update([
-                "note" => $note,
-                "status" => $status,
-                "total" => $total,
-                "cost" => $cost,
-                "spares" => json_encode($parts)
-            ]);
+            $update =  Repairs::where('bill_no', $bill_no)->where('pos_code', company()->pos_code);
 
-            if ($update) {
+            if ($update->update([ "note" => $note, "status" => $status, "total" => $total, "cost" => $cost, "spares" => json_encode($parts) ])) {
+                $customerData = customers::where('pos_code', company()->pos_code)->where('id', $update->get()[0]["customer"])->get();
+                $sms = new SMS();
+                $sms->contact = array(array(
+                    "fname" => $customerData[0]["name"],
+                    "lname" => "",
+                    "group" => "",
+                    "number" => $customerData[0]["phone"],
+                    "email" => $customerData[0]["email"],
+                ));
+                $sms->message = "Dear Customer, your product repair is complete. The total cost is " . currency($update->get()[0]["total"]) . ", with " . currency($update->get()[0]["advance"]) . " paid as advance. The remaining balance is " . currency($update->get()[0]["total"] - $update->get()[0]["advance"]) . ". Thank you for choosing " . company()->company_name . ".";
+                $sms->Send();
+
                 return response(json_encode(array("error" => 0, "msg" => "Order Updated Successfully")));
             }
 
@@ -99,13 +106,21 @@ class RepairsController extends Controller
             try {
                 $bill_no = 1001;
                 $total = sanitize($request->input('total'));
+                $note = str_replace('\n', '{break;}', $request->input('note'));
                 $note = sanitize($request->input('note'));
                 $model_no = sanitize($request->input('model_no'));
                 $serial_no = sanitize($request->input('serial_no'));
                 $fault = sanitize($request->input('fault'));
                 $advance = sanitize($request->input('advance'));
-                $status = sanitize($request->input('status'));
                 $customer = sanitize($request->input('customer'));
+
+                $customerData = customers::where('pos_code', company()->pos_code)->where('id', $customer)->get();
+
+                if ($customerData->count() == 0) {
+                    return response(json_encode(array("error" => 1, "msg" => "Invalid customer")));
+                }
+
+                $note = str_replace('{break;}', '<br>', $note);
 
                 if (!is_numeric($total)) {
                     return response(json_encode(array("error" => 1, "msg" => "Invalid price format")));
@@ -131,6 +146,17 @@ class RepairsController extends Controller
                 $repair->pos_code = company()->pos_code;
 
                 if ($repair->save()) {
+
+                    $sms = new SMS();
+                    $sms->contact = array(array(
+                        "fname" => $customerData[0]["name"],
+                        "lname" => "",
+                        "group" => "",
+                        "number" => $customerData[0]["phone"],
+                        "email" => $customerData[0]["email"],
+                    ));
+                    $sms->message = "Dear Customer, your account with " . company()->company_name . " has been successfully created. We have received your product and will notify you via this number once the repair is complete. Thank you for choosing " . company()->company_name . ".";
+                    $sms->Send();
 
                     $inName = str_replace(' ', '-', str_replace('.', '-', $bill_no)) . '-Invoice-' . date('d-m-Y-h-i-s') . '-' . rand(0, 9999999) . '.pdf';
 

@@ -227,14 +227,14 @@
                             <div class="col-6 mt-3">
                                 <div class="input">
                                     <label for="" class="mb-1">Advance</label>
-                                    <input ref="advance" type="text" placeholder="Advance" value="">
+                                    <input ref="advance" type="text" placeholder="Advance" value="0">
                                 </div>
                             </div>
 
                             <div class="col-6 mt-3">
                                 <div class="input">
                                     <label for="" class="mb-1">Total</label>
-                                    <input ref="total" type="text" placeholder="Total" value="">
+                                    <input ref="total" type="text" placeholder="Total" value="0">
                                 </div>
                             </div>
 
@@ -242,9 +242,39 @@
                                 <div class="input">
                                     <label for="" class="mb-1">Customer</label>
                                     <select ref="customer" name="">
-                                        <option v-for="customer in users" :value="customer.id">{{ customer.name }}
-                                        </option>
+                                        <option v-for="customer in users" :value="customer.id">{{ customer.name }} ({{
+                                            customer.phone }})</option>
                                     </select>
+                                </div>
+                            </div>
+
+                            <div class="col-6 mt-3">
+                                <div class="inner border p-3">
+                                    <div class="input d-flex align-items-center">
+                                        <input type="checkbox" :value="'Box'" ref="box" class="d-inline"
+                                            style="width: 15px; height: 15px; margin-right: 10px;">
+                                        <label for="" class="mb-1 d-inline">Box</label>
+                                    </div>
+                                    <div class="input d-flex align-items-center">
+                                        <input type="checkbox" :value="'Stand'" ref="stand" class="d-inline"
+                                            style="width: 15px; height: 15px; margin-right: 10px;">
+                                        <label for="" class="mb-1 d-inline">Stand</label>
+                                    </div>
+                                    <div class="input d-flex align-items-center">
+                                        <input type="checkbox" :value="'Remote'" ref="remote" class="d-inline"
+                                            style="width: 15px; height: 15px; margin-right: 10px;">
+                                        <label for="" class="mb-1 d-inline">Remote</label>
+                                    </div>
+                                    <div class="input d-flex align-items-center">
+                                        <input type="checkbox" :value="'Wall Bracket'" ref="wall" class="d-inline"
+                                            style="width: 15px; height: 15px; margin-right: 10px;">
+                                        <label for="" class="mb-1 d-inline">Wall Bracket</label>
+                                    </div>
+                                    <div class="input d-flex align-items-center">
+                                        <input type="checkbox" :value="'Panel Scratches'" ref="panel" class="d-inline"
+                                            style="width: 15px; height: 15px; margin-right: 10px;">
+                                        <label for="" class="mb-1 d-inline">Panel Scratches</label>
+                                    </div>
                                 </div>
                             </div>
 
@@ -256,7 +286,7 @@
                             </div>
 
                             <div class="col-12 mt-3">
-                                <button @click="PlaceOrder()" class="primary-btn submit-btn">Save</button>
+                                <button :disabled="isDisabled" @click="PlaceOrder()" class="primary-btn submit-btn">Save</button>
                                 <button @click="newOrder('hide')"
                                     style="background: transparent; color: red !important; border: red 1px solid;"
                                     class="primary-btn submit-btn mx-4">Close</button>
@@ -423,12 +453,14 @@
                     <div class="product-wrp mt-1">
                         <div class="row">
                             <div class="col-12 mt-4">
-                                <button @click="newSale('hide')" style="background: transparent; color: red !important; border: red 1px solid;"
-                                    class="primary-btn submit-btn mx-4"><i class="fa-solid fa-arrow-left-long mx-2"></i> Back To POS</button>
+                                <button @click="newSale('hide')"
+                                    style="background: transparent; color: red !important; border: red 1px solid;"
+                                    class="primary-btn submit-btn mx-4"><i class="fa-solid fa-arrow-left-long mx-2"></i>
+                                    Back To POS</button>
                             </div>
                         </div>
                     </div>
-                    <sale_pos/>
+                    <sale_pos />
                 </div>
             </div>
         </div>
@@ -461,6 +493,7 @@ export default {
             paymentMod: 'cash',
             spareCount: 1,
             finishOrderNo: 0,
+            isDisabled: false,
         }
     },
     methods: {
@@ -588,7 +621,6 @@ export default {
             method != "" ? this.$refs[method].classList.add("active") : this.paymentMod = '';
         },
         async proceed() {
-
             if (Array.isArray(this.selectedRepair) && this.selectedRepair.length > 0) {
                 var total = this.get_total();
                 var payment = this.paymentMod;
@@ -725,6 +757,7 @@ export default {
             var fault = this.$refs.fault.value;
             var advance = this.$refs.advance.value;
             var note = this.$refs.note.value;
+            var note2 = "";
             var customer = this.$refs.customer.value;
 
             if (model_no.trim() == "") {
@@ -737,13 +770,30 @@ export default {
                 return;
             }
 
+            this.isDisabled = true;
+
+            const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+
+            checkboxes.forEach((checkbox, index) => {
+                if (checkbox.checked) {
+                    if (index == 0) {
+                        note2 += 'Has '+checkbox.value;
+                    }
+                    else {
+                        note2 += '{break;}Has '+checkbox.value;
+                    }
+                }
+            });
+
+            note2 += "{break;}"+note.replace(/\r?\n/g, '{break;}');
+
             const { data } = await axios.post('/pos/new_order', {
                 total: total,
                 model_no: model_no,
                 serial_no: serial_no,
                 fault: fault,
                 advance: advance,
-                note: note,
+                note: note2,
                 customer: customer,
             }).catch(function (error) {
                 if (error.response) {
@@ -751,6 +801,7 @@ export default {
                 }
             });
             this.loadModal("hide");
+            this.isDisabled = false;
 
             if (data.error == "0") {
                 this.loadModal("hide");
@@ -765,12 +816,15 @@ export default {
                 this.newOrder('hide');
                 this.getRepairs();
                 this.reloadPOS();
+                this.isDisabled = false;
             }
             else {
                 this.loadModal("hide");
                 toastr.error(data.msg, "Error");
+                this.isDisabled = false;
             }
             this.loadModal("hide");
+            this.isDisabled = false;
         },
         async createCustomer() {
             var name = this.$refs.cus_name.value;

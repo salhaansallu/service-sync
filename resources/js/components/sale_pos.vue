@@ -29,7 +29,7 @@
                 <select name="" ref="customer">
                     <option value="">Select Customer</option>
                     <option v-if="posData.plan == 1" value="">-- Upgrade to premium --</option>
-                    <option :value="user['id']" v-for="user in users">{{ user['name'] }}</option>
+                    <option :value="user['id']" v-for="user in users">{{ user['name'] }} ({{ user['phone'] }})</option>
                 </select>
             </div>
 

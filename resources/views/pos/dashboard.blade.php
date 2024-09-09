@@ -4,17 +4,23 @@
     <div class="content-page">
         <div class="container-fluid">
             <div class="row">
-                <div class="col-lg-4">
+                <div class="col-12">
+                    <div id="AlertMessage" class="alert alert-danger alert-dismissible fade show d-none" role="alert">
+                        <span></span>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                </div>
+                <div class="col-lg-3">
                     <div class="card card-transparent card-block card-stretch card-height border-none">
-                        <div class="card-body p-0 mt-lg-2 mt-0">
+                        <div class="card-body p-0 mt-0">
                             <h3 class="mb-3">Hello {{ Auth::user()->fname }}, Welcome back</h3>
                             <p class="mb-0 mr-4">Your dashboard gives you views of key performance or business process. </p>
                         </div>
                     </div>
                 </div>
-                <div class="col-lg-8">
+                <div class="col-lg-9">
                     <div class="row">
-                        <div class="col-lg-4 col-md-4">
+                        <div class="col-lg-3 col-md-3">
                             <div class="card card-block card-stretch card-height">
                                 <div class="card-body">
                                     <div class="d-flex align-items-center card-total-sale">
@@ -33,7 +39,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="col-lg-4 col-md-4">
+                        <div class="col-lg-3 col-md-3">
                             <div class="card card-block card-stretch card-height">
                                 <div class="card-body">
                                     <div class="d-flex align-items-center card-total-sale">
@@ -52,7 +58,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="col-lg-4 col-md-4">
+                        <div class="col-lg-3 col-md-3">
                             <div class="card card-block card-stretch card-height">
                                 <div class="card-body">
                                     <div class="d-flex align-items-center card-total-sale">
@@ -62,6 +68,29 @@
                                         <div>
                                             <p class="mb-2">Today's Profit</p>
                                             <h4>{{ currency((float) ($todaysales - $cost), $company->currency) }}</h4>
+                                        </div>
+                                    </div>
+                                    {{-- <div class="iq-progress-bar mt-2">
+                                    <span class="bg-success iq-progress progress-1" data-percent="75">
+                                    </span>
+                                </div> --}}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-3">
+                            <div class="card card-block card-stretch card-height">
+                                <div class="card-body">
+                                    <div class="d-flex align-items-center card-total-sale">
+                                        <div class="icon iq-icon-box-2 bg-warning-light">
+                                            <i class="fa-solid fa-comment-sms"></i>
+                                        </div>
+                                        <div>
+                                            <p class="mb-2">SMS Balance</p>
+                                            <h4 id="smsBalance">
+                                                <div class="spinner-border text-warning" role="status">
+                                                    <span class="sr-only">Loading...</span>
+                                                </div>
+                                            </h4>
                                         </div>
                                     </div>
                                     {{-- <div class="iq-progress-bar mt-2">
@@ -227,9 +256,37 @@
                 </div>
             </div>
             <div class="row" id="dashboard_charts">
-                <dashboard-charts v-bind:dashsales="{{ $sales }}" v-bind:expense="{{ $yearexpense }}"/>
+                <dashboard-charts v-bind:dashsales="{{ $sales }}" v-bind:expense="{{ $yearexpense }}" />
             </div>
             <!-- Page end  -->
         </div>
     </div>
+
+    <script>
+        $(document).ready(function() {
+            $.ajax({
+                type: "post",
+                url: "/dashboard/sms/get-balance",
+                data: {
+                    _token: '{{ csrf_token() }}'
+                },
+                dataType: "json",
+                success: function(response) {
+                    if (response.balance != undefined) {
+                        $("#smsBalance").text(response.balance);
+                        if (response.balance < 50) {
+                            $("#AlertMessage").removeClass('d-none');
+                            $("#AlertMessage > span").text(
+                                "SMS fund balance low. Please reload to use this service without any interruption."
+                                );
+                        }
+                    }
+                    else {
+                        $("#smsBalance").text(0);
+                    }
+
+                }
+            });
+        });
+    </script>
 @endsection

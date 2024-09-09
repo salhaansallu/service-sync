@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\POSSettings;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use SMS;
 
 class POSSettingsController extends Controller
 {
@@ -24,6 +25,10 @@ class POSSettingsController extends Controller
         else {
             return defaultValues();
         }
+    }
+
+    public static function getSMSBalance() {
+        return response(json_encode(SMS::getBalance()));
     }
 
     /**

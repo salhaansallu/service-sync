@@ -181,6 +181,8 @@ Route::prefix('dashboard')->group(function () {
     
     Route::get('invoice-settings', [DashboardController::class, 'InvoiceSettings']);
     Route::post('invoice-settings', [POSSettingsController::class, 'update']);
+
+    Route::post('sms/get-balance', [POSSettingsController::class, 'getSMSBalance']);
 });
 
 

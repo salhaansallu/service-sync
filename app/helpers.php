@@ -29,6 +29,99 @@ use Mike42\Escpos\PrintConnectors\FilePrintConnector;
 use Mike42\Escpos\PrintConnectors\WindowsPrintConnector;
 use Mike42\Escpos\Printer;
 
+class SMS
+{
+    public $contact;
+    public $message;
+
+    function Send()
+    {
+        // URL to send the POST request to
+        $url = env('SMS_GATEWAY_URL');
+
+        // Data to be sent in the POST request
+        $postFields = [
+            'user_id' => env('SMS_USER_ID'),
+            'api_key' => env('SMS_API_KEY'),
+            'sender_id' => env('SMS_SENDER_ID'),
+            'contact' => json_encode($this->contact),
+            'message' => $this->message
+        ];
+
+        // Initialize cURL session
+        $ch = curl_init($url);
+
+        // Set cURL options
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true); // Return the response as a string
+        curl_setopt($ch, CURLOPT_POST, true);           // Set the request method to POST
+        curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($postFields)); // Set the POST fields
+
+        // Execute the cURL session and fetch the response
+        $response = curl_exec($ch);
+
+        // Close the cURL session
+        curl_close($ch);
+
+        // Check for errors
+        if (curl_errno($ch)) {
+            return (object)array(
+                "error" => 1,
+                "msg" => 'cURL error: ' . curl_error($ch)
+            );
+        } else {
+            // Print the response
+            $response = json_decode($response);
+            return (object)array(
+                "error" => $response->error,
+                "msg" => $response->message
+            );
+        }
+    }
+
+    static function getBalance() {
+        // URL to send the POST request to
+        $url = env('SMS_GATEWAY_URL');
+
+        // Data to be sent in the POST request
+        $postFields = [
+            'user_id' => env('SMS_USER_ID'),
+            'api_key' => env('SMS_API_KEY'),
+        ];
+
+        // Initialize cURL session
+        $ch = curl_init($url.'get-balance');
+
+        // Set cURL options
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true); // Return the response as a string
+        curl_setopt($ch, CURLOPT_POST, true);           // Set the request method to POST
+        curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($postFields)); // Set the POST fields
+
+        // Execute the cURL session and fetch the response
+        $response = curl_exec($ch);
+
+
+        // Check for errors
+        if (curl_errno($ch)) {
+            $response = (object)array(
+                "error" => 1,
+                "msg" => 'cURL error: ' . curl_error($ch)
+            );
+        } else {
+            // Print the response
+            $response = json_decode($response);
+            $response = (object)array(
+                "error" => $response->error,
+                "msg" => $response->message,
+                "balance" => $response->error == 0 ? $response->balance : 0
+            );
+        }
+
+        // Close the cURL session
+        curl_close($ch);
+        return $response;
+    }
+}
+
 function country($country)
 {
     $countryList = array(
@@ -617,8 +710,8 @@ function generateInvoice($order_id, $inName, $bill_type)
     //$qr_code_image = generateQR("https://nmsware.com/customer-copy/" . $company->pos_code . "/" . $order_id);
     //$POSSettings = POSSettings();
 
-    $note = $bill_type == 'newOrder'? 'Received' : 'Delivered';
-    $note2 = $bill_type == 'newOrder'? 'Receive Note' : 'Delivery Note';
+    $note = $bill_type == 'newOrder' ? 'Received' : 'Delivered';
+    $note2 = $bill_type == 'newOrder' ? 'Receive Note' : 'Delivery Note';
 
     $html = '
         <html lang="en">
@@ -638,12 +731,12 @@ function generateInvoice($order_id, $inName, $bill_type)
         <body style="font-family: Arial, sans-serif;">
 
             <!-- Header -->
-            <div style="text-align: center; margin-bottom: 20px; margin-top: 30px;">
+            <div style="text-align: center; margin-bottom: 20px;">
                 <h1 style="margin: 0;">' . $company->company_name . '</h1>
                 <p style="margin: 0;">' . getUserData($company->admin_id)->address . '</p>
                 <p style="margin: 0;">Tel: ' . formatPhoneNumber(getUserData($company->admin_id)->phone) . '</p>
                 <p style="margin: 0;">www.wefix.lk</p>
-                <h2 style="margin: 20px 0;">'. $note2 .'</h2>
+                <h2 style="margin: 20px 0;">' . $note2 . '</h2>
             </div>
 
             <!-- Customer Details -->
@@ -700,19 +793,19 @@ function generateInvoice($order_id, $inName, $bill_type)
             </div>
 
             <!-- Total -->
-            <div style="margin-bottom: 20px;">
+            <div>
                 <table style="width: 30%; border-collapse: collapse;margin-left: auto;">
                     <tr>
                         <td style="padding: 5px; text-align: right;font-size: 20px;font-weight: 800;">Total:</td>
-                        <td style="padding: 5px; text-align: right;font-size: 20px;font-weight: 800; width: 230px;">'. currency($repairs->total, 'LKR') .'</td>
+                        <td style="padding: 5px; text-align: right;font-size: 20px;font-weight: 800; width: 230px;">' . currency($repairs->total, 'LKR') . '</td>
                     </tr>
                     <tr>
                         <td style="padding: 5px; text-align: right;">Advance:</td>
-                        <td style="padding: 5px; text-align: right; width: 230px;">'. currency($repairs->advance, 'LKR') .'</td>
+                        <td style="padding: 5px; text-align: right; width: 230px;">' . currency($repairs->advance, 'LKR') . '</td>
                     </tr>
                     <tr>
                         <td style="padding: 5px; text-align: right;">Balance:</td>
-                        <td style="padding: 5px; text-align: right; width: 230px;">'. currency(((float)$repairs->total - (float)$repairs->advance), 'LKR') .'</td>
+                        <td style="padding: 5px; text-align: right; width: 230px;">' . currency(((float)$repairs->total - (float)$repairs->advance), 'LKR') . '</td>
                     </tr>
                 </table>
             </div>
@@ -723,7 +816,7 @@ function generateInvoice($order_id, $inName, $bill_type)
     if ($bill_type == "newOrder") {
         $html .= '
             <!-- Checking Charges -->
-            <div style="margin-bottom: 20px;">
+            <div>
                 <h3>Product Information</h3>
                 <table style="width: 100%; border-collapse: collapse;">
                     <tr>
@@ -762,34 +855,32 @@ function generateInvoice($order_id, $inName, $bill_type)
                 </table>
             </div>
 
-            <div style="border-top: 1px solid black; border-bottom: 1px solid black;">
-                <div style="background-color: #f2f2f2; padding: 8px; text-align: left; font-weight: bold; border-bottom: 1px solid black;">Terms and Conditions</div>
-                <ol style="font-size: 12px; line-height: 1.5; margin-left: 20px; padding-bottom: 10px;">
+            <div style="border-top: 1px solid black;">
+                <div style="background-color: #f2f2f2; padding: 8px; text-align: left; font-weight: bold; border-bottom: 1px solid black;">By agreeing to these terms, you acknowledge and accept these conditions.</div>
+                <ol style="font-size: 12px; line-height: 1.5; margin-left: 20px; padding-bottom: 3px;">
                     <li>If you retrieve your item before the repair is completed, you must still pay the repair charges.</li>
                     <li>The company is not responsible for items not collected within 14 days after repair.</li>
                 </ol>
-                <p style="text-align: center; font-weight: bold; margin-bottom: 20px;">By agreeing to these terms, you acknowledge and accept these conditions.</p>
 
                 <!-- Signature Section -->
-                <table style="width: 100%; border-top: 1px solid black;">
+                <table style="width: 100%;">
                     <tr>
-                        <td style="padding: 10px; text-align: center; border-right: 1px solid black; width: 50%;">
+                        <td style="padding: 10px; text-align: center; width: 50%;">
                             <p>_____________________</p>
                             <p style="margin-top: 5px;">Customer Signature</p>
                         </td>
                         <td style="padding: 10px; text-align: center; width: 50%;">
                             <p style="margin-bottom: 10px;"><strong>' . substr(getUser(Auth::user()->id)->fname, 0, 11) . '</strong></p>
-                            <p style="margin-top: 5px;">'. $note .' By</p>
+                            <p style="margin-top: 5px;">' . $note . ' By</p>
                         </td>
                     </tr>
                 </table>
             </div>
-        ';    
-    }
-    else {
+        ';
+    } else {
         $html .= '
             <!-- Signature Section -->
-            <div style="border-top: 1px solid black; border-bottom: 1px solid black;">
+            <div style="border-top: 1px solid black; border-bottom: 1px solid black;margin-top: 30px;">
                 <table style="width: 100%; border-top: 1px solid black;">
                     <tr>
                         <td style="padding: 10px; text-align: center; border-right: 1px solid black; width: 50%;">
@@ -798,7 +889,7 @@ function generateInvoice($order_id, $inName, $bill_type)
                         </td>
                         <td style="padding: 10px; text-align: center; width: 50%;">
                             <p style="margin-bottom: 10px;"><strong>' . getUser(Auth::user()->id)->fname . '</strong></p>
-                            <p style="margin-top: 5px;">'. $note .' By</p>
+                            <p style="margin-top: 5px;">Cashier</p>
                         </td>
                     </tr>
                 </table>
@@ -809,7 +900,7 @@ function generateInvoice($order_id, $inName, $bill_type)
     $html .= '
         
         <!-- Footer -->
-        <p style="text-align: center; font-weight: bold; border: 1px solid black;margin: 0;padding: 10px;">Thank You Please Come Again</p>
+        <p style="text-align: center; font-weight: bold;">Thank You Please Come Again</p>
 
         </body>
         </html>
@@ -821,10 +912,10 @@ function generateInvoice($order_id, $inName, $bill_type)
     $pdf->setPaper("A4", "portrait");
     $pdf->loadHtml($html, 'UTF-8');
     $pdf->render();
-    $path = public_path('invoice/'.$bill_type.'/' . $inName);
+    $path = public_path('invoice/' . $bill_type . '/' . $inName);
     file_put_contents($path, $pdf->output());
 
-    return (object)array('generated' => true, 'url' => '/invoice/'.$bill_type.'/' . $inName);
+    return (object)array('generated' => true, 'url' => '/invoice/' . $bill_type . '/' . $inName);
 }
 
 function generateSalesInvoice($order_id, $inName, $products, $cashin)
@@ -905,8 +996,8 @@ function generateSalesInvoice($order_id, $inName, $products, $cashin)
                     </tr>
         ';
 
-        foreach ($products as $key => $pro) {
-            $html .= '
+    foreach ($products as $key => $pro) {
+        $html .= '
             
             <tr>
                 <td style="padding: 5px; border: 1px solid black;">' . $pro['name'] . '</td>
@@ -916,9 +1007,9 @@ function generateSalesInvoice($order_id, $inName, $products, $cashin)
             </tr>
 
             ';
-        }
+    }
 
-        $html .='            
+    $html .= '            
                 </table>
             </div>
 
@@ -927,15 +1018,15 @@ function generateSalesInvoice($order_id, $inName, $products, $cashin)
                 <table style="width: 30%; border-collapse: collapse;margin-left: auto;">
                     <tr>
                         <td style="padding: 5px; text-align: right;font-size: 20px;font-weight: 800;">Total:</td>
-                        <td style="padding: 5px; text-align: right;font-size: 20px;font-weight: 800; width: 230px;">'. currency($repairs->total, 'LKR') .'</td>
+                        <td style="padding: 5px; text-align: right;font-size: 20px;font-weight: 800; width: 230px;">' . currency($repairs->total, 'LKR') . '</td>
                     </tr>
                     <tr>
                         <td style="padding: 5px; text-align: right;">Cash Paid:</td>
-                        <td style="padding: 5px; text-align: right; width: 230px;">'. currency($cashin, 'LKR') .'</td>
+                        <td style="padding: 5px; text-align: right; width: 230px;">' . currency($cashin, 'LKR') . '</td>
                     </tr>
                     <tr>
                         <td style="padding: 5px; text-align: right;">Balance:</td>
-                        <td style="padding: 5px; text-align: right; width: 230px;">'. currency(((float)$repairs->total - (float)$cashin), 'LKR') .'</td>
+                        <td style="padding: 5px; text-align: right; width: 230px;">' . currency(((float)$repairs->total - (float)$cashin), 'LKR') . '</td>
                     </tr>
                 </table>
             </div>
