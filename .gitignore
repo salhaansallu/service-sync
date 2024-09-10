@@ -6,7 +6,6 @@
 /public/credit-invoice
 /public/hot
 /public/storage
-/public/.htaccess
 /storage/*.key
 /vendor
 .env

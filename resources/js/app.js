@@ -65,6 +65,11 @@ import dashboardCredits from './components/credits.vue';
 DashboardCreditApp.component('dashboard-credits', dashboardCredits);
 DashboardCreditApp.mount('#dashboardCredits');
 
+const DashboardSMS = createApp({});
+import dashboardSMS from './components/sendSMS.vue';
+DashboardSMS.component('send-sms', dashboardSMS);
+DashboardSMS.mount('#dashboardSMS');
+
 
 
 $('#menu_close').click(function (e) {

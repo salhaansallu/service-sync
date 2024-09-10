@@ -11,8 +11,6 @@ use App\Http\Controllers\CreditController;
 use App\Http\Controllers\CustomersController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\NewsletterController;
-use App\Http\Controllers\paymentController;
-use App\Http\Controllers\paypalController;
 use App\Http\Controllers\PosDataController;
 use App\Http\Controllers\PosInvitationController;
 use App\Http\Controllers\POSSettingsController;
@@ -20,6 +18,7 @@ use App\Http\Controllers\pricePlan;
 use App\Http\Controllers\ProductsController;
 use App\Http\Controllers\PurchasesController;
 use App\Http\Controllers\RepairsController;
+use App\Http\Controllers\SMSController;
 use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\UserDataController;
 use Illuminate\Support\Facades\Route;
@@ -88,7 +87,7 @@ Route::post('/update-password', [accountController::class, 'updatePassword']);
 //     return view('privacy');
 // });
 
-Route::post('checkout', [paymentController::class, 'checkout']);
+//Route::post('checkout', [paymentController::class, 'checkout']);
 
 
 
@@ -183,6 +182,9 @@ Route::prefix('dashboard')->group(function () {
     Route::post('invoice-settings', [POSSettingsController::class, 'update']);
 
     Route::post('sms/get-balance', [POSSettingsController::class, 'getSMSBalance']);
+    
+    Route::get('sms', [SMSController::class, 'index']);
+    Route::post('sms/send', [SMSController::class, 'send']);
 });
 
 

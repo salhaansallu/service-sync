@@ -33,6 +33,8 @@ class SMS
 {
     public $contact;
     public $message;
+    public $camp_type;
+    public $send_at;
 
     function Send()
     {
@@ -45,7 +47,9 @@ class SMS
             'api_key' => env('SMS_API_KEY'),
             'sender_id' => env('SMS_SENDER_ID'),
             'contact' => json_encode($this->contact),
-            'message' => $this->message
+            'message' => $this->message,
+            'camp_type' => $this->camp_type,
+            'send_at' => $this->send_at,
         ];
 
         // Initialize cURL session
@@ -439,8 +443,8 @@ function profileImage($path)
         return asset('user_profile/placeholder.png');
     }
 
-    if (file_exists(env('APP_ENV') == 'production' ? '/var/www/image.nmsware.com/user_profile/' . $path : public_path('assets/images/user_profile/' . $path))) {
-        return env('APP_ENV') == 'production' ? 'https://image.nmsware.com/user_profile/' . $path : asset('/assets/images/user_profile/' . $path);
+    if (file_exists(public_path('assets/images/user_profile/' . $path))) {
+        return asset('/assets/images/user_profile/' . $path);
     } else {
         return asset('user_profile/placeholder.png');
     }
@@ -743,7 +747,7 @@ function generateInvoice($order_id, $inName, $bill_type)
             <div style="margin-bottom: 20px;">
                 <table style="width: 100%; border-collapse: collapse;">
                     <tr>
-                        <th colspan="3" style="background-color: #000; color: #fff;padding: 5px;">Customer Details</th>
+                        <th colspan="3" style="color: #000;padding: 5px;">Customer Details</th>
                     </tr>
                     <tr>
                         <td style="width: 33%; padding: 5px; border: 1px solid black;">Customer Name</td>
@@ -776,11 +780,11 @@ function generateInvoice($order_id, $inName, $bill_type)
             <div style="margin-bottom: 20px;">
                 <table style="width: 100%; border-collapse: collapse;">
                     <tr>
-                        <th style="background-color: #000; color: #fff;padding: 5px; border: 1px solid black; text-align: left;">Model No</th>
-                        <th style="background-color: #000; color: #fff;padding: 5px; border: 1px solid black; text-align: left;">Serial No</th>
-                        <th style="background-color: #000; color: #fff;padding: 5px; border: 1px solid black; text-align: left;">Fault</th>
-                        <th style="background-color: #000; color: #fff;padding: 5px; border: 1px solid black; text-align: left;">Advance</th>
-                        <th style="background-color: #000; color: #fff;padding: 5px; border: 1px solid black; text-align: left;">Total</th>
+                        <th style="color: #000;padding: 5px; border: 1px solid black; text-align: left;">Model No</th>
+                        <th style="color: #000;padding: 5px; border: 1px solid black; text-align: left;">Serial No</th>
+                        <th style="color: #000;padding: 5px; border: 1px solid black; text-align: left;">Fault</th>
+                        <th style="color: #000;padding: 5px; border: 1px solid black; text-align: left;">Advance</th>
+                        <th style="color: #000;padding: 5px; border: 1px solid black; text-align: left;">Total</th>
                     </tr>
                     <tr>
                         <td style="padding: 5px; border: 1px solid black;">' . $repairs->model_no . '</td>
@@ -856,7 +860,7 @@ function generateInvoice($order_id, $inName, $bill_type)
             </div>
 
             <div style="border-top: 1px solid black;">
-                <div style="background-color: #f2f2f2; padding: 8px; text-align: left; font-weight: bold; border-bottom: 1px solid black;">By agreeing to these terms, you acknowledge and accept these conditions.</div>
+                <div style="padding: 8px; text-align: left; font-weight: bold; border-bottom: 1px solid black;">By agreeing to these terms, you acknowledge and accept these conditions.</div>
                 <ol style="font-size: 12px; line-height: 1.5; margin-left: 20px; padding-bottom: 3px;">
                     <li>If you retrieve your item before the repair is completed, you must still pay the repair charges.</li>
                     <li>The company is not responsible for items not collected within 14 days after repair.</li>
@@ -956,7 +960,7 @@ function generateSalesInvoice($order_id, $inName, $products, $cashin)
             <div style="margin-bottom: 20px;">
                 <table style="width: 100%; border-collapse: collapse;">
                     <tr>
-                        <th colspan="3" style="background-color: #000; color: #fff;padding: 5px;">Customer Details</th>
+                        <th colspan="3" style="color: #000;padding: 5px;">Customer Details</th>
                     </tr>
                     <tr>
                         <td style="width: 33%; padding: 5px; border: 1px solid black;">Customer Name</td>

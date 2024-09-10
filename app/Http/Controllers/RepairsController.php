@@ -223,8 +223,11 @@ class RepairsController extends Controller
             $advance = sanitize($request->input('advance'));
             $total = sanitize($request->input('total'));
             $customer = sanitize($request->input('customer'));
-            foreach ($request->input('spares') as $key => $val) {
-                $spares[] = sanitize($val);
+            $spares = [];
+            if ($request->has('spares')) {
+                foreach ($request->input('spares') as $key => $val) {
+                    $spares[] = sanitize($val);
+                }
             }
             $status = sanitize($request->input('status'));
 
