@@ -71,7 +71,7 @@
                     style="border-radius: 5px;box-shadow: 0px 0px 2px 0px #00000029;">
                     <div class="order-display">
                         <div class="row">
-                            <div
+                            <div style="cursor: pointer;" @click="printInvoice(repair.invoice)"
                                 class="col-1 form-text mt-0 d-flex align-items-center control-text-overflow text-primary">
                                 {{ repair.bill_no }}</div>
                             <div class="col-2 form-text mt-0 d-flex align-items-center control-text-overflow">{{
@@ -517,7 +517,7 @@ export default {
         finishOrder(action, bill_no = 0) {
             $("#FinishOrder").modal(action);
             this.$refs['finish_bill_no'].value = bill_no;
-            this.$refs['finish_note'].value = this.repairs.filter(item => item['bill_no'] == bill_no)[0].note;
+            this.$refs['finish_note'].value = this.repairs.filter(item => item['bill_no'] == bill_no)[0].note.replace(/\s*<br>\s*/g, "\n");
             this.$refs['finish_total'].value = this.repairs.filter(item => item['bill_no'] == bill_no)[0].total;
             this.finishOrderNo = bill_no;
         },
@@ -883,6 +883,14 @@ export default {
             if (op == '-' && this.spareCount >= 1) {
                 this.spareCount--;
             }
+        },
+        printInvoice(invoice) {
+            if (invoice == "") {
+                toastr.error("Invoice not found", "Error");
+                return;
+            }
+
+            printJS("/invoice/"+invoice);
         }
     },
     beforeMount() {

@@ -165,7 +165,7 @@ class RepairsController extends Controller
                     if ($generate_invoice->generated == true) {
 
                         Repairs::where('bill_no', $bill_no)->where('pos_code', company()->pos_code)->update([
-                            "invoice" => $inName,
+                            "invoice" => "newOrder/".$inName,
                         ]);
 
                         return response(json_encode(array("error" => 0, "msg" => "Order Added Successfully", "invoiceURL" => $generate_invoice->url)));

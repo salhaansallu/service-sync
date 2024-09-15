@@ -98,7 +98,7 @@
                                     <div class="col-md-6">
                                         <div class="form-group">
                                             <label>Note</label>
-                                            <textarea name="note" class="form-control" id="" rows="5"></textarea>
+                                            <textarea name="note" class="form-control" id="" rows="5">{{ str_replace(['<br>', ' <br> ', ' <br>', '<br> '], PHP_EOL, $repairs->note) }}</textarea>
                                         </div>
                                     </div>
                                 </div>
