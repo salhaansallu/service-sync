@@ -27,6 +27,8 @@ return new class extends Migration
             $table->string("status", 100);
             $table->string("pos_code");
             $table->text("invoice")->nullable();
+            $table->string("type")->nullable();
+            $table->text("products")->nullable();
             $table->timestamps();
         });
     }

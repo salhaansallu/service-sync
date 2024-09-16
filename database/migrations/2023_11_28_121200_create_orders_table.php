@@ -13,17 +13,15 @@ return new class extends Migration
     {
         Schema::create('orders', function (Blueprint $table) {
             $table->id();
-            $table->string('order_number');
+            $table->string('bill_no');
             $table->string('pos_code');
-            $table->string('user_id');
-            $table->string('customer');
-            $table->float('total');
-            $table->float('total_cost');
-            $table->float('service_charge');
-            $table->float('roundup');
-            $table->string('payment_method');
-            $table->text('invoice')->default("");
-            $table->text('qr_code')->default("");
+            $table->string('payment_method')->nullable();
+            $table->string('delivery')->nullable();
+            $table->float('charge', 10, 2)->nullable();
+            $table->string('tracking_code')->nullable();
+            $table->string('status');
+            $table->text('invoice')->nullable();
+            $table->text('note')->nullable();
             $table->timestamps();
         });
     }

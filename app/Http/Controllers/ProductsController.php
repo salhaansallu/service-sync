@@ -125,22 +125,22 @@ class ProductsController extends Controller
                 return response(json_encode(array("error" => 1, "msg" => "Please Fill All Required Fields Marked In '*'")));
             }
 
-            if ($request->hasFile('product_image')) {
-                $extension = $request->file('product_image')->getClientOriginalExtension();
-                if (in_array($extension, array('png', 'jpeg', 'jpg'))) {
-                    $imageName = time() . str_replace(' ', '', $code) . '.' . $request->product_image->extension();
-                    $request->product_image->move(env('APP_ENV')=='production'? '/var/www/image.nmsware.com/products/' : public_path('assets/images/products'), $imageName);
-                } else {
-                    return response(json_encode(array("error" => 1, "msg" => "Please select 'png', 'jpeg', or 'jpg' type image")));
-                }
-            }
-
             // if ($category != "other" && getCategory($category)->pos_code != company()->pos_code) {
             //     return response(json_encode(array("error" => 1, "msg" => "Invalid Category")));
             // }
 
             if ($supplier != "other" && getSupplier($supplier)->pos_code != company()->pos_code) {
                 return response(json_encode(array("error" => 1, "msg" => "Invalid Supplier")));
+            }
+
+            if ($request->hasFile('product_image')) {
+                $extension = $request->file('product_image')->getClientOriginalExtension();
+                if (in_array($extension, array('png', 'jpeg', 'jpg'))) {
+                    $imageName = time() . str_replace(' ', '', $code) . '.' . $request->product_image->extension();
+                    $request->product_image->move(public_path('assets/images/products'), $imageName);
+                } else {
+                    return response(json_encode(array("error" => 1, "msg" => "Please select 'png', 'jpeg', or 'jpg' type image")));
+                }
             }
 
             $product = new Products();

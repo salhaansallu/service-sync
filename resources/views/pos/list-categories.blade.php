@@ -44,7 +44,7 @@
                                             <td class="text-start">{{ currency($item->advance) }}</td>
                                             <td class="text-start">{{ currency($item->total - $item->advance) }}</td>
                                             <td class="text-start">{{ currency($item->total) }}</td>
-                                            <td class="text-start">{{ $item->customer }}</td>
+                                            <td class="text-start">{{ getCustomer($item->customer)->name }}</td>
                                             <td class="text-start">{{ count((array) json_decode($item->spares)) }}</td>
                                             <td class="text-start">{{ date('d-m-Y', strtotime($item->created_at)) }}</td>
                                             <td
@@ -57,8 +57,8 @@
                                                         href="/dashboard/repairs/edit/{{ $item->id }}"><i
                                                             class="ri-pencil-line mr-0"></i></a>
                                                     <a class="badge bg-secondary mr-2" data-toggle="tooltip"
-                                                        data-placement="top" title="Delete product"
-                                                        data-original-title="Delete" href="javascript:void(0)"
+                                                        data-placement="top" title="View Invoice"
+                                                        data-original-title="View Invoice" href="javascript:void(0)"
                                                         onclick="ViewInvoice('{{ $item->invoice }}')"><i
                                                             class="fa-regular fa-eye"></i></a>
                                                     <a class="badge bg-danger mr-2" data-toggle="tooltip"

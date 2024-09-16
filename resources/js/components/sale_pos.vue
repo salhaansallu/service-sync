@@ -113,7 +113,19 @@
                         Cash
                     </div>
                     <div class="col">
-                        <input type="number" ref="cashin" value="0" @keyup="$event.key=='Enter'?proceed() : updateProductDetails(true)" @focus="$event.target.select();">
+                        <input type="number" ref="cashin" value="0" @keyup="updateProductDetails(true)" @focus="$event.target.select();">
+                    </div>
+                </div>
+
+                <div class="row row-cols-2">
+                    <div class="col">
+                        Sale Type
+                    </div>
+                    <div class="col">
+                        <select class="order_type" ref="sale_type" name="" id="">
+                            <option value="instore">In Store</option>
+                            <option value="online">Online</option>
+                        </select>
                     </div>
                 </div>
 
@@ -463,6 +475,7 @@ export default {
                 var total = this.get_total();
                 var payment = this.paymentMod;
                 var cashin = this.$refs.cashin.value == "" ? 0 : this.$refs.cashin.value;
+                var sale_type = this.$refs.sale_type.value == "" ? 0 : this.$refs.sale_type.value;
                 //var roundup = this.$refs.roundup.value == "" ? 0 : this.$refs.roundup.value;
                 var product = [];
                 var cost = 0.00;
@@ -496,12 +509,15 @@ export default {
                             products: product,
                             customer: customer,
                             cashin: cashin,
+                            sale_type: sale_type,
                         }
                     }).catch(function (error) {
                         if (error.response) {
                             toastr.error("Sorry something went wrong. Please refresh the page and try again", "Error");
                         }
                     });
+
+                    this.isDisabled = false;
 
                     if (data.error == "0") {
                         this.loadModal("hide");
@@ -596,5 +612,12 @@ export default {
 <style scoped>
 .product-wrap {
     height: 95%;
+}
+
+.order_type {
+    width: 100%;
+    outline: none;
+    border: 0;
+    padding: 3px 0;
 }
 </style>

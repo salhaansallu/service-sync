@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\customers;
+use App\Models\orders;
 use App\Models\Products;
 use App\Models\Repairs;
 use Exception;
@@ -24,7 +25,7 @@ class RepairsController extends Controller
     {
         $response = [];
         if (PosDataController::check()) {
-            return response(json_encode(Repairs::where('pos_code', PosDataController::company()->pos_code)->where('status', '!=', 'Delivered')->get()));
+            return response(json_encode(Repairs::where('pos_code', PosDataController::company()->pos_code)->where('type', '!=', 'sale')->where('status', '!=', 'Delivered')->get()));
         } else {
             $response['error'] = 1;
             $response['msg'] = "not_logged_in";
@@ -106,7 +107,6 @@ class RepairsController extends Controller
             try {
                 $bill_no = 1001;
                 $total = sanitize($request->input('total'));
-                $note = str_replace('\n', '{break;}', $request->input('note'));
                 $note = sanitize($request->input('note'));
                 $model_no = sanitize($request->input('model_no'));
                 $serial_no = sanitize($request->input('serial_no'));
@@ -143,6 +143,7 @@ class RepairsController extends Controller
                 $repair->customer = $customer;
                 $repair->cashier = Auth::user()->id;
                 $repair->status = "Pending";
+                $repair->type = "repair";
                 $repair->pos_code = company()->pos_code;
 
                 if ($repair->save()) {
@@ -282,6 +283,73 @@ class RepairsController extends Controller
             $verify = Repairs::where('id', $id)->where('pos_code', company()->pos_code);
             if ($verify && $verify->get()->count() > 0) {
                 if ($verify->delete()) {
+                    return response(json_encode(array("error" => 0, "msg" => "Order deleted successfully")));
+                }
+                return response(json_encode(array("error" => 1, "msg" => "Order not found")));
+            }
+            return response(json_encode(array("error" => 1, "msg" => "Sorry! something went wrong")));
+        }
+    }
+
+
+    // =============== Sales ====================== ///
+
+    public function salesUpdate(Request $request, Repairs $repairs)
+    {
+        if (Auth::check() && DashboardController::check(true)) {
+            $id = sanitize($request->input('modelid'));
+            $note = sanitize($request->input('note'));
+            $customer = sanitize($request->input('customer'));
+            $status = sanitize($request->input('status'));
+
+            $id_verify = Repairs::where('id', $id)->where('pos_code', company()->pos_code)->get();
+
+            if ($id_verify && $id_verify->count() > 0) {
+                # continue
+            } else {
+                return response(json_encode(array("error" => 1, "msg" => "Invalid Update Attempt")));
+            }
+
+            $product = Repairs::where('id', $id)->update([
+                "note" => $note,
+                "customer" => $customer,
+                "status" => $status,
+                "updated_at" => date('Y-m-d H:i:s'),
+            ]);
+
+            if ($product) {
+                return response(json_encode(array("error" => 0, "msg" => "Order Updated Successfully", 'id' => $id)));
+            }
+
+            return response(json_encode(array("error" => 1, "msg" => "Something went wrong please, try again later")));
+        }
+    }
+
+    public function salesEdit($id)
+    {
+        if (!Auth::check() && DashboardController::check(true)) {
+            return redirect('/signin');
+        }
+
+        $product = Repairs::where('id', sanitize($id))->where('pos_code', company()->pos_code)->get();
+        $customers = customers::where('pos_code', company()->pos_code)->get();
+
+        if ($product && $product->count() > 0) {
+            return view('pos.add-bills')->with(['repairs' => $product[0], 'customers' => $customers]);
+        } else {
+            return display404();
+        }
+    }
+
+    public function salesDestroy(Request $request)
+    {
+        if (Auth::check() && DashboardController::check(true)) {
+            $id = sanitize($request->input('id'));
+            $verify = Repairs::where('id', $id)->where('pos_code', company()->pos_code);
+            if ($verify && $verify->get()->count() > 0) {
+                $order = orders::where('bill_no', $verify->get()[0]->bill_no)->where('pos_code', company()->pos_code);
+                if ($verify->delete()) {
+                    $order->delete();
                     return response(json_encode(array("error" => 0, "msg" => "Order deleted successfully")));
                 }
                 return response(json_encode(array("error" => 1, "msg" => "Order not found")));

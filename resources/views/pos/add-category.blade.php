@@ -88,6 +88,7 @@
                                         <div class="form-group">
                                             <label>Status <span class="text-danger">*</span></label>
                                             <select name="status" class="form-control" required>
+                                                <option @if($repairs->status == "Delivered") selected @endif value="Delivered">Delivered</option>
                                                 <option @if($repairs->status == "Repaired") selected @endif value="Repaired">Repaired</option>
                                                 <option @if($repairs->status == "Return") selected @endif value="Return">Return</option>
                                                 <option @if($repairs->status == "Pending") selected @endif value="Pending">Pending</option>

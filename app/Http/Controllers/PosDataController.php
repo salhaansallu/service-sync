@@ -132,7 +132,7 @@ class PosDataController extends Controller
             if ($generate_invoice->generated == true) {
 
                 Repairs::where('bill_no', $bill_no)->where('pos_code', $this->company()->pos_code)->update([
-                    "invoice" => "checkout/".$inName,
+                    "invoice" => "checkout/" . $inName,
                 ]);
 
                 return response(json_encode(array("error" => 0, "msg" => "Checkout successful", "invoiceURL" => $generate_invoice->url)));
@@ -150,6 +150,7 @@ class PosDataController extends Controller
         if (Auth::check() && $this->check()) {
             $request = filter_var_array($request->input('params'), FILTER_SANITIZE_STRING);
             $cashin = sanitize($request['cashin']);
+            $sale_type = sanitize($request['sale_type']);
             $spares = $request['products'];
             $customer = sanitize($request['customer']);
             $bill_no = 1001;
@@ -159,6 +160,10 @@ class PosDataController extends Controller
             $cost = 0;
             $parts = [];
             $invoice_pro = [];
+
+            if ($sale_type != "online" && $sale_type != "instore") {
+                return response(json_encode(array("error" => 1, "msg" => "Invalid Sale Type")));
+            }
 
             if (customers::where('pos_code', company()->pos_code)->where('id', $customer)->get()->count() == 0) {
                 return response(json_encode(array("error" => 1, "msg" => "Invalid Customer")));
@@ -177,7 +182,10 @@ class PosDataController extends Controller
                     $invoice_pro[] = array(
                         "name" => $stock[0]["pro_name"],
                         "unit" => $stock[0]["price"],
+                        "cost" => $stock[0]["cost"],
                         "qty" => $value['qty'],
+                        "sku" => $stock[0]['sku'],
+                        "id" => $stock[0]['id'],
                     );
                 }
             }
@@ -192,38 +200,48 @@ class PosDataController extends Controller
             }
 
             $repair = new Repairs();
-                $repair->bill_no = $bill_no;
-                $repair->model_no = "";
-                $repair->serial_no = "";
-                $repair->fault = "";
-                $repair->note = "";
-                $repair->advance = 0;
-                $repair->spares = json_encode($parts);
-                $repair->total = $total;
-                $repair->cost = $cost;
-                $repair->customer = $customer;
-                $repair->cashier = Auth::user()->id;
-                $repair->status = "Delivered";
-                $repair->pos_code = company()->pos_code;
+            $repair->bill_no = $bill_no;
+            $repair->model_no = "";
+            $repair->serial_no = "";
+            $repair->fault = "";
+            $repair->note = "";
+            $repair->advance = 0;
+            $repair->spares = json_encode($parts);
+            $repair->total = $total;
+            $repair->cost = $cost;
+            $repair->customer = $customer;
+            $repair->cashier = Auth::user()->id;
+            $repair->status = "Delivered";
+            $repair->type = "sale";
+            $repair->products = htmlspecialchars(json_encode($invoice_pro));
+            $repair->pos_code = company()->pos_code;
 
-                if ($repair->save()) {
+            if ($repair->save()) {
 
-                    $inName = str_replace(' ', '-', str_replace('.', '-', $bill_no)) . '-Invoice-' . date('d-m-Y-h-i-s') . '-' . rand(0, 9999999) . '.pdf';
-
-                    $generate_invoice = generateSalesInvoice($bill_no, $inName, $invoice_pro, $cashin);
-
-                    if ($generate_invoice->generated == true) {
-
-                        Repairs::where('bill_no', $bill_no)->where('pos_code', company()->pos_code)->update([
-                            "invoice" => $inName,
-                        ]);
-
-                        return response(json_encode(array("error" => 0, "msg" => "Checkout Successful", "invoiceURL" => $generate_invoice->url)));
-                    } 
-                    else {
-                        return response(json_encode(array("error" => 0, "msg" => "Checkout Successful, Couldn't print invoice: " . $generate_invoice->msg)));
-                    }
+                if ($sale_type == "online") {
+                    $order = new orders();
+                    $order->bill_no = $bill_no;
+                    $order->pos_code = company()->pos_code;
+                    $order->payment_method = "";
+                    $order->status = "Processing";
+                    $order->save();
                 }
+
+                $inName = str_replace(' ', '-', str_replace('.', '-', $bill_no)) . '-Invoice-' . date('d-m-Y-h-i-s') . '-' . rand(0, 9999999) . '.pdf';
+
+                $generate_invoice = generateSalesInvoice($bill_no, $inName, $invoice_pro, $cashin);
+
+                if ($generate_invoice->generated == true) {
+
+                    Repairs::where('bill_no', $bill_no)->where('pos_code', company()->pos_code)->update([
+                        "invoice" => 'checkout/'.$inName,
+                    ]);
+
+                    return response(json_encode(array("error" => 0, "msg" => "Checkout Successful", "invoiceURL" => $generate_invoice->url)));
+                } else {
+                    return response(json_encode(array("error" => 0, "msg" => "Checkout Successful, Couldn't print invoice: " . $generate_invoice->msg)));
+                }
+            }
         }
         return response(json_encode(array("error" => 1, "msg" => "Not logged in")));
     }

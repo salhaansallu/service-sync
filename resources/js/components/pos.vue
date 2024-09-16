@@ -81,7 +81,7 @@
                             <div class="col-2 form-text mt-0 d-flex align-items-center control-text-overflow">{{
                                 repair.fault }}</div>
                             <div class="col-2 form-text mt-0 d-flex align-items-center control-text-overflow">{{
-                                repair.customer }}</div>
+                                searchCustomer(repair.customer)["name"] }}</div>
                             <div class="col-1 form-text mt-0 d-flex align-items-center control-text-overflow"><span
                                     :class="'badge bg-' + getStatus(repair.status)">{{ repair.status }}</span></div>
                             <div class="col-1 form-text mt-0 d-flex align-items-center">
@@ -286,7 +286,8 @@
                             </div>
 
                             <div class="col-12 mt-3">
-                                <button :disabled="isDisabled" @click="PlaceOrder()" class="primary-btn submit-btn">Save</button>
+                                <button :disabled="isDisabled" @click="PlaceOrder()"
+                                    class="primary-btn submit-btn">Save</button>
                                 <button @click="newOrder('hide')"
                                     style="background: transparent; color: red !important; border: red 1px solid;"
                                     class="primary-btn submit-btn mx-4">Close</button>
@@ -574,6 +575,14 @@ export default {
                 this.repairs = pro.filter(item => item['model_no'].toLowerCase().includes(this.$refs['searchbar'].value.toLowerCase()) || item['bill_no'].toLowerCase().includes(this.$refs['searchbar'].value.toLowerCase()));
             }
         },
+        searchCustomer(id) {
+            var data = this.users.filter(item => item['id'] == id);
+            if (data.length > 0) {
+                return data[0];
+            }
+
+            return {"name":"N/A", "phone": "N/A", "email":"N/A"}
+        },
         removeProduct(pro) {
             this.selectedRepair = [];
             this.updateOrder();
@@ -777,15 +786,15 @@ export default {
             checkboxes.forEach((checkbox, index) => {
                 if (checkbox.checked) {
                     if (index == 0) {
-                        note2 += 'Has '+checkbox.value;
+                        note2 += 'Has ' + checkbox.value;
                     }
                     else {
-                        note2 += '{break;}Has '+checkbox.value;
+                        note2 += '{break;}Has ' + checkbox.value;
                     }
                 }
             });
 
-            note2 += "{break;}"+note.replace(/\r?\n/g, '{break;}');
+            note2 += "{break;}" + note.replace(/\r?\n/g, '{break;}');
 
             const { data } = await axios.post('/pos/new_order', {
                 total: total,
@@ -890,7 +899,7 @@ export default {
                 return;
             }
 
-            printJS("/invoice/"+invoice);
+            printJS("/invoice/" + invoice);
         }
     },
     beforeMount() {

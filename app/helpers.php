@@ -82,7 +82,8 @@ class SMS
         }
     }
 
-    static function getBalance() {
+    static function getBalance()
+    {
         // URL to send the POST request to
         $url = env('SMS_GATEWAY_URL');
 
@@ -93,7 +94,7 @@ class SMS
         ];
 
         // Initialize cURL session
-        $ch = curl_init($url.'get-balance');
+        $ch = curl_init($url . 'get-balance');
 
         // Set cURL options
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true); // Return the response as a string
@@ -599,6 +600,24 @@ function getTotalOrderSale($sku)
     return (float)$total;
 }
 
+function getDeliveryStatus($bill)
+{
+    $orders = orders::where('bill_no', $bill)->where('pos_code', company()->pos_code)->get();
+    if ($orders->count() > 0) {
+        return $orders[0]->status;
+    }
+    return "N/A";
+}
+
+function hasDelivery($bill)
+{
+    $orders = orders::where('bill_no', $bill)->where('pos_code', company()->pos_code)->get();
+    if ($orders->count() > 0) {
+        return true;
+    }
+    return false;
+}
+
 function currency($price, $currency = '')
 {
     if (strpos($price, '.')) {
@@ -993,10 +1012,10 @@ function generateSalesInvoice($order_id, $inName, $products, $cashin)
             <div style="margin-bottom: 20px;">
                 <table style="width: 100%; border-collapse: collapse;">
                     <tr>
-                        <th style="background-color: #000; color: #fff;padding: 5px; border: 1px solid black; text-align: left;">Description</th>
-                        <th style="background-color: #000; color: #fff;padding: 5px; border: 1px solid black; text-align: left;">Unit Price</th>
-                        <th style="background-color: #000; color: #fff;padding: 5px; border: 1px solid black; text-align: left;">QTY</th>
-                        <th style="background-color: #000; color: #fff;padding: 5px; border: 1px solid black; text-align: left;">Total</th>
+                        <th style="color: #000;padding: 5px; border: 1px solid black; text-align: left;">Description</th>
+                        <th style="color: #000;padding: 5px; border: 1px solid black; text-align: left;">Unit Price</th>
+                        <th style="color: #000;padding: 5px; border: 1px solid black; text-align: left;">QTY</th>
+                        <th style="color: #000;padding: 5px; border: 1px solid black; text-align: left;">Total</th>
                     </tr>
         ';
 
@@ -1072,6 +1091,179 @@ function generateSalesInvoice($order_id, $inName, $products, $cashin)
     file_put_contents($path, $pdf->output());
 
     return (object)array('generated' => true, 'url' => '/invoice/checkout/' . $inName);
+}
+
+function generateDeliveryInvoice($order_id, $inName)
+{
+    $company = PosDataController::company();
+    $order = orders::where('id', $order_id)->where('pos_code', $company->pos_code)->get()[0];
+    $pros = Repairs::where('bill_no', $order->bill_no)->where('pos_code', $company->pos_code)->get()[0];
+
+    $products = json_decode(htmlspecialchars_decode($pros->products));
+
+    (float)$total = $pros->total;
+    $customer = ($pros->customer == '0' || $pros->customer == 'other') ? 'Cash Deal' : getCustomer($pros->customer)->name;
+    //$qr_code_image = generateQR("https://nmsware.com/customer-copy/" . substr($company->pos_code, 0, 10) . "/" . $order_id);
+    $product_count = 0;
+
+    $title = '<div style="text-align: center;margin-top: 10px; font-size: 20px; font-weight: bold;text-transform: uppercase;margin-bottom: 3px;">Delivery Receipt</div>
+        <hr style="border-width: 3px; border-color: #505050; border-style: dotted; margin: 0 40px;">';
+
+    $datetime = '
+        <tr style="width: 100%;">
+            <td style="font-size: 14px; width: 50%; text-align: left;"><div>Date: ' . date('d-m-Y', strtotime($order->created_at)) . '</div></td>
+            <td style="font-size: 14px; width: 50%; text-align: right;"><div>Time: ' . date('H:i:s', strtotime($order->created_at)) . '</div></td>
+        </tr>';
+
+    $industry = '';
+
+
+    $html = '
+    
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>' . $company->company_name . ' Invoice ' . $order->bill_no . '</title>
+            <style>
+                @page { 
+                    margin: 10px;
+                    height: auto;
+                    width: 80mm;
+                 }
+                body { margin: 10px; }
+            </style>
+        </head>
+        <body style="font-family: sans-serif;margin: 0;padding: 0;">
+        <div class="invoice_wrap" style="width: 99%;padding: 40px 0;box-sizing: border-box;">
+            <div><h2 style="text-align: center; margin: 0;">' . $company->company_name . '</h2></div>
+            ' . $industry . '
+            <hr style="border-width: 2px; border-color: #000;">
+            <div style="text-align: center; font-size: 12px; margin-top: 5px;">' . getUserData($company->admin_id)->address . '</div>
+            <div style="text-align: center; font-size: 12px; margin-bottom: 5px;">' . formatPhoneNumber(getUserData($company->admin_id)->phone) . '</div>
+            <hr style="border-width: 1px; border-color: #000; border-style: dashed;">
+
+            ' . $title . '
+             
+            <div style="width: 100%;margin-top: -10px; font-size: 14px;">
+                <table style="width: 100%;margin-bottom: 3px;">
+                    <thead>
+                    <tr>
+                        <th></th>
+                        <th></th>
+                    </tr>
+                    </thead>
+                    <tbody style="width: 100%;">
+                        <tr style="width: 100%;">
+                            <td style="font-size: 14px; width: 50%;"><div>Invoice No: ' . $order->bill_no . '</div></td>
+                            <td></td>
+                        </tr>
+
+                        <tr style="width: 100%;">
+                            <td style="font-size: 14px; width: 50%; text-align:left;"><div>Cashier: ' . substr(getUser(Auth::user()->id)->fname, 0, 11) . '</div></td>
+                            <td style="font-size: 14px; width: 50%; text-align:right;"><div>Customer: ' . $customer . '</div></td>
+                        </tr>
+
+                        ' . $datetime . '
+
+                    </tbody>
+                </table>
+            </div>
+             
+            <hr style="border-width: 3px; border-color: #505050; border-style: dotted; margin: 0 40px; margin-top: 0px;margin-bottom: 5px;">
+             
+                <table style="width: 100%;">
+                    <thead>
+                    <tr>
+                        <th style="font-weight: 300; text-align: left; font-size: 15px;">Description</th>
+                        <th style="font-weight: 300; text-align: right; font-size: 15px;">Amount</th>
+                    </tr>
+                    </thead>
+                    <tbody style="width: 100%;">
+             
+    
+    ';
+
+
+    foreach ($products as $key => $product) {
+        $product_count++;
+
+        $html .= '
+                <tr style="width: 100%;">
+                    <td style="font-size: 14px;" colspan="3"><span style="margin-right: 10px;">' . $key + 1 . '. </span> <span style="margin-right: 10px;">' . $product->sku . ' </span> <span style="font-size: 15px;">' . $product->name . '</span></td>
+                </tr>
+                <tr style="width: 100%;">
+                    <td style="font-size: 14px; border-bottom: #8d8d8d 2px dotted;"><div style="margin-left: 5px;padding-bottom: 7px;">' . currency($product->qty, '') . ' <span style="margin-left: 5px;">@</span></div></td>
+                    <td style="font-size: 14px; text-align: center;border-bottom: #8d8d8d 2px dotted;">' . $product->unit . '</td>
+                    <td style="font-size: 14px; text-align: right;border-bottom: #8d8d8d 2px dotted;">' . currency($product->unit * $product->qty, '') . '</td>
+                </tr>
+            ';
+    }
+
+    $html .= '
+
+            </tbody>
+            </table>
+
+
+            <table style="width: 100%;float: right; border-bottom: 1px solid #000;padding-bottom: 7px;">
+            <thead>
+            <tr>
+                <th></th>
+                <th></th>
+            </tr>
+            </thead>
+            <tbody style="width: 100%;">
+                <tr style="width: 100%;">
+                    <td style="width: 50%;text-align: right;font-size: 20px;font-weight: bold;"><div>Total:</div></td>
+                    <td style="font-size: 20px;font-weight: bold; width: 50%; text-align: right;"><div>' . currency($total, '') . '</div></td>
+                </tr>
+            </tbody>
+            </table>
+            <div style="font-weight: bold;text-align: center; margin-top: 40px;">Thank You!</div>
+            <div style="text-align: center;">Please come again</div>
+
+        </div>
+        </body>
+        </html>
+    
+    ';
+
+    // $connector = new FilePrintConnector("/dev/usb/lp0");
+    // $printer = new Printer($connector);
+
+    $pdf = new Dompdf();
+    $pdf->setPaper([0, 0, 227, 800]);
+    $pdf->loadHtml($html, 'UTF-8');
+
+    $GLOBALS['bodyHeight'] = 0;
+
+    $pdf->setCallbacks([
+        'myCallbacks' => [
+            'event' => 'end_frame',
+            'f' => function ($frame) {
+                $node = $frame->get_node();
+                if (strtolower($node->nodeName) === "body") {
+                    $padding_box = $frame->get_padding_box();
+                    $GLOBALS['bodyHeight'] += $padding_box['h'];
+                }
+            }
+        ]
+    ]);
+
+    $pdf->render();
+    unset($pdf);
+
+    $docHeight = $GLOBALS['bodyHeight'] + 30;
+
+    $pdf = new Dompdf();
+    $pdf->setPaper([0, 0, 230, 850]);
+    $pdf->loadHtml($html, 'UTF-8');
+    $pdf->render();
+    $path = public_path('invoice/delivery/' . $inName);
+    file_put_contents($path, $pdf->output());
+
+    return (object)array('generated' => true, 'url' => '/invoice/delivery/' . $inName);
 }
 
 function generateCreditPay($totalDue, $paid, $customer, $datetime, $bill_name)

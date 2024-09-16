@@ -183,13 +183,37 @@ class DashboardController extends Controller
         login_redirect('/' . request()->path());
 
         if (Auth::check() && $this->check(true)) {
-            $categories = Repairs::where('pos_code', company()->pos_code)->get();
+            $categories = Repairs::where('pos_code', company()->pos_code)->where('type', '!=', 'sale')->get();
             return view('pos.list-categories')->with(['repairs' => $categories]);
         } else {
             return redirect('/signin');
         }
     }
 
+    public function listOrders()
+    {
+        login_redirect('/' . request()->path());
+
+        if (Auth::check() && $this->check(true)) {
+            $categories = orders::where('pos_code', company()->pos_code)->get();
+            return view('pos.list-orders')->with(['repairs' => $categories]);
+        } else {
+            return redirect('/signin');
+        }
+    }
+
+    public function listBills()
+    {
+        login_redirect('/' . request()->path());
+
+        if (Auth::check() && $this->check(true)) {
+            $categories = Repairs::where('pos_code', company()->pos_code)->where('type', '=', 'sale')->get();
+            return view('pos.list-bills')->with(['repairs' => $categories]);
+        } else {
+            return redirect('/signin');
+        }
+    }
+    
     public function createCategories()
     {
         if (Auth::check() && $this->check(true)) {

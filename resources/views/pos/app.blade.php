@@ -158,6 +158,45 @@
                             </ul>
                         </li>
 
+                        <li class="{{ Request::is('dashboard/order*') ? 'active' : '' }}">
+                            <a href="#orders" class="collapsed {{ company()->plan == 1 ? 'no-collapsable' : '' }}"
+                                data-toggle="collapse" aria-expanded="false">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none"
+                                stroke="currentColor" stroke-width="40" stroke-linecap="round"
+                                stroke-linejoin="round"
+                                    viewBox="0 0 640 512">
+                                    <path
+                                        d="M112 0C85.5 0 64 21.5 64 48l0 48L16 96c-8.8 0-16 7.2-16 16s7.2 16 16 16l48 0 208 0c8.8 0 16 7.2 16 16s-7.2 16-16 16L64 160l-16 0c-8.8 0-16 7.2-16 16s7.2 16 16 16l16 0 176 0c8.8 0 16 7.2 16 16s-7.2 16-16 16L64 224l-48 0c-8.8 0-16 7.2-16 16s7.2 16 16 16l48 0 144 0c8.8 0 16 7.2 16 16s-7.2 16-16 16L64 288l0 128c0 53 43 96 96 96s96-43 96-96l128 0c0 53 43 96 96 96s96-43 96-96l32 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l0-64 0-32 0-18.7c0-17-6.7-33.3-18.7-45.3L512 114.7c-12-12-28.3-18.7-45.3-18.7L416 96l0-48c0-26.5-21.5-48-48-48L112 0zM544 237.3l0 18.7-128 0 0-96 50.7 0L544 237.3zM160 368a48 48 0 1 1 0 96 48 48 0 1 1 0-96zm272 48a48 48 0 1 1 96 0 48 48 0 1 1 -96 0z" />
+                                </svg>
+                                <span class="ml-4">Orders</span>
+                                @if (company()->plan == 1)
+                                    <span class="badge"><i class="fa-solid fa-crown text-warning"></i></span>
+                                @else
+                                    <svg class="svg-icon iq-arrow-right arrow-active" width="20" height="20"
+                                        xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                                        stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                        stroke-linejoin="round">
+                                        <polyline points="10 15 15 20 20 15"></polyline>
+                                        <path d="M4 4h7a4 4 0 0 1 4 4v12"></path>
+                                    </svg>
+                                @endif
+                            </a>
+                            <ul id="orders"
+                                class="iq-submenu collapse {{ Request::is('dashboard/order*') || Request::is('dashboard/bill*') ? 'show' : '' }}"
+                                data-parent="#iq-sidebar-toggle">
+                                <li class="{{ Request::is('dashboard/orders') ? 'active' : '' }}">
+                                    <a href="/dashboard/orders">
+                                        <i class="fa-solid fa-minus"></i><span>List Deliveries</span>
+                                    </a>
+                                </li>
+                                <li class="{{ Request::is('dashboard/bills') ? 'active' : '' }}">
+                                    <a href="/dashboard/bills">
+                                        <i class="fa-solid fa-minus"></i><span>List Orders</span>
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+
                         <li class="{{ Request::is('dashboard/sales-report*') ? 'active' : '' }}">
                             <a href="#reports" class="collapsed {{ company()->plan == 1 ? 'no-collapsable' : '' }}"
                                 data-toggle="collapse" aria-expanded="false">
@@ -386,7 +425,8 @@
 
                         <li class="{{ Request::is('dashboard/sms') ? 'active' : '' }}">
                             <a href="/dashboard/sms">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512" class="svg-icon" id="p-dash11" width="20" height="20" fill="currentColor">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512" class="svg-icon"
+                                    id="p-dash11" width="20" height="20" fill="currentColor">
                                     <path
                                         d="M88.2 309.1c9.8-18.3 6.8-40.8-7.5-55.8C59.4 230.9 48 204 48 176c0-63.5 63.8-128 160-128s160 64.5 160 128s-63.8 128-160 128c-13.1 0-25.8-1.3-37.8-3.6c-10.4-2-21.2-.6-30.7 4.2c-4.1 2.1-8.3 4.1-12.6 6c-16 7.2-32.9 13.5-49.9 18c2.8-4.6 5.4-9.1 7.9-13.6c1.1-1.9 2.2-3.9 3.2-5.9zM208 352c114.9 0 208-78.8 208-176S322.9 0 208 0S0 78.8 0 176c0 41.8 17.2 80.1 45.9 110.3c-.9 1.7-1.9 3.5-2.8 5.1c-10.3 18.4-22.3 36.5-36.6 52.1c-6.6 7-8.3 17.2-4.6 25.9C5.8 378.3 14.4 384 24 384c43 0 86.5-13.3 122.7-29.7c4.8-2.2 9.6-4.5 14.2-6.8c15.1 3 30.9 4.5 47.1 4.5zM432 480c16.2 0 31.9-1.6 47.1-4.5c4.6 2.3 9.4 4.6 14.2 6.8C529.5 498.7 573 512 616 512c9.6 0 18.2-5.7 22-14.5c3.8-8.8 2-19-4.6-25.9c-14.2-15.6-26.2-33.7-36.6-52.1c-.9-1.7-1.9-3.4-2.8-5.1C622.8 384.1 640 345.8 640 304c0-94.4-87.9-171.5-198.2-175.8c4.1 15.2 6.2 31.2 6.2 47.8l0 .6c87.2 6.7 144 67.5 144 127.4c0 28-11.4 54.9-32.7 77.2c-14.3 15-17.3 37.6-7.5 55.8c1.1 2 2.2 4 3.2 5.9c2.5 4.5 5.2 9 7.9 13.6c-17-4.5-33.9-10.7-49.9-18c-4.3-1.9-8.5-3.9-12.6-6c-9.5-4.8-20.3-6.2-30.7-4.2c-12.1 2.4-24.8 3.6-37.8 3.6c-61.7 0-110-26.5-136.8-62.3c-16 5.4-32.8 9.4-50 11.8C279 439.8 350 480 432 480z" />
                                 </svg>

@@ -96,13 +96,13 @@
                                             </select>
                                         </div>
                                     </div>
-                                    {{-- <div class="col-md-12">
+                                    <div class="col-md-12">
                                         <div class="form-group">
                                             <label>Image</label>
                                             <input type="file" class="form-control image-file" name="product_image"
                                                 accept="image/*" id="product_image">
                                         </div>
-                                    </div> --}}
+                                    </div>
                                 </div>
                                 <button type="submit" id="save_btn" class="btn btn-primary mr-2">@isset($product) Update product @else Add Product @endisset</button>
                             </form>

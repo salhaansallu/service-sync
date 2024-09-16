@@ -11,6 +11,7 @@ use App\Http\Controllers\CreditController;
 use App\Http\Controllers\CustomersController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\NewsletterController;
+use App\Http\Controllers\OrdersController;
 use App\Http\Controllers\PosDataController;
 use App\Http\Controllers\PosInvitationController;
 use App\Http\Controllers\POSSettingsController;
@@ -38,11 +39,6 @@ Route::get('/password/reset', [ForgotPasswordController::class, 'showLinkRequest
 Route::post('/password/reset', [ResetPasswordController::class, 'reset'])->name('password.update');
 Route::get('/password/reset/{token}', [ResetPasswordController::class, 'showResetForm'])->name('password.reset');
 Route::post('/password/email', [ForgotPasswordController::class, 'sendResetLinkEmail'])->name('password.email');
-
-Route::get('/', function () {
-    //login_redirect('/');
-    return view('auth.login');
-});
 
 // Route::get('/sri-lanka', function () {
 //     login_redirect('/sri-lanka');
@@ -116,6 +112,7 @@ Route::post('/pos/sales/checkout', [PosDataController::class, 'salesCheckout']);
 
 Route::get('/pos-dashboard/{id}', [DashboardController::class, 'index']);
 Route::get('/dashboard', [DashboardController::class, 'dashboard'])->name('dashboard');
+Route::get('/', [DashboardController::class, 'dashboard']);
 
 Route::prefix('dashboard')->group(function () {
     Route::get('products', [DashboardController::class, 'listProducts']);
@@ -129,6 +126,17 @@ Route::prefix('dashboard')->group(function () {
     Route::get('/repairs/edit/{id}', [RepairsController::class, 'edit']);
     Route::post('/repairs/edit', [RepairsController::class, 'update']);
     Route::delete('/repairs/delete', [RepairsController::class, 'destroy']);
+
+    Route::get('orders', [DashboardController::class, 'listOrders']);
+    Route::get('/order/edit/{id}', [OrdersController::class, 'edit']);
+    Route::post('/order/edit', [OrdersController::class, 'update']);
+    Route::post('/order/return', [OrdersController::class, 'return']);
+    Route::delete('/order/delete', [OrdersController::class, 'destroy']);
+
+    Route::get('bills', [DashboardController::class, 'listBills']);
+    Route::get('/bill/edit/{id}', [RepairsController::class, 'salesEdit']);
+    Route::post('/bill/edit', [RepairsController::class, 'salesUpdate']);
+    Route::delete('/bill/delete', [RepairsController::class, 'salesDestroy']);
 
     Route::get('sales-report', [DashboardController::class, 'salesReport']);
     Route::get('sales-report/customer', [DashboardController::class, 'customerSalesReport']);
