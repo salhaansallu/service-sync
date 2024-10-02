@@ -71,9 +71,12 @@
                     style="border-radius: 5px;box-shadow: 0px 0px 2px 0px #00000029;">
                     <div class="order-display">
                         <div class="row">
-                            <div style="cursor: pointer;" @click="printInvoice(repair.invoice)"
+                            <div style="cursor: pointer;"
                                 class="col-1 form-text mt-0 d-flex align-items-center control-text-overflow text-primary">
-                                {{ repair.bill_no }}</div>
+                                <span @click="printInvoice(repair.invoice)">{{ repair.bill_no }}</span> <span
+                                    @click="openWhatsapp(searchCustomer(repair.customer)['phone'])" class="mx-3"
+                                    title="WhatsApp Customer"><i class="fa-brands fa-whatsapp"></i></span>
+                            </div>
                             <div class="col-2 form-text mt-0 d-flex align-items-center control-text-overflow">{{
                                 repair.model_no }}</div>
                             <div class="col-2 form-text mt-0 d-flex align-items-center control-text-overflow">{{
@@ -85,9 +88,10 @@
                             <div class="col-1 form-text mt-0 d-flex align-items-center control-text-overflow"><span
                                     :class="'badge bg-' + getStatus(repair.status)">{{ repair.status }}</span></div>
                             <div class="col-1 form-text mt-0 d-flex align-items-center">
-                                <button @click="finishOrder('show', repair.bill_no)" v-if="repair.status == 'Pending'"
+                                <button @click="finishOrder('show', repair.bill_no)"
+                                    v-if="repair.status == 'Pending' || repair.status == 'Awaiting Parts'"
                                     class="primary-btn submit-btn"
-                                    style="font-size: 14px;padding: 5px 15px;">Finished</button>
+                                    style="font-size: 14px;padding: 5px 15px;">Update</button>
                                 <button @click="selectProduct(repair.bill_no)" v-if="repair.status == 'Return'"
                                     class="primary-btn submit-btn"
                                     style="font-size: 14px;padding: 5px 15px;">Checkout</button>
@@ -242,6 +246,7 @@
                                 <div class="input">
                                     <label for="" class="mb-1">Customer</label>
                                     <select ref="customer" name="">
+                                        <option value=""></option>
                                         <option v-for="customer in users" :value="customer.id">{{ customer.name }} ({{
                                             customer.phone }})</option>
                                     </select>
@@ -326,6 +331,7 @@
                                     <div class="row" v-for="spare in spareCount">
                                         <div class="col-9">
                                             <select :ref="'finish_spare_' + spare" :name="'finish_spare_' + spare">
+                                                <option value="">-- Select spare --</option>
                                                 <option v-for="spare in Spares" :value="spare.id">{{ spare.pro_name }}
                                                 </option>
                                             </select>
@@ -357,6 +363,7 @@
                                     <select ref="finish_status" name="finish_status">
                                         <option value="Repaired">Repaired</option>
                                         <option value="Return">Return</option>
+                                        <option value="Awaiting Parts">Awaiting Parts</option>
                                     </select>
                                 </div>
                             </div>
@@ -472,7 +479,7 @@
 
 import { ref } from 'vue';
 import toastr from 'toastr';
-import { validateName, checkEmpty, validateCountry, validatePhone, getUrlParam, currency } from '../custom';
+import { validateName, checkEmpty, validateCountry, validatePhone, getUrlParam, currency, reformatPhoneNumbers } from '../custom';
 import axios from 'axios';
 import printJS from 'print-js';
 import sale_pos from './sale_pos.vue';
@@ -500,6 +507,7 @@ export default {
     methods: {
         currency,
         printJS,
+        reformatPhoneNumbers,
         loadModal(action) {
             $("#loadingModal").modal(action);
         },
@@ -581,7 +589,7 @@ export default {
                 return data[0];
             }
 
-            return {"name":"N/A", "phone": "N/A", "email":"N/A"}
+            return { "name": "N/A", "phone": "N/A", "email": "N/A" }
         },
         removeProduct(pro) {
             this.selectedRepair = [];
@@ -709,10 +717,18 @@ export default {
 
                 if (this.spareCount > 0) {
                     for (let i = 1; i <= this.spareCount; i++) {
-                        sparePro.push({
-                            id: this.$refs["finish_spare_" + i][0].value,
-                            qty: this.$refs["qty_finish_spare_" + i][0].value,
-                        });
+                        if (this.$refs["finish_spare_" + i][0].value != "") {
+                            sparePro.push({
+                                id: this.$refs["finish_spare_" + i][0].value,
+                                qty: this.$refs["qty_finish_spare_" + i][0].value,
+                            });
+                        }
+                        else {
+                            toastr.error("Please select a product for all spares", "Error");
+                            return;
+                            break;
+                        }
+
                     }
                 }
                 else if (this.$refs.finish_service_cost != undefined) {
@@ -887,6 +903,10 @@ export default {
             if (status == "Return") {
                 return 'warning'
             }
+
+            if (status == "Awaiting Parts") {
+                return 'secondary'
+            }
         },
         spareCountUpdate(op) {
             if (op == '-' && this.spareCount >= 1) {
@@ -900,6 +920,9 @@ export default {
             }
 
             printJS("/invoice/" + invoice);
+        },
+        openWhatsapp(number) {
+            window.open('https://wa.me/' + reformatPhoneNumbers(number));
         }
     },
     beforeMount() {

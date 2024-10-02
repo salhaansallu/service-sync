@@ -326,4 +326,19 @@ function currency(price, currency) {
     }
 }
 
-export { validateName, checkEmpty, validateCountry, validatePhone, isNumber, getUrlParam, countryList, currency }
+function reformatPhoneNumbers(value) {
+    let number = value.replace(/[^0-9]/g, '');
+
+    if (number.length === 9) {
+        number = "94" + number;
+    } else if (number.length === 10 && number.startsWith('0')) {
+        number = "94" + number.substring(1);
+    } else if (number.length === 12 && number.startsWith('940')) {
+        number = "94" + number.substring(3);
+    }
+
+    return number;
+}
+
+
+export { validateName, checkEmpty, validateCountry, validatePhone, isNumber, getUrlParam, countryList, currency, reformatPhoneNumbers }

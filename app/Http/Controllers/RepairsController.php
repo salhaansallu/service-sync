@@ -45,6 +45,29 @@ class RepairsController extends Controller
             $parts = [];
             $cost = 0;
 
+            if ($status == "Awaiting Parts") {
+                $update =  Repairs::where('bill_no', $bill_no)->where('pos_code', company()->pos_code);
+
+                if ($update->update(["status" => $status])) {
+
+                    $customerData = customers::where('pos_code', company()->pos_code)->where('id', $update->get()[0]["customer"])->get();
+                    $sms = new SMS();
+                    $sms->contact = array(array(
+                        "fname" => $customerData[0]["name"],
+                        "lname" => "",
+                        "group" => "",
+                        "number" => $customerData[0]["phone"],
+                        "email" => $customerData[0]["email"],
+                    ));
+
+                    $sms->message = "Dear Customer, your repair requires a part we've ordered from our suppliers. This may delay the completion. For more info, please contact us at ".formatPhoneNumber(getUserData(company()->admin_id)->phone).". Thank you for your patience.";
+                    $sms->Send();
+
+                    return response(json_encode(array("error" => 0, "msg" => "Order Updated Successfully")));
+                }
+                return response(json_encode(array("error" => 1, "msg" => "Something went wrong please, try again later")));
+            }
+
             if (!is_numeric($service_cost)) {
                 return response(json_encode(array("error" => 1, "msg" => "Invalid service cost format")));
             }
@@ -70,7 +93,8 @@ class RepairsController extends Controller
 
             $update =  Repairs::where('bill_no', $bill_no)->where('pos_code', company()->pos_code);
 
-            if ($update->update([ "note" => $note, "status" => $status, "total" => $total, "cost" => $cost, "spares" => json_encode($parts) ])) {
+            if ($update->update(["note" => $note, "status" => $status, "total" => $total, "cost" => $cost, "spares" => json_encode($parts)])) {
+
                 $customerData = customers::where('pos_code', company()->pos_code)->where('id', $update->get()[0]["customer"])->get();
                 $sms = new SMS();
                 $sms->contact = array(array(
@@ -80,10 +104,33 @@ class RepairsController extends Controller
                     "number" => $customerData[0]["phone"],
                     "email" => $customerData[0]["email"],
                 ));
+
                 $sms->message = "Dear Customer, your product repair is complete. The total cost is " . currency($update->get()[0]["total"]) . ", with " . currency($update->get()[0]["advance"]) . " paid as advance. The remaining balance is " . currency($update->get()[0]["total"] - $update->get()[0]["advance"]) . ". Thank you for choosing " . company()->company_name . ".";
                 $sms->Send();
 
                 return response(json_encode(array("error" => 0, "msg" => "Order Updated Successfully")));
+            }
+
+            return response(json_encode(array("error" => 1, "msg" => "Something went wrong please, try again later")));
+        }
+    }
+
+    public function getInvoicePDF(Request $request)
+    {
+        if (Auth::check() && DashboardController::check(true)) {
+            $bill_no = sanitize($request->input('bill_no'));
+
+            $bill =  Repairs::where('bill_no', $bill_no)->where('pos_code', company()->pos_code)->get();
+            if ($bill->count() > 0) {
+                $bill = $bill[0];
+                $inv_type = "";
+
+                if ($bill->status == "Delivered") {
+                    $inv_type = "checkout";
+                }
+                elseif ($bill->status == "Pending") {
+                    $inv_type = "newOrder";
+                }
             }
 
             return response(json_encode(array("error" => 1, "msg" => "Something went wrong please, try again later")));
@@ -160,18 +207,20 @@ class RepairsController extends Controller
                     $sms->Send();
 
                     $inName = str_replace(' ', '-', str_replace('.', '-', $bill_no)) . '-Invoice-' . date('d-m-Y-h-i-s') . '-' . rand(0, 9999999) . '.pdf';
+                    $thermalInName = str_replace(' ', '-', str_replace('.', '-', $bill_no)) . '-Thermal-invoice-' . date('d-m-Y-h-i-s') . '-' . rand(0, 9999999) . '.pdf';
 
                     $generate_invoice = generateInvoice($bill_no, $inName, 'newOrder');
+                    $generate_thermal_invoice = generateThermalInvoice($bill_no, $thermalInName, 'newOrder');
 
                     if ($generate_invoice->generated == true) {
 
                         Repairs::where('bill_no', $bill_no)->where('pos_code', company()->pos_code)->update([
-                            "invoice" => "newOrder/".$inName,
+                            "invoice" => "newOrder/" . $inName,
                         ]);
 
-                        return response(json_encode(array("error" => 0, "msg" => "Order Added Successfully", "invoiceURL" => $generate_invoice->url)));
+                        return response(json_encode(array("error" => 0, "msg" => "Order Added Successfully", "invoiceURL" => $generate_thermal_invoice->url)));
                     } else {
-                        return response(json_encode(array("error" => 0, "msg" => "Order Added Successfully, Couldn't print invoice: " . $generate_invoice->msg)));
+                        return response(json_encode(array("error" => 0, "msg" => "Order Added Successfully, Couldn't print invoice: " . $generate_thermal_invoice->msg)));
                     }
                 }
 
@@ -266,6 +315,13 @@ class RepairsController extends Controller
             ]);
 
             if ($product) {
+                if ($status == "Pending" || $status == "Awaiting Parts" || $status == "Repaired") {
+                    generateInvoice($id_verify[0]->bill_no, str_replace(['newOrder/', 'checkout/'], "", $id_verify[0]->invoice), 'newOrder');
+                }
+                else {
+                    generateInvoice($id_verify[0]->bill_no, str_replace(['newOrder/', 'checkout/'], "", $id_verify[0]->invoice), 'checkout');
+                }
+
                 return response(json_encode(array("error" => 0, "msg" => "Order Updated Successfully", 'id' => $id)));
             }
 

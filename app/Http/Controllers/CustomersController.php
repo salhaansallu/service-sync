@@ -53,6 +53,10 @@ class CustomersController extends Controller
                 return response(json_encode(array("error" => 1, "msg" => "Please use only numbers for phone number")));
             }
 
+            if (customers::where('phone', $phone)->where('pos_code', company()->pos_code)->count() > 0) {
+                return response(json_encode(array("error" => 1, "msg" => "Phone number already in use")));
+            }
+
             $customer = new customers();
             $customer->name = $name;
             $customer->pos_code = company()->pos_code;

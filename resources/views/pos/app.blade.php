@@ -8,7 +8,9 @@
     <!-- CSRF Token -->
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>NMSware Cloud POS dashboard</title>
+    <title>NMSware CRM System</title>
+    <meta name="robots" content="noindex">
+
 
     <!-- Fonts -->
     <link rel="dns-prefetch" href="//fonts.bunny.net">

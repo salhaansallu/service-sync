@@ -24,10 +24,6 @@ use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Hash;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
 use Illuminate\Support\Str;
-use Mike42\Escpos\ImagickEscposImage;
-use Mike42\Escpos\PrintConnectors\FilePrintConnector;
-use Mike42\Escpos\PrintConnectors\WindowsPrintConnector;
-use Mike42\Escpos\Printer;
 
 class SMS
 {
@@ -711,14 +707,14 @@ function getCustomer($id)
 function generateQR($data, $invoice = false)
 {
     $qr = new QrCode();
-    $qrCodes = $qr::size(120)->style('square')->generate($data);
+    $qrCodes = $qr::size(100)->style('square')->generate($data);
     if ($invoice) {
-        return $qrCodes;
+        return base64_encode($qrCodes);
     }
 
     $filename = rand(1111, 999999) . date('d-m-Y-h-i-s') . '.svg';
 
-    if (file_put_contents(env('APP_ENV') == 'production' ? '/var/www/image.nmsware.com/qr_codes/' . $filename : public_path('qr_codes/' . $filename), $qrCodes)) {
+    if (file_put_contents(public_path('qr_codes/' . $filename), $qrCodes)) {
         return $filename;
     } else {
         return 0;
@@ -844,7 +840,7 @@ function generateInvoice($order_id, $inName, $bill_type)
                 <table style="width: 100%; border-collapse: collapse;">
                     <tr>
                         <td style="padding: 20px; border: 1px solid black; width: 50%; vertical-align: top;">
-                            ' . $repairs->note . '
+                            ' . nl2br(htmlspecialchars($repairs->note)) . '
                         </td>
                         <td style="padding: 5px; border: 1px solid black; width: 50%;">
                             <table style="width: 100%; border-collapse: collapse;">
@@ -933,6 +929,232 @@ function generateInvoice($order_id, $inName, $bill_type)
 
     $pdf = new Dompdf();
     $pdf->setPaper("A4", "portrait");
+    $pdf->loadHtml($html, 'UTF-8');
+    $pdf->render();
+    $path = public_path('invoice/' . $bill_type . '/' . $inName);
+    file_put_contents($path, $pdf->output());
+
+    return (object)array('generated' => true, 'url' => '/invoice/' . $bill_type . '/' . $inName);
+}
+
+function generateThermalInvoice($order_id, $inName, $bill_type)
+{
+    $company = PosDataController::company();
+    $repairs = Repairs::where('bill_no', $order_id)->where('pos_code', $company->pos_code)->get()[0];
+    $customer = getCustomer($repairs->customer);
+    $qr_code_image = generateQR("https://wefixservers.xyz/customer-copy/repair/" . Crypt::encrypt($company->pos_code) . "/" . Crypt::encrypt($order_id), true);
+    //$POSSettings = POSSettings();
+
+    $note = $bill_type == 'newOrder' ? 'Received' : 'Delivered';
+    $note2 = $bill_type == 'newOrder' ? 'Receive Note' : 'Delivery Note';
+
+    $html = '
+        
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Receive Note</title>
+            <style>
+                @page { 
+                    margin: 10px;
+                    height: auto;
+                    width: 80mm;
+                 }
+                body { margin: 10px; }
+            </style>
+        </head>
+        <body style="font-family: Arial, sans-serif;">
+
+            <div style="text-align: center;">
+                <h2 style="margin: 0;">' . $company->company_name . '</h2>
+                <p style="margin: 2px 0; font-size: 13px;">' . getUserData($company->admin_id)->address . '</p>
+                <p style="margin: 2px 0; font-size: 13px;">Tel: ' . formatPhoneNumber(getUserData($company->admin_id)->phone) . '</p>
+                <p style="margin: 2px 0; font-size: 13px;">www.wefix.lk</p>
+            </div>
+
+            <h3 style="text-align: center; margin: 10px 0;">' . $note2 . '</h3>
+
+            <table style="width: 100%; border-collapse: collapse; margin-bottom: 10px;">
+                <tr>
+                    <td style="font-size: 12px;padding: 5px 0; font-weight: bold;" colspan="2">Customer details</td>
+                </tr>
+                <tr>
+                    <td style="font-size: 12px;">Name:</td>
+                    <td style="font-size: 12px; text-align: right;">' . $customer->name . '</td>
+                </tr>
+                <tr>
+                    <td style="font-size: 12px;">Mobile:</td>
+                    <td style="font-size: 12px; text-align: right;">' . $customer->phone . '</td>
+                </tr>
+                <tr>
+                    <td style="font-size: 12px;">Address:</td>
+                    <td style="font-size: 12px; text-align: right;">' . $customer->address . '</td>
+                </tr>
+            </table>
+
+            <table style="width: 100%; border-collapse: collapse; margin-bottom: 10px;" border>
+                <tr>
+                    <td style="width: 50%; font-size: 12px;">Bill No</td>
+                    <td style="width: 50%; font-size: 12px; text-align: right;">Date</td>
+                </tr>
+                <tr>
+                    <td style="width: 50%; font-size: 14px;">' . $repairs->bill_no . '</td>
+                    <td style="width: 50%; font-size: 14px; text-align: right;">' . date('d-m-Y H:i:s', strtotime($repairs->created_at)) . '</td>
+                </tr>
+            </table>
+
+            <table style="width: 100%; border-collapse: collapse; margin-bottom: 10px; border-top: 1px solid #000;">
+                <tr>
+                    <td style="font-size: 14px;padding-top: 10px; font-weight: bold;">Model No: </td>
+                    <td style="font-size: 14px;padding-top: 10px;  text-align: right;">' . $repairs->model_no . '</td>
+                </tr>
+                <tr>
+                    <td style="font-size: 14px;padding-top: 10px; font-weight: bold;">Serial No: </td>
+                    <td style="font-size: 14px;padding-top: 10px;  text-align: right;">' . $repairs->serial_no . '</td>
+                </tr>
+                <tr>
+                    <td style="font-size: 14px;padding-top: 10px; font-weight: bold;">Fault: </td>
+                    <td style="font-size: 14px;padding-top: 10px;  text-align: right;">' . $repairs->fault . '</td>
+                </tr>
+                <tr>
+                    <td style="font-size: 14px;padding-top: 10px; font-weight: bold;">Advance: </td>
+                    <td style="font-size: 14px;padding-top: 10px;  text-align: right;">' . currency($repairs->advance) . '</td>
+                </tr>
+                <tr>
+                    <td style="font-size: 14px;padding-top: 10px; font-weight: bold;">Total: </td>
+                    <td style="font-size: 14px;padding-top: 10px;  text-align: right;">' . currency($repairs->total) . '</td>
+                </tr>
+            </table>
+
+            <table style="width: 100%; border-collapse: collapse; border-top: 1px solid #000; margin-top: 10px;">
+                <tr>
+                    <td style="width: 50%; font-size: 14px;padding-top: 10px; font-weight: bold; text-align: right;">Total: </td>
+                    <td style="width: 50%; font-size: 14px;padding-top: 10px;  text-align: right;">' . currency($repairs->total, 'LKR') . '</td>
+                </tr>
+                <tr>
+                    <td style="width: 50%; font-size: 14px;padding-top: 10px; font-weight: bold; text-align: right;">Advance: </td>
+                    <td style="width: 50%; font-size: 14px;padding-top: 10px;  text-align: right;">' . currency($repairs->advance, 'LKR') . '</td>
+                </tr>
+                <tr>
+                    <td style="width: 50%; font-size: 14px;padding-top: 10px; font-weight: bold; text-align: right;">Balance: </td>
+                    <td style="width: 50%; font-size: 14px;padding-top: 10px;  text-align: right;">' . currency(((float)$repairs->total - (float)$repairs->advance), 'LKR') . '</td>
+                </tr>
+            </table>
+    ';
+
+    if ($bill_type == "newOrder") {
+        $html .= '
+            <h4 style="margin-bottom: 10px;">Product Information</h4>
+
+            <p style="font-size: 12px; text-align: left;font-weight: bold; border-bottom: 1px solid #000;">Additional Info</p>
+
+            <p style="font-size: 12px; text-align: left;">' . $repairs->note . '</p>
+
+            <table style="width: 100%; border-collapse: collapse;">
+                <tr style="border-bottom: 1px solid #000;">
+                    <th style="font-size: 12px; text-align: left;">Checking Charges</th>
+                    <th style="font-size: 12px; text-align: right;">Rs.</th>
+                </tr>
+                <tr>
+                    <td style="font-size: 14px; padding-top: 10px;">24" INCH LCD LED</td>
+                    <td style="font-size: 14px; text-align: right; padding-top: 10px;">1,000.00</td>
+                </tr>
+                <tr>
+                    <td style="font-size: 14px;">32" INCH LCD LED</td>
+                    <td style="font-size: 14px; text-align: right;">1,500.00</td>
+                </tr>
+                <tr>
+                    <td style="font-size: 14px;">40" TO 50" INCH LCD LED</td>
+                    <td style="font-size: 14px; text-align: right;">2,000.00</td>
+                </tr>
+                <tr>
+                    <td style="font-size: 14px;">55" INCH LCD LED</td>
+                    <td style="font-size: 14px; text-align: right;">3,000.00</td>
+                </tr>
+                <tr>
+                    <td style="font-size: 14px;">55" TO 100" INCH LCD LED</td>
+                    <td style="font-size: 14px; text-align: right;">5,000.00</td>
+                </tr>
+            </table>
+
+            <div style="border-top: 1px solid #000; margin-top: 10px;">
+                <p style="font-size: 12px; margin: 10px 0; text-align: center;">
+                    By agreeing to these terms, you acknowledge and accept these conditions:
+                </p>
+                <p style="font-size: 12px; margin: 10px 0; text-align: center;">
+                    If you retrieve your item before the repair is completed, you must still pay the repair charges.
+                </p>
+                <p style="font-size: 12px; margin: 10px 0; text-align: center;">
+                    The company is not responsible for items not collected within 14 days after repair.
+                </p>
+            </div>
+        ';
+    }
+
+    $html .= '
+
+        <p style="font-size: 12px; text-align: left;font-weight: bold; border-bottom: 1px solid #000;">PDF Invoice</p>
+
+        <table style="width: 100%; border-collapse: collapse;">
+            <tr>
+                <td style="font-size: 14px; text-align: left;">
+                    Please scan this QR code to get your invoice PDF copy
+                </td>
+                <td style="font-size: 14px; text-align: right;">
+                    <img src="data:image/svg+xml;base64,'.$qr_code_image.'" alt="QR Code">
+                </td>
+            </tr>
+        </table>
+        
+        <table style="width: 100%; border-collapse: collapse;border-top: 1px solid #000; margin-top: 10px;">
+                <tr>
+                    <td style="text-align: center; width: 50%; font-size: 14px;padding-top: 50px;">-------------------------</td>
+                    <td style="text-align: center; width: 50%; font-size: 14px;padding-top: 50px;">' . substr(getUser(Auth::user()->id)->fname, 0, 11) . '</td>
+                </tr>
+                <tr>
+                    <td style="text-align: center; width: 50%; font-size: 14px;">Customer Signature</td>
+                    <td style="text-align: center; width: 50%; font-size: 14px;">' . $note . ' By</td>
+                </tr>
+            </table>
+
+            <div style="text-align: center; margin-top: 20px;">
+                <p style="font-size: 12px;">Thank You, Please Come Again!</p>
+            </div>
+
+        </body>
+        </html>
+    ';
+    // $connector = new FilePrintConnector("/dev/usb/lp0");
+    // $printer = new Printer($connector);
+
+    $pdf = new Dompdf();
+    $pdf->setPaper([0, 0, 227, 800]);
+    $pdf->loadHtml($html, 'UTF-8');
+
+    $GLOBALS['bodyHeight'] = 0;
+
+    $pdf->setCallbacks([
+        'myCallbacks' => [
+            'event' => 'end_frame',
+            'f' => function ($frame) {
+                $node = $frame->get_node();
+                if (strtolower($node->nodeName) === "body") {
+                    $padding_box = $frame->get_padding_box();
+                    $GLOBALS['bodyHeight'] += $padding_box['h'];
+                }
+            }
+        ]
+    ]);
+
+    $pdf->render();
+    unset($pdf);
+
+    $docHeight = $GLOBALS['bodyHeight'] + 30;
+
+    $pdf = new Dompdf();
+    $pdf->setPaper([0, 0, 230, $docHeight]);
     $pdf->loadHtml($html, 'UTF-8');
     $pdf->render();
     $path = public_path('invoice/' . $bill_type . '/' . $inName);
@@ -1085,6 +1307,198 @@ function generateSalesInvoice($order_id, $inName, $products, $cashin)
 
     $pdf = new Dompdf();
     $pdf->setPaper("A4", "portrait");
+    $pdf->loadHtml($html, 'UTF-8');
+    $pdf->render();
+    $path = public_path('invoice/checkout/' . $inName);
+    file_put_contents($path, $pdf->output());
+
+    return (object)array('generated' => true, 'url' => '/invoice/checkout/' . $inName);
+}
+
+function generateThermalSalesInvoice($order_id, $inName, $products, $cashin)
+{
+    $company = PosDataController::company();
+    $pros = Repairs::where('bill_no', $order_id)->where('pos_code', $company->pos_code)->get()[0];
+    $products = json_decode($products);
+
+    (float)$total = $pros->total;
+    $customer = ($pros->customer == '0' || $pros->customer == 'other') ? 'Cash Deal' : getCustomer($pros->customer)->name;
+    $qr_code_image = generateQR("https://wefixservers.xyz/customer-copy/sale/" . Crypt::encrypt($company->pos_code) . "/" . Crypt::encrypt($order_id), true);
+    $product_count = 0;
+
+    $title = '<div style="text-align: center;margin-top: 10px; font-size: 20px; font-weight: bold;text-transform: uppercase;margin-bottom: 3px;">Delivery Receipt</div>
+        <hr style="border-width: 3px; border-color: #505050; border-style: dotted; margin: 0 40px;">';
+
+    $datetime = '
+        <tr style="width: 100%;">
+            <td style="font-size: 14px; width: 50%; text-align: left;"><div>Date: ' . date('d-m-Y', strtotime($pros->created_at)) . '</div></td>
+            <td style="font-size: 14px; width: 50%; text-align: right;"><div>Time: ' . date('H:i:s', strtotime($pros->created_at)) . '</div></td>
+        </tr>';
+
+    $industry = '';
+
+
+    $html = '
+    
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>' . $company->company_name . ' Invoice ' . $pros->bill_no . '</title>
+            <style>
+                @page { 
+                    margin: 10px;
+                    height: auto;
+                    width: 80mm;
+                 }
+                body { margin: 10px; }
+            </style>
+        </head>
+        <body style="font-family: sans-serif;margin: 0;padding: 0;">
+        <div class="invoice_wrap" style="width: 99%;padding: 40px 0;box-sizing: border-box;">
+            <div><h2 style="text-align: center; margin: 0;">' . $company->company_name . '</h2></div>
+            ' . $industry . '
+            <hr style="border-width: 2px; border-color: #000;">
+            <div style="text-align: center; font-size: 12px; margin-top: 5px;">' . getUserData($company->admin_id)->address . '</div>
+            <div style="text-align: center; font-size: 12px; margin-bottom: 5px;">' . formatPhoneNumber(getUserData($company->admin_id)->phone) . '</div>
+            <hr style="border-width: 1px; border-color: #000; border-style: dashed;">
+
+            ' . $title . '
+             
+            <div style="width: 100%;margin-top: -10px; font-size: 14px;">
+                <table style="width: 100%;margin-bottom: 3px;">
+                    <thead>
+                    <tr>
+                        <th></th>
+                        <th></th>
+                    </tr>
+                    </thead>
+                    <tbody style="width: 100%;">
+                        <tr style="width: 100%;">
+                            <td style="font-size: 14px; width: 50%;"><div>Invoice No: ' . $pros->bill_no . '</div></td>
+                            <td></td>
+                        </tr>
+
+                        <tr style="width: 100%;">
+                            <td style="font-size: 14px; width: 50%; text-align:left;"><div>Cashier: ' . substr(getUser(Auth::user()->id)->fname, 0, 11) . '</div></td>
+                            <td style="font-size: 14px; width: 50%; text-align:right;"><div>Customer: ' . $customer . '</div></td>
+                        </tr>
+
+                        ' . $datetime . '
+
+                    </tbody>
+                </table>
+            </div>
+             
+            <hr style="border-width: 3px; border-color: #505050; border-style: dotted; margin: 0 40px; margin-top: 0px;margin-bottom: 5px;">
+             
+                <table style="width: 100%;">
+                    <thead>
+                    <tr>
+                        <th style="font-weight: 300; text-align: left; font-size: 15px;">Description</th>
+                        <th style="font-weight: 300; text-align: right; font-size: 15px;">Amount</th>
+                    </tr>
+                    </thead>
+                    <tbody style="width: 100%;">
+             
+    
+    ';
+
+
+    foreach ($products as $key => $product) {
+        $product_count++;
+
+        $html .= '
+                <tr style="width: 100%;">
+                    <td style="font-size: 14px;" colspan="3"><span style="margin-right: 10px;">' . $key + 1 . '. </span> <span style="margin-right: 10px;">' . $product->sku . ' </span> <span style="font-size: 15px;">' . $product->name . '</span></td>
+                </tr>
+                <tr style="width: 100%;">
+                    <td style="font-size: 14px; border-bottom: #8d8d8d 2px dotted;"><div style="margin-left: 5px;padding-bottom: 7px;">' . currency($product->qty, '') . ' <span style="margin-left: 5px;">@</span></div></td>
+                    <td style="font-size: 14px; text-align: center;border-bottom: #8d8d8d 2px dotted;">' . $product->unit . '</td>
+                    <td style="font-size: 14px; text-align: right;border-bottom: #8d8d8d 2px dotted;">' . currency($product->unit * $product->qty, '') . '</td>
+                </tr>
+            ';
+    }
+
+    $html .= '
+
+            </tbody>
+            </table>
+
+
+            <table style="width: 100%;float: right; margin: 20px 0">
+            <thead>
+            <tr>
+                <th></th>
+                <th></th>
+            </tr>
+            </thead>
+            <tbody style="width: 100%;">
+                <tr style="width: 100%;">
+                    <td style="width: 50%;text-align: right;font-size: 20px;font-weight: bold;"><div>Total:</div></td>
+                    <td style="font-size: 20px;font-weight: bold; width: 50%; text-align: right;"><div>' . currency($total, 'LKR ') . '</div></td>
+                </tr>
+                <tr style="width: 100%;">
+                    <td style="width: 50%;text-align: right;font-size: 20px;"><div>Cash Paid:</div></td>
+                    <td style="font-size: 20px; width: 50%; text-align: right;"><div>' . currency($cashin, 'LKR ') . '</div></td>
+                </tr>
+                <tr style="width: 100%;">
+                    <td style="width: 50%;text-align: right;font-size: 20px;"><div>Balance:</div></td>
+                    <td style="font-size: 20px; width: 50%; text-align: right;"><div>' . currency(($cashin - $total), 'LKR ') . '</div></td>
+                </tr>
+            </tbody>
+            </table>
+
+            <p style="font-size: 12px; text-align: left;font-weight: bold; border-bottom: 1px solid #000;">PDF Invoice</p>
+
+            <table style="width: 100%; border-collapse: collapse; border-bottom: 1px solid #000; padding-bottom: 10px;">
+                <tr>
+                    <td style="font-size: 14px; text-align: left; padding-bottom: 10px">
+                        Please scan this QR code to get your invoice PDF copy
+                    </td>
+                    <td style="font-size: 14px; text-align: right; padding-bottom: 10px">
+                        <img src="data:image/svg+xml;base64,'.$qr_code_image.'" alt="QR Code">
+                    </td>
+                </tr>
+            </table>
+            <div style="font-weight: bold;text-align: center; margin-top: 40px;">Thank You!</div>
+            <div style="text-align: center;">Please come again</div>
+
+        </div>
+        </body>
+        </html>
+    
+    ';
+
+    // $connector = new FilePrintConnector("/dev/usb/lp0");
+    // $printer = new Printer($connector);
+
+    $pdf = new Dompdf();
+    $pdf->setPaper([0, 0, 227, 800]);
+    $pdf->loadHtml($html, 'UTF-8');
+
+    $GLOBALS['bodyHeight'] = 0;
+
+    $pdf->setCallbacks([
+        'myCallbacks' => [
+            'event' => 'end_frame',
+            'f' => function ($frame) {
+                $node = $frame->get_node();
+                if (strtolower($node->nodeName) === "body") {
+                    $padding_box = $frame->get_padding_box();
+                    $GLOBALS['bodyHeight'] += $padding_box['h'];
+                }
+            }
+        ]
+    ]);
+
+    $pdf->render();
+    unset($pdf);
+
+    $docHeight = $GLOBALS['bodyHeight'] + 30;
+
+    $pdf = new Dompdf();
+    $pdf->setPaper([0, 0, 230, $docHeight]);
     $pdf->loadHtml($html, 'UTF-8');
     $pdf->render();
     $path = public_path('invoice/checkout/' . $inName);
@@ -1257,7 +1671,7 @@ function generateDeliveryInvoice($order_id, $inName)
     $docHeight = $GLOBALS['bodyHeight'] + 30;
 
     $pdf = new Dompdf();
-    $pdf->setPaper([0, 0, 230, 850]);
+    $pdf->setPaper([0, 0, 230, $docHeight]);
     $pdf->loadHtml($html, 'UTF-8');
     $pdf->render();
     $path = public_path('invoice/delivery/' . $inName);
@@ -1441,22 +1855,25 @@ function sendInvitation($email)
     return false;
 }
 
-function getOrder($order_number, $pos_id)
+function getOrder($type="", $order_number, $pos_id)
 {
-    $order = orders::where('order_number', $order_number)->get();
-    if ($order) {
-        foreach ($order as $key => $item) {
-            if (substr($item['pos_code'], 0, 10) == $pos_id) {
-                $products = orderProducts::where('order_id', $order_number)->get();
-                if ($products && $products->count() > 0) {
-                    return array(true, $item, $products);
-                }
-                break;
-            }
-        }
-        return array(false, defaultValues());
+    $order_number = Crypt::decrypt($order_number);
+    $pos_id = Crypt::decrypt($pos_id);
+    $order = Repairs::where('bill_no', $order_number)->where('pos_code', $pos_id)->get();
+
+    if ($order->count() > 0) {
+        return (object)array(
+            "error" => 0,
+            "message" => "",
+            "URL" => $order[0]->invoice
+        );
     }
-    return array(false, defaultValues());
+
+    return (object)array(
+        "error" => 1,
+        "message" => "No invoice found",
+        "URL" => ""
+    );
 }
 
 function paymentMethod($method)

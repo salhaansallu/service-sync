@@ -48,7 +48,7 @@
                                             <td class="text-start">{{ count((array) json_decode($item->spares)) }}</td>
                                             <td class="text-start">{{ date('d-m-Y', strtotime($item->created_at)) }}</td>
                                             <td
-                                                class="text-start @if ($item->status == 'Repaired') bg-success @elseif($item->status == 'Return') bg-warning @elseif($item->status == 'Delivered') bg-primary @else bg-danger @endif">
+                                                class="text-start @if ($item->status == 'Repaired') bg-success @elseif($item->status == 'Return') bg-warning @elseif($item->status == 'Delivered') bg-primary @elseif($item->status == 'Awaiting Parts') bg-secondary @else bg-danger @endif">
                                                 {{ $item->status }}</td>
                                             <td class="text-start">
                                                 <div class="d-flex align-items-center list-action justify-content-start">

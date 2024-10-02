@@ -5,101 +5,17 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#52bbdd">
-    <link rel="canonical" href="{{ str_replace('https://nmsware.com', 'https://www.nmsware.com', Request::url()) }}" />
 
     <!-- CSRF Token -->
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    @if (Request::is('/'))
-        <title>NMSware Technologies, IT solutions | nmsware.com</title>
-        <meta name=”robots” content="index, follow">
-        <meta name="keywords"
-            content="Free Cloud Point of Sale, Free POS System, E-commerce Solutions, Inventory Management, Mobile POS, Business Analytics, Custom Software, Software Solutions, Application Development, Web Design, Content Management Systems, Website Maintenance, UI/UX Design, Graphic Design, IT service company, Software company, Web development, Web development company">
-        <meta name="description"
-            content="Step into the future with us. Our mission goes beyond conventional IT solutions; we're architects of digital evolution. With a commitment to excellence, we merge expertise and creativity to shape a dynamic, tech-driven tomorrow. Explore innovation; embrace transformation.">
-        <meta property="og:title" content="NMSware Technologies, Delivering World-Class IT Services | nmsware.com" />
+    <title>NMSware Technologies, CRM System</title>
+        <meta name=”robots” content="noindex">
+        <meta name="description" content="Project by NMSware Technologies PVT LTD">
+        <meta property="og:title" content="Project by NMSware Technologies PVT LTD, Delivering World-Class IT Services | nmsware.com" />
         <meta property="og:type" content="website" />
         <meta property="og:image" content="https://nmsware.com/assets/images/brand/logo-grey-bg-og.jpg" />
         <meta property="og:url" content="{{ Request::url() }}" />
-    @elseif (Request::is('sri-lanka'))
-        <title>NMSware Technologies, Delivering world-class IT services in Sri Lanka | nmsware.com</title>
-        <meta name=”robots” content="index, follow">
-        <meta name="keywords"
-            content="Free Cloud Point of Sale sri lanka, Free POS System sri lanka, E-commerce Solutions sri lanka, Inventory Management, Mobile POS, Business Analytics, Custom Software, Software Solutions sri lanka, Application Development sri lanka, Web Design sri lanka, Content Management Systems, Website Maintenance, UI/UX Design sri lanka, Graphic Design sri lanka, IT service company sri lanaka, Software company sri lanaka, Web development, Web development company in sri lanka,">
-        <meta name="description"
-            content="In the heart of Sri Lanka, we empower businesses to compete on the global stage. Unleash the power of technology with Sri Lanka's premier IT partner for your business.">
-        <meta property="og:title"
-            content=">NMSware Technologies, Delivering world-class IT services in Sri Lanka | nmsware.com" />
-        <meta property="og:type" content="website" />
-        <meta property="og:image" content="https://nmsware.com/assets/images/brand/logo-grey-bg-og.jpg" />
-        <meta property="og:url" content="{{ Request::url() }}" />
-    @elseif (Request::is('about'))
-        <title>NMSware Technologies, Empowering Sri Lankan businesses through technology | nmsware.com</title>
-        <meta name=”robots” content="index, follow">
-        <meta name="keywords"
-            content="about nmsware technologies, about nmsware.com, about nmsware, Empowering Sri Lankan Businesses through Technology">
-        <meta name="description"
-            content="Step into the future with us. Our mission goes beyond conventional IT solutions; we're architects of digital evolution. With a commitment to excellence, we merge expertise and creativity to shape a dynamic, tech-driven tomorrow. Explore innovation; embrace transformation.">
-        <meta property="og:title" content="About NMSware Technologies" />
-        <meta property="og:type" content="website" />
-        <meta property="og:image" content="https://nmsware.com/assets/images/brand/logo-grey-bg-og.jpg" />
-        <meta property="og:url" content="{{ Request::url() }}" />
-    @elseif (Request::is('signin'))
-        <title>Sign in NMSware Technologies | nmsware.com</title>
-        <meta name=”robots” content="index, follow">
-        <meta name="keywords"
-            content="sign in to nmsware technologies, sign in to nmsware.com, sign in to nmsware technologies sri lanka">
-        <meta name="description" content="Sign in to NMSware Technologies. Access free cloud POS system.">
-        <meta property="og:title" content="Sign in NMSware Technologies" />
-        <meta property="og:type" content="website" />
-        <meta property="og:image" content="https://nmsware.com/assets/images/brand/logo-grey-bg-og.jpg" />
-        <meta property="og:url" content="{{ Request::url() }}" />
-    @elseif (Request::is('signup'))
-        <title>Register NMSware Technologies | nmsware.com</title>
-        <meta name=”robots” content="index, follow">
-        <meta name="keywords"
-            content="Register to nmsware technologies, Register to nmsware.com, Register to nmsware, register for nmsware technologies sri lanka">
-        <meta name="description" content="Register to NMSware Technologies. Access free cloud POS system.">
-        <meta property="og:title" content="Register NMSware Technologies" />
-        <meta property="og:type" content="website" />
-        <meta property="og:image" content="https://nmsware.com/assets/images/brand/logo-grey-bg-og.jpg" />
-        <meta property="og:url" content="{{ Request::url() }}" />
-    @elseif (Request::is('pricing'))
-        <title>Free Cloud POS System | nmsware.com</title>
-        <meta name=”robots” content="index, follow">
-        <meta name="keywords"
-            content="free cloud pos, free cloud pos system pricing, free cloud pos sri lanka, free cloud point of sale in sri lanka, free cloud pos nmsware technologies">
-        <meta name="description" content="NMSware Technologies Free Cloud POS System pricing.">
-        <meta property="og:title" content="Free Cloud POS System" />
-        <meta property="og:type" content="website" />
-        <meta property="og:image" content="https://nmsware.com/assets/images/brand/logo-grey-bg-og.jpg" />
-        <meta property="og:url" content="{{ Request::url() }}" />
-    @elseif (Request::is('contact'))
-        <title>Contact NMSware Technologies | nmsware.com</title>
-        <meta name=”robots” content="index, follow">
-        <meta name="keywords" content="contact nmsware technologies, contact nmsware.com">
-        <meta name="description" content="Contact NMSware Technologies sales team.">
-        <meta property="og:title" content="Contact NMSware Technologies" />
-        <meta property="og:type" content="website" />
-        <meta property="og:image" content="https://nmsware.com/assets/images/brand/logo-grey-bg-og.jpg" />
-        <meta property="og:url" content="{{ Request::url() }}" />
-    @elseif (Request::is('account/*'))
-        <title>Account NMSware Technologies | nmsware.com</title>
-        <meta name=”robots” content="noindex, nofollow">
-    @elseif (Request::is('privacy-policy'))
-        <title>Privacy Policy NMSware Technologies | nmsware.com</title>
-        <meta name=”robots” content="noindex, nofollow">
-    @elseif (Request::is('password/reset'))
-        <title>Reset your password NMSware Technologies | nmsware.com</title>
-        <meta name=”robots” content="noindex, nofollow">
-    @else
-        <title>NMSware Technologies | nmsware.com</title>
-        <meta name=”robots” content="noindex, nofollow">
-        <meta name="description"
-            content="Step into the future with us. Our mission goes beyond conventional IT solutions; we're architects of digital evolution. With a commitment to excellence, we merge expertise and creativity to shape a dynamic, tech-driven tomorrow. Explore innovation; embrace transformation.">
-        <meta property="og:image" content="https://nmsware.com/assets/images/brand/logo-grey-bg-og.jpg" />
-        <meta property="og:url" content="{{ Request::url() }}" />
-    @endif
 
     <!-- Fonts -->
     <link rel="dns-prefetch" href="//fonts.bunny.net">
@@ -125,36 +41,7 @@
         <script src="{{ asset('assets/assets/js/app.js') }}"></script>
     @endif
     <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
-
-    <script>
-        (function(w, d, s, r, n) {
-            w.TrustpilotObject = n;
-            w[n] = w[n] || function() {
-                (w[n].q = w[n].q || []).push(arguments)
-            };
-            a = d.createElement(s);
-            a.async = 1;
-            a.src = r;
-            a.type = 'text/java' + s;
-            f = d.getElementsByTagName(s)[0];
-            f.parentNode.insertBefore(a, f)
-        })(window, document, 'script', 'https://invitejs.trustpilot.com/tp.min.js', 'tp');
-        tp('register', '5XmM11iEr2OILioa');
-    </script>
 </head>
-
-<!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-19EW0EWHFF"></script>
-<script>
-    window.dataLayer = window.dataLayer || [];
-
-    function gtag() {
-        dataLayer.push(arguments);
-    }
-    gtag('js', new Date());
-
-    gtag('config', 'G-19EW0EWHFF');
-</script>
 
 <body>
     @isset($errormsg)

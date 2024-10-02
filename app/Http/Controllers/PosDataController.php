@@ -126,8 +126,10 @@ class PosDataController extends Controller
             ]);
 
             $inName = str_replace(' ', '-', str_replace('.', '-', $bill_no)) . '-Delivery-' . date('d-m-Y-h-i-s') . '-' . rand(0, 9999999) . '.pdf';
+            $ThermalinName = str_replace(' ', '-', str_replace('.', '-', $bill_no)) . '-Thermal-delivery-' . date('d-m-Y-h-i-s') . '-' . rand(0, 9999999) . '.pdf';
 
             $generate_invoice = generateInvoice($bill_no, $inName, 'checkout');
+            $generate_thermal_invoice = generateThermalInvoice($bill_no, $ThermalinName, 'checkout');
 
             if ($generate_invoice->generated == true) {
 
@@ -135,9 +137,9 @@ class PosDataController extends Controller
                     "invoice" => "checkout/" . $inName,
                 ]);
 
-                return response(json_encode(array("error" => 0, "msg" => "Checkout successful", "invoiceURL" => $generate_invoice->url)));
+                return response(json_encode(array("error" => 0, "msg" => "Checkout successful", "invoiceURL" => $generate_thermal_invoice->url)));
             } else {
-                return response(json_encode(array("error" => 0, "msg" => "Checkout successful, Couldn't print invoice: " . $generate_invoice->msg)));
+                return response(json_encode(array("error" => 0, "msg" => "Checkout successful, Couldn't print invoice: " . $generate_thermal_invoice->msg)));
             }
 
             return response(json_encode(array("error" => 1, "msg" => "Error while proceeding, please try again later")));
@@ -228,8 +230,10 @@ class PosDataController extends Controller
                 }
 
                 $inName = str_replace(' ', '-', str_replace('.', '-', $bill_no)) . '-Invoice-' . date('d-m-Y-h-i-s') . '-' . rand(0, 9999999) . '.pdf';
+                $ThermalInName = str_replace(' ', '-', str_replace('.', '-', $bill_no)) . '-Thermal-invoice-' . date('d-m-Y-h-i-s') . '-' . rand(0, 9999999) . '.pdf';
 
                 $generate_invoice = generateSalesInvoice($bill_no, $inName, $invoice_pro, $cashin);
+                $generate_thermal_invoice = generateThermalSalesInvoice($bill_no, $ThermalInName, json_encode($invoice_pro), $cashin);
 
                 if ($generate_invoice->generated == true) {
 
@@ -237,9 +241,9 @@ class PosDataController extends Controller
                         "invoice" => 'checkout/'.$inName,
                     ]);
 
-                    return response(json_encode(array("error" => 0, "msg" => "Checkout Successful", "invoiceURL" => $generate_invoice->url)));
+                    return response(json_encode(array("error" => 0, "msg" => "Checkout Successful", "invoiceURL" => $generate_thermal_invoice->url)));
                 } else {
-                    return response(json_encode(array("error" => 0, "msg" => "Checkout Successful, Couldn't print invoice: " . $generate_invoice->msg)));
+                    return response(json_encode(array("error" => 0, "msg" => "Checkout Successful, Couldn't print invoice: " . $generate_thermal_invoice->msg)));
                 }
             }
         }

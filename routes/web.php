@@ -54,10 +54,10 @@ Route::post('/password/email', [ForgotPasswordController::class, 'sendResetLinkE
 
 //Route::get('/contact', [ContactController::class, 'index'])->name('contact_view');
 Route::get('/invitation/accept/{id}', [PosInvitationController::class, 'index']);
-Route::get('/customer-copy/{pos_id}/{id}', function ($pos_id, $id){
-    $order = getOrder($id, $pos_id);
-    if ($order[0] == true) {
-        return view('customer-copy')->with(['order'=>$order[1], 'products'=>$order[2]]);
+Route::get('/customer-copy/{type}/{pos_id}/{id}', function ($type, $pos_id, $id){
+    $order = getOrder($type, $id, $pos_id);
+    if ($order->error == 0) {
+        return redirect('/invoice/'.$order->URL);
     }
     return response()->view('errors.404')->setStatusCode(404);
 });
@@ -103,6 +103,7 @@ Route::post('/pos/get_spares', [ProductsController::class, 'getSpares']);
 //Route::post('/pos/remove-favourits', [ProductsController::class, 'removeFavourits']);
 Route::post('/pos/checkout', [PosDataController::class, 'checkout']);
 Route::post('/pos/sales/checkout', [PosDataController::class, 'salesCheckout']);
+Route::post('/pos/getInvoicePDF', [RepairsController::class, 'getInvoicePDF']);
 //Route::post('/pos/save', [PosDataController::class, 'save']);
 //Route::post('/pos/get_saved_orders', [PosDataController::class, 'getSavedOrders']);
 
