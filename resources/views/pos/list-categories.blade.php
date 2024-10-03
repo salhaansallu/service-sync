@@ -59,7 +59,7 @@
                                                     <a class="badge bg-secondary mr-2" data-toggle="tooltip"
                                                         data-placement="top" title="View Invoice"
                                                         data-original-title="View Invoice" href="javascript:void(0)"
-                                                        onclick="ViewInvoice('{{ $item->invoice }}')"><i
+                                                        onclick="ViewInvoice('{{ printInvoice($item->invoice) }}')"><i
                                                             class="fa-regular fa-eye"></i></a>
                                                     <a class="badge bg-danger mr-2" data-toggle="tooltip"
                                                         data-placement="top" title="Delete product"

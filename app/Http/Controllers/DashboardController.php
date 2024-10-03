@@ -183,7 +183,13 @@ class DashboardController extends Controller
         login_redirect('/' . request()->path());
 
         if (Auth::check() && $this->check(true)) {
-            $categories = Repairs::where('pos_code', company()->pos_code)->where('type', '!=', 'sale')->get();
+
+            if (isset($_GET['source']) && sanitize($_GET['source']) == "other") {
+                $categories = Repairs::where('pos_code', company()->pos_code)->where('type', '=', 'other')->get();
+                return view('pos.list-categories')->with(['repairs' => $categories]);
+            }
+
+            $categories = Repairs::where('pos_code', company()->pos_code)->where('type', '=', 'repair')->get();
             return view('pos.list-categories')->with(['repairs' => $categories]);
         } else {
             return redirect('/signin');
@@ -213,7 +219,7 @@ class DashboardController extends Controller
             return redirect('/signin');
         }
     }
-    
+
     public function createCategories()
     {
         if (Auth::check() && $this->check(true)) {
@@ -316,16 +322,14 @@ class DashboardController extends Controller
         if (!empty($cus_no)) {
             $customer = customers::where('phone', $cus_no)->where('pos_code', company()->pos_code)->get();
             if ($customer->count() > 0) {
-                return response(json_encode(DB::select('select * from repairs where customer = "'.$customer[0]['id'].'" AND pos_code = "' . company()->pos_code . '"')));
-            }
-            else {
+                return response(json_encode(DB::select('select * from repairs where customer = "' . $customer[0]['id'] . '" AND pos_code = "' . company()->pos_code . '"')));
+            } else {
                 return response(json_encode([]));
             }
-            
         }
 
         if (!empty($customer)) {
-            return response(json_encode(DB::select('select * from repairs where customer = "'.$customer.'" AND pos_code = "' . company()->pos_code . '"')));
+            return response(json_encode(DB::select('select * from repairs where customer = "' . $customer . '" AND pos_code = "' . company()->pos_code . '"')));
         }
 
         return response(json_encode([]));

@@ -125,8 +125,10 @@ class PosDataController extends Controller
                 "updated_at" => date('d-m-Y H:i:s'),
             ]);
 
-            $inName = str_replace(' ', '-', str_replace('.', '-', $bill_no)) . '-Delivery-' . date('d-m-Y-h-i-s') . '-' . rand(0, 9999999) . '.pdf';
-            $ThermalinName = str_replace(' ', '-', str_replace('.', '-', $bill_no)) . '-Thermal-delivery-' . date('d-m-Y-h-i-s') . '-' . rand(0, 9999999) . '.pdf';
+            $rand = date('d-m-Y-h-i-s') . '-' . rand(0, 9999999) . '.pdf';
+
+            $inName = str_replace(' ', '-', str_replace('.', '-', $bill_no)) . '-Delivery-' . $rand;
+            $ThermalinName = str_replace(' ', '-', str_replace('.', '-', $bill_no)) . '-Thermal-delivery-' . $rand;
 
             $generate_invoice = generateInvoice($bill_no, $inName, 'checkout');
             $generate_thermal_invoice = generateThermalInvoice($bill_no, $ThermalinName, 'checkout');
@@ -229,8 +231,10 @@ class PosDataController extends Controller
                     $order->save();
                 }
 
-                $inName = str_replace(' ', '-', str_replace('.', '-', $bill_no)) . '-Invoice-' . date('d-m-Y-h-i-s') . '-' . rand(0, 9999999) . '.pdf';
-                $ThermalInName = str_replace(' ', '-', str_replace('.', '-', $bill_no)) . '-Thermal-invoice-' . date('d-m-Y-h-i-s') . '-' . rand(0, 9999999) . '.pdf';
+                $rand = date('d-m-Y-h-i-s') . '-' . rand(0, 9999999) . '.pdf';
+
+                $inName = str_replace(' ', '-', str_replace('.', '-', $bill_no)) . '-Invoice-' . $rand;
+                $ThermalInName = str_replace(' ', '-', str_replace('.', '-', $bill_no)) . '-Thermal-invoice-' . $rand;
 
                 $generate_invoice = generateSalesInvoice($bill_no, $inName, $invoice_pro, $cashin);
                 $generate_thermal_invoice = generateThermalSalesInvoice($bill_no, $ThermalInName, json_encode($invoice_pro), $cashin);
@@ -275,6 +279,20 @@ class PosDataController extends Controller
         if (Auth::check()) {
             if ($this->check() && !empty(company()->pos_code)) {
                 return view('pos.pos');
+            } else {
+                return redirect('/account/overview');
+            }
+        } else {
+            return redirect('/signin');
+        }
+    }
+
+    public function OtherPOSshow()
+    {
+        login_redirect('/account/overview');
+        if (Auth::check()) {
+            if ($this->check() && !empty(company()->pos_code)) {
+                return view('pos.other_repairs');
             } else {
                 return redirect('/account/overview');
             }

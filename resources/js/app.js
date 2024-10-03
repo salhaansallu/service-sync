@@ -30,6 +30,11 @@ import poselem from './components/pos.vue';
 pos.component('pos', poselem);
 pos.mount('#pos-elem');
 
+const otherRepair = createApp({});
+import otherRepairElem from './components/other_repairs.vue';
+otherRepair.component('other-repairs', otherRepairElem);
+otherRepair.mount('#other-repairs');
+
 const verviewChartApp = createApp({});
 verviewChartApp.use(VueApexCharts);
 import overviewchart from './components/overviewchart.vue';

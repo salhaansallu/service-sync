@@ -25,7 +25,19 @@ class RepairsController extends Controller
     {
         $response = [];
         if (PosDataController::check()) {
-            return response(json_encode(Repairs::where('pos_code', PosDataController::company()->pos_code)->where('type', '!=', 'sale')->where('status', '!=', 'Delivered')->orderBy('id', 'DESC')->get()));
+            return response(json_encode(Repairs::where('pos_code', PosDataController::company()->pos_code)->where('type', '=', 'repair')->where('status', '!=', 'Delivered')->orderBy('id', 'DESC')->get()));
+        } else {
+            $response['error'] = 1;
+            $response['msg'] = "not_logged_in";
+            return response(json_encode($response));
+        }
+    }
+
+    public function OtherPOSgetRepairs()
+    {
+        $response = [];
+        if (PosDataController::check()) {
+            return response(json_encode(Repairs::where('pos_code', PosDataController::company()->pos_code)->where('type', '=', 'other')->where('status', '!=', 'Delivered')->orderBy('id', 'DESC')->get()));
         } else {
             $response['error'] = 1;
             $response['msg'] = "not_logged_in";
@@ -188,7 +200,14 @@ class RepairsController extends Controller
                 $repair->customer = $customer;
                 $repair->cashier = Auth::user()->id;
                 $repair->status = "Pending";
-                $repair->type = "repair";
+
+                if (isset($_GET['source']) && sanitize($_GET['source']) == "other-pos") {
+                    $repair->type = "other";
+                }
+                else {
+                    $repair->type = "repair";
+                }
+                
                 $repair->pos_code = company()->pos_code;
 
                 if ($repair->save()) {
@@ -204,8 +223,9 @@ class RepairsController extends Controller
                     // $sms->message = "Dear Customer, your account with " . company()->company_name . " has been successfully created. We have received your product and will notify you via this number once the repair is complete. Thank you for choosing " . company()->company_name . ".";
                     // $sms->Send();
 
-                    $inName = str_replace(' ', '-', str_replace('.', '-', $bill_no)) . '-Invoice-' . date('d-m-Y-h-i-s') . '-' . rand(0, 9999999) . '.pdf';
-                    $thermalInName = str_replace(' ', '-', str_replace('.', '-', $bill_no)) . '-Thermal-invoice-' . date('d-m-Y-h-i-s') . '-' . rand(0, 9999999) . '.pdf';
+                    $rand = date('d-m-Y-h-i-s') . '-' . rand(0, 9999999) . '.pdf';
+                    $inName = str_replace(' ', '-', str_replace('.', '-', $bill_no)) . '-Invoice-' . $rand;
+                    $thermalInName = str_replace(' ', '-', str_replace('.', '-', $bill_no)) . '-Thermal-invoice-' . $rand;
 
                     $generate_invoice = generateInvoice($bill_no, $inName, 'newOrder');
                     $generate_thermal_invoice = generateThermalInvoice($bill_no, $thermalInName, 'newOrder');

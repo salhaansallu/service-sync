@@ -108,6 +108,17 @@ Route::post('/pos/getInvoicePDF', [RepairsController::class, 'getInvoicePDF']);
 //Route::post('/pos/get_saved_orders', [PosDataController::class, 'getSavedOrders']);
 
 
+//============= Other Repairs Routes ==========////
+Route::get('/other-pos', [PosDataController::class, 'OtherPOSshow']);
+Route::post('/other-pos/get_repairs', [RepairsController::class, 'OtherPOSgetRepairs']);
+Route::post('/other-pos/update', [RepairsController::class, 'orderUpdate']);
+Route::post('/other-pos/new_order', [RepairsController::class, 'store']);
+Route::post('/other-pos/get_customers', [CustomersController::class, 'getCustomers']);
+Route::post('/other-pos/pos_data', [PosDataController::class, 'getPosData']);
+Route::post('/other-pos/get_spares', [ProductsController::class, 'getSpares']);
+Route::post('/other-pos/checkout', [PosDataController::class, 'checkout']);
+
+
 //============= Dashboard Routes ==========////
 
 

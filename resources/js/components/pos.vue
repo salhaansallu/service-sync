@@ -13,8 +13,12 @@
             </div>
 
             <div class="favourits">
-                <button @click="goToDashboard" class="primary-btn submit-btn border-only"><i
+                <button @click="goTo('/dashboard')" class="primary-btn submit-btn border-only"><i
                         class="fa-solid fa-chart-line"></i>Dashboard</button>
+            </div>
+
+            <div class="favourits">
+                <button @click="goTo('/other-pos')" class="primary-btn submit-btn border-only"><i class="fa-solid fa-wrench"></i>Other Repairs</button>
             </div>
 
             <div class="favourits">
@@ -74,7 +78,7 @@
                             <div style="cursor: pointer;"
                                 class="col-1 form-text mt-0 d-flex align-items-center control-text-overflow text-primary">
                                 <span @click="printInvoice(repair.invoice)">{{ repair.bill_no }}</span> <span
-                                    @click="openWhatsapp(searchCustomer(repair.customer)['phone'], repair.bill_no)" class="mx-3"
+                                    @click="openWhatsapp(searchCustomer(repair.customer)['phone'], repair.invoice)" class="mx-3"
                                     title="WhatsApp Customer"><i class="fa-brands fa-whatsapp"></i></span>
                             </div>
                             <div class="col-2 form-text mt-0 d-flex align-items-center control-text-overflow">{{
@@ -511,8 +515,8 @@ export default {
         loadModal(action) {
             $("#loadingModal").modal(action);
         },
-        goToDashboard() {
-            window.location.href = '/dashboard';
+        goTo(location) {
+            window.location.href = location;
         },
         newOrder(action) {
             $("#NewOrder").modal(action);
@@ -919,11 +923,21 @@ export default {
                 return;
             }
 
+            if (invoice.includes('Invoice')) {
+                printJS("/invoice/" + invoice.replace("Invoice", "Thermal-invoice"));
+                return;
+            }
+
+            if (invoice.includes('Delivery')) {
+                printJS("/invoice/" + invoice.replace("Delivery", "Thermal-delivery"));
+                return;
+            }
+
             printJS("/invoice/" + invoice);
         },
         openWhatsapp(number, invoice) {
-            var text = "Click on the link to get your PDF invoice copy \nhttps://wefixservers.xyz/customer-copy/repair/"+this.posData.pos_code+"/"+invoice;
-            window.open('https://wa.me/' + reformatPhoneNumbers(number)+"?text="+encodeURIComponent(text)+"?_spm=false");
+            var text = "Click on the link to get your PDF invoice copy \nhttps://wefixservers.xyz/invoice/"+invoice;
+            window.open('https://wa.me/' + reformatPhoneNumbers(number)+"?text="+encodeURIComponent(text));
         }
     },
     beforeMount() {

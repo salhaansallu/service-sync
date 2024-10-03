@@ -398,6 +398,31 @@ function company($pos_code = null)
     return PosDataController::company();
 }
 
+function printInvoice($invoice) {
+    // Check if the invoice is empty
+    if (empty($invoice)) {
+        // Error handling (in PHP, you'd typically handle this with a redirect, log, or display message)
+        return "Invoice not found";
+    }
+
+    // If the invoice contains the word 'Invoice', replace it with 'Thermal-invoice'
+    if (strpos($invoice, 'Invoice') !== false) {
+        $invoiceUrl = str_replace("Invoice", "Thermal-invoice", $invoice);
+        // Trigger the printing process (you can redirect or echo the URL based on your app flow)
+        return $invoiceUrl;
+    }
+
+    // If the invoice contains the word 'Delivery', replace it with 'Thermal-delivery'
+    if (strpos($invoice, 'Delivery') !== false) {
+        $invoiceUrl = str_replace("Delivery", "Thermal-delivery", $invoice);
+        // Trigger the printing process
+        return $invoiceUrl;
+    }
+
+    // Default case, just print the original invoice
+    return $invoice;
+}
+
 function POSSettings($pos_code = null)
 {
     if ($pos_code == null) {
@@ -1044,7 +1069,7 @@ function generateThermalInvoice($order_id, $inName, $bill_type)
             </table>
     ';
 
-    if ($bill_type == "newOrder") {
+    if ($bill_type == "newOrder" && $repairs->type != "other") {
         $html .= '
             <h4 style="margin-bottom: 10px;">Product Information</h4>
 

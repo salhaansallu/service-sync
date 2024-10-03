@@ -161,7 +161,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-lg-8">
+                <div class="col-lg-12">
                     <div class="card card-block card-stretch card-height">
                         <div class="card-header d-flex align-items-center justify-content-between">
                             <div class="header-title">
@@ -221,38 +221,6 @@
                             </table>
                         </div>
                     </div>
-                </div>
-                <div class="col-lg-4">
-                    <div class="card-transparent card-block card-stretch mb-4">
-                        <div class="card-header d-flex align-items-center justify-content-between p-0">
-                            <div class="header-title">
-                                <h4 class="card-title mb-0">Top Selling Items</h4>
-                            </div>
-                            {{-- <div class="card-header-toolbar d-flex align-items-center">
-                                <div><a href="#" class="btn btn-primary view-btn font-size-14">View All</a></div>
-                            </div> --}}
-                        </div>
-                    </div>
-                    @if ($best_sellings && $best_sellings->count() > 0)
-                        @foreach ($best_sellings as $sell)
-                            <div class="card card-block card-stretch card-height-helf">
-                                <div class="card-body card-item-right">
-                                    <div class="d-flex align-items-top">
-                                        <div class="bg-primary-light rounded">
-                                            <img src="{{ getProductImage($sell->sku) }}"
-                                                class="style-img img-fluid m-auto best_product_image" alt="image">
-                                        </div>
-                                        <div class="style-text text-left">
-                                            <h5 class="mb-2">{{ $sell->pro_name }}</h5>
-                                            <p class="mb-2">Total Sold : {{ getTotalOrderQTY($sell->sku) }}</p>
-                                            <p class="mb-0">Total Earned :
-                                                {{ currency(getTotalOrderSale($sell->sku), $company->currency) }}</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        @endforeach
-                    @endif
                 </div>
             </div>
             <div class="row" id="dashboard_charts">
