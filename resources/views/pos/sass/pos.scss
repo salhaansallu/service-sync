@@ -41,7 +41,7 @@ $theme-darkblue: #06468e;
         padding: 0px 30px;
         width: 340px;
         min-width: 340px;
-        height: max-content;
+        height: 100vh;
 
         .disabled {
             background-color: rgb(12 12 12 / 84%);
@@ -110,9 +110,10 @@ $theme-darkblue: #06468e;
         }
 
         .categories {
+
             ul {
                 padding: 0;
-                height: 78vh;
+                height: max-content;
                 overflow-y: auto;
                 padding-right: 20px;
 
@@ -171,7 +172,23 @@ $theme-darkblue: #06468e;
     }
 
     .products {
-        width: 100%;
+        width: max-content;
+        height: 100vh;
+        overflow: auto;
+        padding-right: 10px;
+
+        &::-webkit-scrollbar {
+            background-color: #e2e2e2;
+            width: 8px;
+            border-radius: 20px;
+        }
+
+        &::-webkit-scrollbar-thumb {
+            background-color: #bebebe;
+            width: 8px;
+            border-radius: 20px;
+        }
+
         .searchbar {
             .input {
                 input {
@@ -183,13 +200,12 @@ $theme-darkblue: #06468e;
         }
         .product-wrap {
             margin-top: 20px;
-            max-height: 100vh;
             display: flex;
             justify-content: start;
             gap: 30px;
             flex-wrap: wrap;
             overflow-x: auto;
-            max-height: 88vh;
+            height: 100vh;
             padding-right: 20px;
 
             &::-webkit-scrollbar {
@@ -295,6 +311,10 @@ $theme-darkblue: #06468e;
                 }
             }
         }
+
+        .row {
+            margin: 0;
+        }
     }
 
     .order {
@@ -304,6 +324,7 @@ $theme-darkblue: #06468e;
         padding: 0px 30px 30px 30px;
         width: 360px;
         min-width: 360px;
+        height: 100vh;
 
         .customers {
             border-top: $theme-grey 1px solid;
@@ -430,7 +451,8 @@ $theme-darkblue: #06468e;
 
                             span {
                                 width: max-content;
-                                input, select {
+                                input,
+                                select {
                                     width: 45px;
                                     height: 17px;
                                     outline: none;

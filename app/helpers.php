@@ -942,7 +942,7 @@ function generateThermalInvoice($order_id, $inName, $bill_type)
     $company = PosDataController::company();
     $repairs = Repairs::where('bill_no', $order_id)->where('pos_code', $company->pos_code)->get()[0];
     $customer = getCustomer($repairs->customer);
-    $qr_code_image = generateQR("https://wefixservers.xyz/customer-copy/repair/" . Crypt::encrypt($company->pos_code) . "/" . Crypt::encrypt($order_id), true);
+    $qr_code_image = generateQR("https://wefixservers.xyz/customer-copy/repair/" . $company->pos_code . "/" . $order_id, true);
     //$POSSettings = POSSettings();
 
     $note = $bill_type == 'newOrder' ? 'Received' : 'Delivered';
@@ -1050,7 +1050,7 @@ function generateThermalInvoice($order_id, $inName, $bill_type)
 
             <p style="font-size: 12px; text-align: left;font-weight: bold; border-bottom: 1px solid #000;">Additional Info</p>
 
-            <p style="font-size: 12px; text-align: left;">' . $repairs->note . '</p>
+            <p style="font-size: 12px; text-align: left;">' . nl2br(htmlspecialchars($repairs->note)) . '</p>
 
             <table style="width: 100%; border-collapse: collapse;">
                 <tr style="border-bottom: 1px solid #000;">
@@ -1323,7 +1323,7 @@ function generateThermalSalesInvoice($order_id, $inName, $products, $cashin)
 
     (float)$total = $pros->total;
     $customer = ($pros->customer == '0' || $pros->customer == 'other') ? 'Cash Deal' : getCustomer($pros->customer)->name;
-    $qr_code_image = generateQR("https://wefixservers.xyz/customer-copy/sale/" . Crypt::encrypt($company->pos_code) . "/" . Crypt::encrypt($order_id), true);
+    $qr_code_image = generateQR("https://wefixservers.xyz/customer-copy/sale/" . $company->pos_code . "/" . $order_id, true);
     $product_count = 0;
 
     $title = '<div style="text-align: center;margin-top: 10px; font-size: 20px; font-weight: bold;text-transform: uppercase;margin-bottom: 3px;">Delivery Receipt</div>
@@ -1857,8 +1857,8 @@ function sendInvitation($email)
 
 function getOrder($type="", $order_number, $pos_id)
 {
-    $order_number = Crypt::decrypt($order_number);
-    $pos_id = Crypt::decrypt($pos_id);
+    $order_number = $order_number;
+    $pos_id = $pos_id;
     $order = Repairs::where('bill_no', $order_number)->where('pos_code', $pos_id)->get();
 
     if ($order->count() > 0) {

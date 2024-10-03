@@ -60,8 +60,8 @@
                             <div class="col-2 form-text">Serial No</div>
                             <div class="col-2 form-text">Fault</div>
                             <div class="col-2 form-text">Customer</div>
-                            <div class="col-1 form-text">Status</div>
-                            <div class="col-1 form-text">Action</div>
+                            <div class="col-1 form-text" style="width: 100px;">Status</div>
+                            <div class="col-1 form-text" style="width: 100px;">Action</div>
                         </div>
                     </div>
                 </div>
@@ -74,7 +74,7 @@
                             <div style="cursor: pointer;"
                                 class="col-1 form-text mt-0 d-flex align-items-center control-text-overflow text-primary">
                                 <span @click="printInvoice(repair.invoice)">{{ repair.bill_no }}</span> <span
-                                    @click="openWhatsapp(searchCustomer(repair.customer)['phone'])" class="mx-3"
+                                    @click="openWhatsapp(searchCustomer(repair.customer)['phone'], repair.bill_no)" class="mx-3"
                                     title="WhatsApp Customer"><i class="fa-brands fa-whatsapp"></i></span>
                             </div>
                             <div class="col-2 form-text mt-0 d-flex align-items-center control-text-overflow">{{
@@ -85,9 +85,9 @@
                                 repair.fault }}</div>
                             <div class="col-2 form-text mt-0 d-flex align-items-center control-text-overflow">{{
                                 searchCustomer(repair.customer)["name"] }}</div>
-                            <div class="col-1 form-text mt-0 d-flex align-items-center control-text-overflow"><span
+                            <div class="col-1 form-text mt-0 d-flex align-items-center control-text-overflow" style="width: 100px;"><span
                                     :class="'badge bg-' + getStatus(repair.status)">{{ repair.status }}</span></div>
-                            <div class="col-1 form-text mt-0 d-flex align-items-center">
+                            <div class="col-1 form-text mt-0 d-flex align-items-center" style="width: 100px;">
                                 <button @click="finishOrder('show', repair.bill_no)"
                                     v-if="repair.status == 'Pending' || repair.status == 'Awaiting Parts'"
                                     class="primary-btn submit-btn"
@@ -805,12 +805,12 @@ export default {
                         note2 += 'Has ' + checkbox.value;
                     }
                     else {
-                        note2 += '{break;}Has ' + checkbox.value;
+                        note2 += '\nHas ' + checkbox.value;
                     }
                 }
             });
 
-            note2 += "{break;}" + note.replace(/\r?\n/g, '{break;}');
+            note2 += "\n" + note.replace(/\r?\n/g, '\n');
 
             const { data } = await axios.post('/pos/new_order', {
                 total: total,
@@ -921,8 +921,9 @@ export default {
 
             printJS("/invoice/" + invoice);
         },
-        openWhatsapp(number) {
-            window.open('https://wa.me/' + reformatPhoneNumbers(number));
+        openWhatsapp(number, invoice) {
+            var text = "Click on the link to get your PDF invoice copy \nhttps://wefixservers.xyz/customer-copy/repair/"+this.posData.pos_code+"/"+invoice;
+            window.open('https://wa.me/' + reformatPhoneNumbers(number)+"?text="+encodeURIComponent(text)+"?_spm=false");
         }
     },
     beforeMount() {

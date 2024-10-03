@@ -3,11 +3,11 @@
         <div class="products">
             <div class="searchbar">
                 <div class="input">
-                    <input type="text" ref="searchbar" placeholder="Search here" value="" @keyup="this.searchProducts($event)">
+                    <input type="text" ref="searchbar" placeholder="Search here" value=""
+                        @keyup="this.searchProducts($event)">
                 </div>
             </div>
             <div class="product-wrap">
-
                 <div :class="'product ' + pro['status']" v-for="pro in products" :ref="pro['sku']">
                     <div class="img" @click="selectProduct(pro['sku'])">
                         <img :src="'/assets/images/products/' + pro['pro_image']" alt="">
@@ -22,7 +22,8 @@
 
         <div class="order">
             <div class="head">
-                <h2>New Order</h2> <button @click="reloadPOS()" class="primary-btn border-only submit-btn">Clear</button>
+                <h2>New Order</h2> <button @click="reloadPOS()"
+                    class="primary-btn border-only submit-btn">Clear</button>
             </div>
 
             <div class="customers">
@@ -35,21 +36,23 @@
 
             <div id="order-wrap" class="order-wrap" ref="order_wrap">
                 <div class="orders" v-for="order in selectedProduct">
-                    <div class="row">
+                    <div class="row m-0">
                         <div class="col col-10">
                             <div class="orderlist">
                                 <img :src="'/assets/images/products/' + order['pro_image']" alt="">
                                 <div class="dtl">
                                     <div class="name">{{ order['pro_name'] }}</div>
-                                    <div class="price" v-if="order['discount'] == 0">{{ currency(parseFloat(order['price'])
-                                        * parseFloat(order['qty']), posData.currency) }}</div>
+                                    <div class="price" v-if="order['discount'] == 0">{{
+                                        currency(parseFloat(order['price'])
+                                            * parseFloat(order['qty']), posData.currency) }}</div>
                                     <div class="price" v-if="order['discount'] > 0">{{
                                         currency(parseFloat(order['discounted_price']) * parseFloat(order['qty']),
                                             posData.currency) }}</div>
                                 </div>
                                 <div class="qty">
                                     <i class="fa-solid fa-minus" @click="updateQTY(order['sku'], '-')"></i>
-                                    <input type="number" :ref="'qty' + order['sku']" value="1" @focus="$event.target.select();" @keyup="directUpdateQty($event, order['sku'])">
+                                    <input type="number" :ref="'qty' + order['sku']" value="1"
+                                        @focus="$event.target.select();" @keyup="directUpdateQty($event, order['sku'])">
                                     <i class="fa-solid fa-plus" @click="updateQTY(order['sku'], '+')"></i>
                                 </div>
                             </div>
@@ -113,7 +116,8 @@
                         Cash
                     </div>
                     <div class="col">
-                        <input type="number" ref="cashin" value="0" @keyup="updateProductDetails(true)" @focus="$event.target.select();">
+                        <input type="number" ref="cashin" value="0" @keyup="updateProductDetails(true)"
+                            @focus="$event.target.select();">
                     </div>
                 </div>
 
@@ -159,7 +163,8 @@
             <div class="proceed_btn">
                 <div class="row row-cols-1">
                     <div class="col">
-                        <button class="primary-btn submit-btn" :disabled="isDisabled" @click="proceed()">Checkout</button>
+                        <button class="primary-btn submit-btn" :disabled="isDisabled"
+                            @click="proceed()">Checkout</button>
                     </div>
                 </div>
             </div>
@@ -275,7 +280,7 @@ export default {
             if (this.$refs['searchbar'].value == "") {
                 this.products = this.tempProducts;
             }
-            else if(e.key == "Enter") {
+            else if (e.key == "Enter") {
                 pro = this.proBackup;
                 var singlePro = pro.filter(item => item['sku'] == this.$refs['searchbar'].value);
                 if (singlePro.length == 1) {
@@ -320,7 +325,7 @@ export default {
                         temp_pro['discount'] = 0;
                         temp_pro['discounted_price'] = 0;
                         temp_pro['discount_mod'] = "am";
-                        
+
                         this.selectedProduct.push(temp_pro);
                         return false;
                     }
@@ -407,7 +412,7 @@ export default {
             }
             else {
                 toastr.error("All fields are required", "Error");
-            } 
+            }
         },
         get_total(final = false) {
 
@@ -550,7 +555,7 @@ export default {
         },
         shortcuts(event) {
             if (event.target.nodeName == 'BODY') {
-                
+
                 if (event.key == "S") {
                     this.$refs.searchbar.focus();
                 }
@@ -611,7 +616,8 @@ export default {
 
 <style scoped>
 .product-wrap {
-    height: 95%;
+    height: 100%;
+    align-content: flex-start
 }
 
 .order_type {
@@ -619,5 +625,24 @@ export default {
     outline: none;
     border: 0;
     padding: 3px 0;
+}
+
+.products {
+    width: 100%;
+    height: 100%;
+}
+
+.order {
+    height: 100%;
+}
+
+.pos-wrap {
+    height: 90vh;
+}
+
+@media screen and (max-height: 917px) {
+    .pos-wrap {
+        height: 100vh;
+    }
 }
 </style>
