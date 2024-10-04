@@ -36,10 +36,6 @@
                         class="fa-solid fa-cash-register"></i>Sales</button>
             </div>
 
-            <!-- <div class="favourits">
-                <button @click="newOrder('show')" class="primary-btn submit-btn border-only"><i class="fa-solid fa-cash-register"></i>Generate Coupon</button>
-            </div> -->
-
             <div class="categories">
                 <ul>
                     <!--  -->
@@ -88,7 +84,7 @@
                             <div class="col-2 form-text mt-0 d-flex align-items-center control-text-overflow">{{
                                 repair.fault }}</div>
                             <div class="col-2 form-text mt-0 d-flex align-items-center control-text-overflow">{{
-                                searchCustomer(repair.customer)["name"] }}</div>
+                                searchCustomer(repair.customer)["name"] }} ({{ searchCustomer(repair.customer)["phone"] }})</div>
                             <div class="col-1 form-text mt-0 d-flex align-items-center control-text-overflow" style="width: 100px;"><span
                                     :class="'badge bg-' + getStatus(repair.status)">{{ repair.status }}</span></div>
                             <div class="col-1 form-text mt-0 d-flex align-items-center" style="width: 100px;">
