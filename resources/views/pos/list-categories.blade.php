@@ -44,7 +44,7 @@
                                             <td class="text-start">{{ currency($item->advance) }}</td>
                                             <td class="text-start">{{ currency($item->total - $item->advance) }}</td>
                                             <td class="text-start">{{ currency($item->total) }}</td>
-                                            <td class="text-start">{{ getCustomer($item->customer)->name }}</td>
+                                            <td class="text-start">{{ getCustomer($item->customer)->name }} ({{ getCustomer($item->customer)->phone }})</td>
                                             <td class="text-start">{{ count((array) json_decode($item->spares)) }}</td>
                                             <td class="text-start">{{ date('d-m-Y', strtotime($item->created_at)) }}</td>
                                             <td
