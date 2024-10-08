@@ -1117,6 +1117,12 @@ function generateThermalInvoice($order_id, $inName, $bill_type)
             </div>
         ';
     }
+    else {
+        $html .= '
+            <h4 style="margin-bottom: 10px;">Product Information</h4>
+            <p style="font-size: 12px; text-align: left;font-weight: bold; border-bottom: 1px solid #000;">Additional Info</p>
+            <p style="font-size: 12px; text-align: left;">' . nl2br(htmlspecialchars($repairs->note)) . '</p>';
+        }
 
     $html .= '
 

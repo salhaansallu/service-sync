@@ -335,9 +335,11 @@ class RepairsController extends Controller
             if ($product) {
                 if ($status == "Pending" || $status == "Awaiting Parts" || $status == "Repaired") {
                     generateInvoice($id_verify[0]->bill_no, str_replace(['newOrder/', 'checkout/'], "", $id_verify[0]->invoice), 'newOrder');
+                    generateThermalInvoice($id_verify[0]->bill_no, str_replace(['newOrder/', 'checkout/'], "", str_replace('Invoice', 'Thermal-invoice', $id_verify[0]->invoice)), 'newOrder');
                 }
                 else {
                     generateInvoice($id_verify[0]->bill_no, str_replace(['newOrder/', 'checkout/'], "", $id_verify[0]->invoice), 'checkout');
+                    generateThermalInvoice($id_verify[0]->bill_no, str_replace(['newOrder/', 'checkout/'], "", str_replace('Delivery', 'Thermal-delivery', $id_verify[0]->invoice)), 'checkout');
                 }
 
                 return response(json_encode(array("error" => 0, "msg" => "Order Updated Successfully", 'id' => $id)));
