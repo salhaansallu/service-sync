@@ -19,6 +19,7 @@
         "@vuepic/vue-datepicker": "^9.0.3",
         "apexcharts": "^3.44.0",
         "escpos": "^3.0.0-alpha.6",
+        "jquery": "^3.7.1",
         "jquery-creditcardvalidator": "^1.2.0",
         "print-js": "^1.6.0",
         "select2": "^4.1.0-rc.0",

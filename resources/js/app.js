@@ -5,8 +5,6 @@ import { createApp } from 'vue';
 
 import VueApexCharts from "vue3-apexcharts";
 
-import '../../node_modules/select2/dist/js/select2';
-
 import toastr from 'toastr';
 window.toastr = toastr;
 
@@ -144,9 +142,10 @@ $(function () {
 
 });
 
-$('.select2-multiple').select2();
-
-$(".data-table").DataTable();
+$(document).ready(function () {
+  $('.select2-multiple').select2();
+  $(".data-table").DataTable();
+});
 
 $('.no-collapsable').on('click', function (e) {
   e.stopPropagation();

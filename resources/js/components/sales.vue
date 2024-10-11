@@ -196,7 +196,9 @@ export default {
     beforeMount() {
     },
     mounted() {
-        //
+        this.$nextTick(() => {
+            $('.select2-multiple').select2();
+        });
     }
 }
 </script>
