@@ -39,7 +39,7 @@
                                 <td class="text-start">{{ getCustomer(item['customer_id']) != undefined ?
                                     getCustomer(item['customer_id'])['name'] : '' }}</td>
                                 <td class="text-start">{{ item['ammount'] }}</td>
-                                <td class="text-start">{{ item['order_id'] }}</td>
+                                <td class="text-start">{{ item['order_id'].replace(/[\[\]"]+/g, '') }}</td>
                                 <td class="text-start">{{ new Date(item['created_at']).toLocaleString('nl-NL') }}</td>
                                 <td class="text-start">{{ new Date(item['updated_at']).toLocaleString('nl-NL') }}</td>
                                 <td class="text-start">

@@ -5,6 +5,8 @@ import { createApp } from 'vue';
 
 import VueApexCharts from "vue3-apexcharts";
 
+import '../../node_modules/select2/dist/js/select2';
+
 import toastr from 'toastr';
 window.toastr = toastr;
 

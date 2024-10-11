@@ -18,7 +18,8 @@
             </div>
 
             <div class="favourits">
-                <button @click="goTo('/other-pos')" class="primary-btn submit-btn border-only"><i class="fa-solid fa-wrench"></i>Other Repairs</button>
+                <button @click="goTo('/other-pos')" class="primary-btn submit-btn border-only"><i
+                        class="fa-solid fa-wrench"></i>Other Repairs</button>
             </div>
 
             <div class="favourits">
@@ -44,7 +45,13 @@
         </div>
 
         <div class="products">
-            <div class="searchbar">
+            <div class="searchbar d-flex gap-2">
+                <div class="input">
+                    <select name="" ref="searchType" class="h-100 rounded">
+                        <option value="repairs">Repairs</option>
+                        <option value="customer">Customer</option>
+                    </select>
+                </div>
                 <div class="input">
                     <input type="text" ref="searchbar" placeholder="Search here" value=""
                         @keyup="searchProducts($event)">
@@ -67,15 +74,15 @@
                 </div>
 
                 <div v-for="repair in repairs"
-                    :class="'col-12 mt-2 py-2 bg-light pos-status-' + getStatus(repair.status)"
+                    :class="'col-12 mt-2 py-2 bg-light pos-status-' + getStatus(repair.status) + ' ' + repair.selectStatus"
                     style="border-radius: 5px;box-shadow: 0px 0px 2px 0px #00000029;">
                     <div class="order-display">
                         <div class="row">
                             <div style="cursor: pointer;"
                                 class="col-1 form-text mt-0 d-flex align-items-center control-text-overflow text-primary">
                                 <span @click="printInvoice(repair.invoice)">{{ repair.bill_no }}</span> <span
-                                    @click="openWhatsapp(searchCustomer(repair.customer)['phone'], repair.invoice)" class="mx-3"
-                                    title="WhatsApp Customer"><i class="fa-brands fa-whatsapp"></i></span>
+                                    @click="openWhatsapp(searchCustomer(repair.customer)['phone'], repair.invoice)"
+                                    class="mx-3" title="WhatsApp Customer"><i class="fa-brands fa-whatsapp"></i></span>
                             </div>
                             <div class="col-2 form-text mt-0 d-flex align-items-center control-text-overflow">{{
                                 repair.model_no }}</div>
@@ -83,10 +90,12 @@
                                 repair.serial_no }}</div>
                             <div class="col-2 form-text mt-0 d-flex align-items-center control-text-overflow">{{
                                 repair.fault }}</div>
-                            <div class="col-2 form-text mt-0 d-flex align-items-center control-text-overflow">{{ searchCustomer(repair.customer)["phone"] }} ({{
-                                searchCustomer(repair.customer)["name"] }})</div>
-                            <div class="col-1 form-text mt-0 d-flex align-items-center control-text-overflow" style="width: 100px;"><span
-                                    :class="'badge bg-' + getStatus(repair.status)">{{ repair.status }}</span></div>
+                            <div class="col-2 form-text mt-0 d-flex align-items-center control-text-overflow">{{
+                                searchCustomer(repair.customer)["phone"] }} ({{
+                                    searchCustomer(repair.customer)["name"] }})</div>
+                            <div class="col-1 form-text mt-0 d-flex align-items-center control-text-overflow"
+                                style="width: 100px;"><span :class="'badge bg-' + getStatus(repair.status)">{{
+                                    repair.status }}</span></div>
                             <div class="col-1 form-text mt-0 d-flex align-items-center" style="width: 100px;">
                                 <button @click="finishOrder('show', repair.bill_no)"
                                     v-if="repair.status == 'Pending' || repair.status == 'Awaiting Parts'"
@@ -245,7 +254,7 @@
                             <div class="col-6 mt-3">
                                 <div class="input">
                                     <label for="" class="mb-1">Customer</label>
-                                    <select ref="customer" name="">
+                                    <select ref="customer" name="" class="select2-multiple">
                                         <option value=""></option>
                                         <option v-for="customer in users" :value="customer.id">{{ customer.name }} ({{
                                             customer.phone }})</option>
@@ -330,7 +339,7 @@
                                     <label for="" class="mb-1">Spares</label>
                                     <div class="row" v-for="spare in spareCount">
                                         <div class="col-9">
-                                            <select :ref="'finish_spare_' + spare" :name="'finish_spare_' + spare">
+                                            <select :ref="'finish_spare_' + spare" :name="'finish_spare_' + spare" class="select2-multiple">
                                                 <option value="">-- Select spare --</option>
                                                 <option v-for="spare in Spares" :value="spare.id">{{ spare.pro_name }}
                                                 </option>
@@ -344,7 +353,7 @@
                                     <span class="d-flex w-100 justify-content-between">
                                         <span @click="spareCountUpdate('-')" class="form-text mt-3"
                                             style="cursor: pointer;">- Remove spare</span>
-                                        <span @click="spareCount++" class="form-text mt-3" style="cursor: pointer;">+
+                                        <span @click="spareCountUpdate('+')" class="form-text mt-3" style="cursor: pointer;">+
                                             Add spare</span>
                                     </span>
                                 </div>
@@ -502,6 +511,7 @@ export default {
             spareCount: 1,
             finishOrderNo: 0,
             isDisabled: false,
+            selectedCustomer: 0,
         }
     },
     methods: {
@@ -516,6 +526,18 @@ export default {
         },
         newOrder(action) {
             $("#NewOrder").modal(action);
+
+            const myModalEl = document.getElementById('NewOrder')
+            myModalEl.addEventListener('shown.bs.modal', event => {
+                $('.select2-multiple').select2({
+                    tags: true,
+                    dropdownParent: $("#NewOrder"),
+                    createTag: function () {
+                        // Disable tagging
+                        return null;
+                    }
+                });
+            })
         },
         newCustomer(action) {
             $("#NewCustomer").modal(action);
@@ -525,10 +547,24 @@ export default {
         },
         finishOrder(action, bill_no = 0) {
             $("#FinishOrder").modal(action);
-            this.$refs['finish_bill_no'].value = bill_no;
-            this.$refs['finish_note'].value = this.repairs.filter(item => item['bill_no'] == bill_no)[0].note.replace(/\s*<br>\s*/g, "\n");
-            this.$refs['finish_total'].value = this.repairs.filter(item => item['bill_no'] == bill_no)[0].total;
-            this.finishOrderNo = bill_no;
+            if (bill_no != 0) {
+                this.$refs['finish_bill_no'].value = bill_no;
+                this.$refs['finish_note'].value = this.repairs.filter(item => item['bill_no'] == bill_no)[0].note.replace(/\s*<br>\s*/g, "\n");
+                this.$refs['finish_total'].value = this.repairs.filter(item => item['bill_no'] == bill_no)[0].total;
+                this.finishOrderNo = bill_no;
+            }
+
+            const myModalEl = document.getElementById('FinishOrder')
+            myModalEl.addEventListener('shown.bs.modal', event => {
+                $('.select2-multiple').select2({
+                    tags: true,
+                    dropdownParent: $("#FinishOrder"),
+                    createTag: function () {
+                        // Disable tagging
+                        return null;
+                    }
+                });
+            })
         },
         async getPosData() {
             const { data } = await axios.post("/pos/pos_data");
@@ -559,19 +595,26 @@ export default {
         },
         updateOrder() {
             if (this.selectedRepair.length > 0) {
-                console.log(this.selectedRepair);
 
-                this.$refs["subtotal"].innerText = currency(this.selectedRepair[0]["total"], this.posData.currency);
-                this.$refs["order_advance"].innerText = currency(this.selectedRepair[0]["advance"], this.posData.currency);
-                this.$refs["order_total"].innerText = currency((this.selectedRepair[0]["total"] - this.selectedRepair[0]["advance"]), this.posData.currency);
-                this.$refs["balance"].innerText = currency((this.selectedRepair[0]["total"] - this.selectedRepair[0]["advance"]) - this.$refs["cashin"].value, this.posData.currency);
+                var total = 0;
+                var advance = 0;
+
+                this.selectedRepair.forEach(element => {
+                    total += element["total"];
+                    advance += element["advance"];
+                });
+
+                this.$refs["subtotal"].innerText = currency(total, this.posData.currency);
+                this.$refs["order_advance"].innerText = currency(advance, this.posData.currency);
+                this.$refs["order_total"].innerText = currency((total - advance), this.posData.currency);
+                this.$refs["balance"].innerText = currency((total - advance) - this.$refs["cashin"].value, this.posData.currency);
                 return;
             }
 
-            this.$refs["subtotal"].innerText = "0.00";
-            this.$refs["order_advance"].innerText = "0.00";
-            this.$refs["order_total"].innerText = "0.00";
-            this.$refs["balance"].innerText = "0.00";
+            this.$refs["subtotal"].innerText = currency("0.00", this.posData.currency);
+            this.$refs["order_advance"].innerText = currency("0.00", this.posData.currency);
+            this.$refs["order_total"].innerText = currency("0.00", this.posData.currency);
+            this.$refs["balance"].innerText = currency("0.00", this.posData.currency);
         },
         searchProducts(e) {
             var pro = this.proBackup;
@@ -579,8 +622,20 @@ export default {
                 this.repairs = this.proBackup;
             }
             else {
-                pro = this.proBackup;
-                this.repairs = pro.filter(item => item['model_no'].toLowerCase().includes(this.$refs['searchbar'].value.toLowerCase()) || item['bill_no'].toLowerCase().includes(this.$refs['searchbar'].value.toLowerCase()));
+                if (this.$refs.searchType.value == 'repairs') {
+                    pro = this.proBackup;
+                    this.repairs = pro.filter(item => item['model_no'].toLowerCase().includes(this.$refs['searchbar'].value.toLowerCase()) || item['bill_no'].toLowerCase().includes(this.$refs['searchbar'].value.toLowerCase()));
+                }
+                else {
+                    pro = this.proBackup;
+                    var customers = this.users.filter(item => item['name'].toLowerCase().includes(this.$refs['searchbar'].value.toLowerCase()) || item['phone'].toLowerCase().includes(this.$refs['searchbar'].value.toLowerCase()));
+                    this.repairs = [];
+
+                    customers.forEach(customer => {
+                        const filteredItems = pro.filter(item => item['customer'] == customer.id);
+                        this.repairs.push(...filteredItems);
+                    });
+                }
             }
         },
         searchCustomer(id) {
@@ -592,27 +647,66 @@ export default {
             return { "name": "N/A", "phone": "N/A", "email": "N/A" }
         },
         removeProduct(pro) {
-            this.selectedRepair = [];
-            this.updateOrder();
-        },
-        selectProduct(pro) {
-            this.selectedRepair = [];
+            this.selectedRepair = this.selectedRepair.filter(function (obj) {
+                return obj.bill_no !== pro;
+            });
+
             this.repairs.forEach(element => {
                 if (element['bill_no'] == pro) {
-                    this.selectedRepair.push(element);
+                    element["selectStatus"] = "";
                     return false;
                 }
             });
+            this.updateOrder();;
+        },
+        selectProduct(pro) {
+
+            var newCustomer = 0;
+
+            if (this.selectedRepair.length == 0) {
+                newCustomer = true;
+            }
+
+            var has = this.selectedRepair.filter(item => item['bill_no'] == pro).length > 0;
+
+            if (has) {
+                this.removeProduct(pro);
+            }
+            else {
+                this.repairs.forEach(element => {
+                    if (element['bill_no'] == pro) {
+                        if (newCustomer == false && element["customer"] != this.selectedCustomer) {
+                            toastr.error("Bill No " + element['bill_no'] + " is not from the customer same as other selected bills", "Error");
+                        }
+                        else {
+                            element["selectStatus"] = "active";
+                            this.selectedRepair.push(element);
+                            if (newCustomer) {
+                                this.selectedCustomer = element["customer"];
+                            }
+                            return false;
+                        }
+                    }
+                });
+            }
 
             this.updateOrder();
         },
         reloadPOS() {
             this.selectedRepair = [];
 
+            this.repairs.forEach(element => {
+                if (element["selectStatus"] != undefined) {
+                    element["selectStatus"] = "";
+                }
+            });
+
             this.spareCount = 1;
 
             this.$refs["cashin"].value = '0';
             this.$refs["total"].innerText = "LKR 0.00";
+            this.$refs["order_total"].innerText = "LKR 0.00";
+            this.$refs["order_advance"].innerText = "LKR 0.00";
             this.$refs["subtotal"].innerText = "LKR 0.00";
             this.$refs["balance"].innerText = "LKR 0.00";
             this.paymentMethod("cash");
@@ -657,11 +751,13 @@ export default {
 
                     this.loadModal("show");
 
-                    repair = this.selectedRepair[0];
+                    this.selectedRepair.forEach(element => {
+                        repair.push(element['bill_no']);
+                    });
 
-                    const { data } = await axios.post('/pos/checkout', {
+                    const { data } = await axios.post('/other-pos/checkout', {
                         params: {
-                            bill_no: repair['bill_no'],
+                            bill_no: repair,
                             cashin: cashin,
                         }
                     }).catch(function (error) {
@@ -912,6 +1008,21 @@ export default {
             if (op == '-' && this.spareCount >= 1) {
                 this.spareCount--;
             }
+
+            if (op == '+') {
+                this.spareCount++;
+            }
+
+            setTimeout(() => {
+                $('.select2-multiple').select2({
+                    tags: true,
+                    dropdownParent: $("#FinishOrder"),
+                    createTag: function () {
+                        // Disable tagging
+                        return null;
+                    }
+                });
+            }, 100);
         },
         printInvoice(invoice) {
             if (invoice == "") {
@@ -932,8 +1043,8 @@ export default {
             printJS("/invoice/" + invoice);
         },
         openWhatsapp(number, invoice) {
-            var text = "Click on the link to get your PDF invoice copy \nhttps://wefixservers.xyz/invoice/"+invoice;
-            window.open('https://wa.me/' + reformatPhoneNumbers(number)+"?text="+encodeURIComponent(text));
+            var text = "Click on the link to get your PDF invoice copy \nhttps://wefixservers.xyz/invoice/" + invoice;
+            window.open('https://wa.me/' + reformatPhoneNumbers(number) + "?text=" + encodeURIComponent(text));
         }
     },
     beforeMount() {

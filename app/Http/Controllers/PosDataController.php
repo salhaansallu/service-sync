@@ -104,41 +104,40 @@ class PosDataController extends Controller
         if (Auth::check() && $this->check()) {
             $request = filter_var_array($request->input('params'), FILTER_SANITIZE_STRING);
             $cashin = sanitize($request['cashin']);
-            $bill_no = sanitize($request['bill_no']);
-            $order = Repairs::where('bill_no', $bill_no)->where('pos_code', $this->company()->pos_code)->get();
-            if ($order->count() > 0) {
-                $order = $order[0];
+            $bill_no = filter_var_array($request["bill_no"], FILTER_SANITIZE_STRING);
+            $company = PosDataController::company();
+            $total = 0;
+            $advance = 0;
+
+            $rand = date('d-m-Y-h-i-s') . '-' . rand(0, 9999999) . '.pdf';
+            $inName = str_replace(' ', '-', str_replace('.', '-', $bill_no[0])) . '-Delivery-' . $rand;
+            $ThermalinName = str_replace(' ', '-', str_replace('.', '-', $bill_no[0])) . '-Thermal-delivery-' . $rand;
+
+            foreach ($bill_no as $key => $id) {
+                $total += Repairs::where('bill_no', $id)->where('pos_code', $company->pos_code)->sum('total');
+
+                Repairs::where('bill_no', $id)->where('pos_code', $company->pos_code)->update([
+                    "status" => "Delivered",
+                    "updated_at" => date('d-m-Y H:i:s'),
+                    "invoice" => "checkout/" . $inName,
+                ]);
             }
-            $total = $order['total'] - $order['advance'];
+
+            $repairs = Repairs::where('bill_no', $bill_no[0])->where('pos_code', $company->pos_code)->get('customer')[0];
 
             if ($cashin < $total) {
                 $credit = new Credit();
-                $credit->customer_id = $order["customer"];
-                $credit->ammount = $total - $cashin;
-                $credit->pos_code = $this->company()->pos_code;
-                $credit->order_id = $bill_no;
+                $credit->customer_id = $repairs->customer;
+                $credit->ammount = ($total - $advance) - $cashin;
+                $credit->pos_code = $company->pos_code;
+                $credit->order_id = json_encode($bill_no);
                 $credit->save();
             }
-
-            Repairs::where('bill_no', $bill_no)->where('pos_code', $this->company()->pos_code)->update([
-                "status" => "Delivered",
-                "updated_at" => date('d-m-Y H:i:s'),
-            ]);
-
-            $rand = date('d-m-Y-h-i-s') . '-' . rand(0, 9999999) . '.pdf';
-
-            $inName = str_replace(' ', '-', str_replace('.', '-', $bill_no)) . '-Delivery-' . $rand;
-            $ThermalinName = str_replace(' ', '-', str_replace('.', '-', $bill_no)) . '-Thermal-delivery-' . $rand;
 
             $generate_invoice = generateInvoice($bill_no, $inName, 'checkout');
             $generate_thermal_invoice = generateThermalInvoice($bill_no, $ThermalinName, 'checkout');
 
             if ($generate_invoice->generated == true) {
-
-                Repairs::where('bill_no', $bill_no)->where('pos_code', $this->company()->pos_code)->update([
-                    "invoice" => "checkout/" . $inName,
-                ]);
-
                 return response(json_encode(array("error" => 0, "msg" => "Checkout successful", "invoiceURL" => $generate_thermal_invoice->url)));
             } else {
                 return response(json_encode(array("error" => 0, "msg" => "Checkout successful, Couldn't print invoice: " . $generate_thermal_invoice->msg)));
@@ -242,7 +241,7 @@ class PosDataController extends Controller
                 if ($generate_invoice->generated == true) {
 
                     Repairs::where('bill_no', $bill_no)->where('pos_code', company()->pos_code)->update([
-                        "invoice" => 'checkout/'.$inName,
+                        "invoice" => 'checkout/' . $inName,
                     ]);
 
                     return response(json_encode(array("error" => 0, "msg" => "Checkout Successful", "invoiceURL" => $generate_thermal_invoice->url)));

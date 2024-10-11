@@ -25,7 +25,7 @@ class RepairsController extends Controller
     {
         $response = [];
         if (PosDataController::check()) {
-            return response(json_encode(Repairs::where('pos_code', PosDataController::company()->pos_code)->where('type', '=', 'repair')->where('status', '!=', 'Delivered')->orderBy('id', 'DESC')->get()));
+            return response(json_encode(Repairs::where('pos_code', PosDataController::company()->pos_code)->where('type', '=', 'repair')->where('status', '!=', 'Delivered')->orderBy('customer', 'DESC')->get()));
         } else {
             $response['error'] = 1;
             $response['msg'] = "not_logged_in";

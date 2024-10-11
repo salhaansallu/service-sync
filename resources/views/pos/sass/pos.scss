@@ -1,4 +1,5 @@
 @import "../../../sass/variables";
+@import "../../../../node_modules/select2//dist/css/select2.min.css";
 
 $theme-darkblue: #06468e;
 
@@ -314,6 +315,12 @@ $theme-darkblue: #06468e;
 
         .row {
             margin: 0;
+
+            .col-12 {
+                &.active {
+                    border: 4px solid $theme-blue;
+                }
+            }
         }
     }
 

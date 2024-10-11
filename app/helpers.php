@@ -749,10 +749,36 @@ function generateQR($data, $invoice = false)
 function generateInvoice($order_id, $inName, $bill_type)
 {
     $company = PosDataController::company();
-    $repairs = Repairs::where('bill_no', $order_id)->where('pos_code', $company->pos_code)->get()[0];
-    $customer = getCustomer($repairs->customer);
-    //$qr_code_image = generateQR("https://nmsware.com/customer-copy/" . $company->pos_code . "/" . $order_id);
-    //$POSSettings = POSSettings();
+
+    $total = 0;
+    $advance = 0;
+    $orders = [];
+    $customer = [];
+
+    if (is_array($order_id)) {
+        foreach ($order_id as $key => $id) {
+            $temp_total = Repairs::where('bill_no', $id)->where('pos_code', $company->pos_code)->sum('total');
+            $total += $temp_total;
+            
+            $temp_advance = Repairs::where('bill_no', $id)->where('pos_code', $company->pos_code)->sum('advance');
+            $advance += $temp_advance;
+
+            $orders[] = array("id" => $id, "total" => $temp_total, "advance" => $temp_advance);
+        }
+
+        $repairs = Repairs::where('bill_no', $order_id[0])->where('pos_code', $company->pos_code)->get()[0];
+        $customer = getCustomer($repairs->customer);
+    }
+    else {
+        $total = Repairs::where('bill_no', $order_id)->where('pos_code', $company->pos_code)->sum('total');
+        
+        $advance = Repairs::where('bill_no', $order_id)->where('pos_code', $company->pos_code)->sum('advance');
+
+        $orders[] = array("id"=> $order_id, "total"=>$total, "advance"=>$advance);
+
+        $repairs = Repairs::where('bill_no', $order_id)->where('pos_code', $company->pos_code)->get()[0];
+        $customer = getCustomer($repairs->customer);
+    }
 
     $note = $bill_type == 'newOrder' ? 'Received' : 'Delivered';
     $note2 = $bill_type == 'newOrder' ? 'Receive Note' : 'Delivery Note';
@@ -806,12 +832,10 @@ function generateInvoice($order_id, $inName, $bill_type)
             <div style="margin-bottom: 20px;">
                 <table style="width: 100%; border-collapse: collapse;">
                     <tr>
-                        <th style="width: 50%; padding: 8px; border: 1px solid black; text-align: left;">Bill No</th>
-                        <th style="width: 50%; padding: 8px; border: 1px solid black; text-align: left;">Date</th>
+                        <th style="width: 50%; padding: 8px; text-align: left;">Date</th>
                     </tr>
                     <tr>
-                        <td style="padding: 8px; border: 1px solid black;">' . $repairs->bill_no . '</td>
-                        <td style="padding: 8px; border: 1px solid black;">' . date('d-m-Y H:i:s', strtotime($repairs->created_at)) . '</td>
+                        <td style="padding: 8px;">' . date('d-m-Y H:i:s', strtotime($repairs->created_at)) . '</td>
                     </tr>
                 </table>
             </div>
@@ -820,19 +844,25 @@ function generateInvoice($order_id, $inName, $bill_type)
             <div style="margin-bottom: 20px;">
                 <table style="width: 100%; border-collapse: collapse;">
                     <tr>
-                        <th style="color: #000;padding: 5px; border: 1px solid black; text-align: left;">Model No</th>
-                        <th style="color: #000;padding: 5px; border: 1px solid black; text-align: left;">Serial No</th>
-                        <th style="color: #000;padding: 5px; border: 1px solid black; text-align: left;">Fault</th>
-                        <th style="color: #000;padding: 5px; border: 1px solid black; text-align: left;">Advance</th>
+                        <th style="color: #000;padding: 5px; border: 1px solid black; text-align: left;">Bill No</th>
                         <th style="color: #000;padding: 5px; border: 1px solid black; text-align: left;">Total</th>
+                        <th style="color: #000;padding: 5px; border: 1px solid black; text-align: left;">Advance</th>
+                        <th style="color: #000;padding: 5px; border: 1px solid black; text-align: left;">Balance</th>
                     </tr>
+            ';
+
+            foreach ($orders as $key => $order) {
+                $html .= '
                     <tr>
-                        <td style="padding: 5px; border: 1px solid black;">' . $repairs->model_no . '</td>
-                        <td style="padding: 5px; border: 1px solid black;">' . $repairs->serial_no . '</td>
-                        <td style="padding: 5px; border: 1px solid black;">' . $repairs->fault . '</td>
-                        <td style="padding: 5px; border: 1px solid black;">' . currency($repairs->advance) . '</td>
-                        <td style="padding: 5px; border: 1px solid black;">' . currency($repairs->total) . '</td>
+                        <td style="padding: 5px; border: 1px solid black;">' . $order["id"] . '</td>
+                        <td style="padding: 5px; border: 1px solid black;">' . currency($order["total"], '') . '</td>
+                        <td style="padding: 5px; border: 1px solid black;">' . currency($order["advance"], '') . '</td>
+                        <td style="padding: 5px; border: 1px solid black;">' . currency($order["total"] - $order["advance"], '') . '</td>
                     </tr>
+                ';
+            }
+
+            $html .= '
                 </table>
             </div>
 
@@ -841,15 +871,15 @@ function generateInvoice($order_id, $inName, $bill_type)
                 <table style="width: 30%; border-collapse: collapse;margin-left: auto;">
                     <tr>
                         <td style="padding: 5px; text-align: right;font-size: 20px;font-weight: 800;">Total:</td>
-                        <td style="padding: 5px; text-align: right;font-size: 20px;font-weight: 800; width: 230px;">' . currency($repairs->total, 'LKR') . '</td>
+                        <td style="padding: 5px; text-align: right;font-size: 20px;font-weight: 800; width: 230px;">' . currency($total, 'LKR') . '</td>
                     </tr>
                     <tr>
                         <td style="padding: 5px; text-align: right;">Advance:</td>
-                        <td style="padding: 5px; text-align: right; width: 230px;">' . currency($repairs->advance, 'LKR') . '</td>
+                        <td style="padding: 5px; text-align: right; width: 230px;">' . currency($advance, 'LKR') . '</td>
                     </tr>
                     <tr>
                         <td style="padding: 5px; text-align: right;">Balance:</td>
-                        <td style="padding: 5px; text-align: right; width: 230px;">' . currency(((float)$repairs->total - (float)$repairs->advance), 'LKR') . '</td>
+                        <td style="padding: 5px; text-align: right; width: 230px;">' . currency(((float)$total - (float)$advance), 'LKR') . '</td>
                     </tr>
                 </table>
             </div>
@@ -965,9 +995,38 @@ function generateInvoice($order_id, $inName, $bill_type)
 function generateThermalInvoice($order_id, $inName, $bill_type)
 {
     $company = PosDataController::company();
-    $repairs = Repairs::where('bill_no', $order_id)->where('pos_code', $company->pos_code)->get()[0];
-    $customer = getCustomer($repairs->customer);
-    $qr_code_image = generateQR("https://wefixservers.xyz/customer-copy/repair/" . $company->pos_code . "/" . $order_id, true);
+
+    $total = 0;
+    $advance = 0;
+    $orders = [];
+    $customer = [];
+
+    if (is_array($order_id)) {
+        foreach ($order_id as $key => $id) {
+            $temp_total = Repairs::where('bill_no', $id)->where('pos_code', $company->pos_code)->sum('total');
+            $total += $temp_total;
+            
+            $temp_advance = Repairs::where('bill_no', $id)->where('pos_code', $company->pos_code)->sum('advance');
+            $advance += $temp_advance;
+
+            $orders[] = array("id"=> $id, "total"=>$temp_total, "advance"=>$temp_advance);
+        }
+
+        $repairs = Repairs::where('bill_no', $order_id[0])->where('pos_code', $company->pos_code)->get()[0];
+        $customer = getCustomer($repairs->customer);
+    }
+    else {
+        $total = Repairs::where('bill_no', $order_id)->where('pos_code', $company->pos_code)->sum('total');
+        
+        $advance = Repairs::where('bill_no', $order_id)->where('pos_code', $company->pos_code)->sum('advance');
+
+        $orders[] = array("id"=> $order_id, "total"=>$total, "advance"=>$advance);
+
+        $repairs = Repairs::where('bill_no', $order_id)->where('pos_code', $company->pos_code)->get()[0];
+        $customer = getCustomer($repairs->customer);
+    }
+
+    $qr_code_image = generateQR("https://wefixservers.xyz/invoice/". $bill_type . "/" . str_replace(["Thermal-delivery", "Thermal-invoice"], ["Delivery", "Invoice"], $inName), true);
     //$POSSettings = POSSettings();
 
     $note = $bill_type == 'newOrder' ? 'Received' : 'Delivered';
@@ -1017,54 +1076,51 @@ function generateThermalInvoice($order_id, $inName, $bill_type)
                     <td style="font-size: 12px;">Address:</td>
                     <td style="font-size: 12px; text-align: right;">' . $customer->address . '</td>
                 </tr>
-            </table>
 
-            <table style="width: 100%; border-collapse: collapse; margin-bottom: 10px;" border>
                 <tr>
-                    <td style="width: 50%; font-size: 12px;">Bill No</td>
-                    <td style="width: 50%; font-size: 12px; text-align: right;">Date</td>
-                </tr>
-                <tr>
-                    <td style="width: 50%; font-size: 14px;">' . $repairs->bill_no . '</td>
-                    <td style="width: 50%; font-size: 14px; text-align: right;">' . date('d-m-Y H:i:s', strtotime($repairs->created_at)) . '</td>
+                    <td style="font-size: 12px;">Date:</td>
+                    <td style="font-size: 12px; text-align: right;">' . date('d-m-Y H:i:s') . '</td>
                 </tr>
             </table>
 
-            <table style="width: 100%; border-collapse: collapse; margin-bottom: 10px; border-top: 1px solid #000;">
+            <table style="width: 100%; border-collapse: collapse; margin-bottom: 10px; margin-top: 5px; border-top: 1px solid #000;">
                 <tr>
-                    <td style="font-size: 14px;padding-top: 10px; font-weight: bold;">Model No: </td>
-                    <td style="font-size: 14px;padding-top: 10px;  text-align: right;">' . $repairs->model_no . '</td>
+                    <th style="color: #000;padding: 5px; text-align: left;">Order</th>
+                    <th style="color: #000;padding: 5px; text-align: left;">Total</th>
+                    <th style="color: #000;padding: 5px; text-align: left;">Advance</th>
+                    <th style="color: #000;padding: 5px; text-align: left;">Balance</th>
                 </tr>
-                <tr>
-                    <td style="font-size: 14px;padding-top: 10px; font-weight: bold;">Serial No: </td>
-                    <td style="font-size: 14px;padding-top: 10px;  text-align: right;">' . $repairs->serial_no . '</td>
-                </tr>
-                <tr>
-                    <td style="font-size: 14px;padding-top: 10px; font-weight: bold;">Fault: </td>
-                    <td style="font-size: 14px;padding-top: 10px;  text-align: right;">' . $repairs->fault . '</td>
-                </tr>
-                <tr>
-                    <td style="font-size: 14px;padding-top: 10px; font-weight: bold;">Advance: </td>
-                    <td style="font-size: 14px;padding-top: 10px;  text-align: right;">' . currency($repairs->advance) . '</td>
-                </tr>
-                <tr>
-                    <td style="font-size: 14px;padding-top: 10px; font-weight: bold;">Total: </td>
-                    <td style="font-size: 14px;padding-top: 10px;  text-align: right;">' . currency($repairs->total) . '</td>
-                </tr>
+            ';
+
+            foreach ($orders as $key => $order) {
+                $html .= '
+                    <tr style="width: 100%;">
+                        <td style="font-size: 14px; padding-top: 5px;" colspan="4"><span style="margin-right: 5px;">' . $key + 1 . '. </span> <span style="margin-right: 10px;">' . $order["id"] . ' </span></td>
+                    </tr>
+                    <tr style="width: 100%;">
+                        <td style="font-size: 14px; border-bottom: #8d8d8d 2px dotted;"></td>
+                        <td style="font-size: 14px; border-bottom: #8d8d8d 2px dotted;"><div style="margin-left: 5px;">' . currency($order["total"], '') . '</div></td>
+                        <td style="font-size: 14px; text-align: center;border-bottom: #8d8d8d 2px dotted;">' . currency($order["advance"], '') . '</td>
+                        <td style="font-size: 14px; text-align: right;border-bottom: #8d8d8d 2px dotted;">' . currency($order["total"] - $order["advance"], '') . '</td>
+                    </tr>
+                ';
+            }
+
+            $html .= '
             </table>
 
             <table style="width: 100%; border-collapse: collapse; border-top: 1px solid #000; margin-top: 10px;">
                 <tr>
                     <td style="width: 50%; font-size: 14px;padding-top: 10px; font-weight: bold; text-align: right;">Total: </td>
-                    <td style="width: 50%; font-size: 14px;padding-top: 10px;  text-align: right;">' . currency($repairs->total, 'LKR') . '</td>
+                    <td style="width: 50%; font-size: 14px;padding-top: 10px;  text-align: right;">' . currency($total, 'LKR') . '</td>
                 </tr>
                 <tr>
                     <td style="width: 50%; font-size: 14px;padding-top: 10px; font-weight: bold; text-align: right;">Advance: </td>
-                    <td style="width: 50%; font-size: 14px;padding-top: 10px;  text-align: right;">' . currency($repairs->advance, 'LKR') . '</td>
+                    <td style="width: 50%; font-size: 14px;padding-top: 10px;  text-align: right;">' . currency($advance, 'LKR') . '</td>
                 </tr>
                 <tr>
                     <td style="width: 50%; font-size: 14px;padding-top: 10px; font-weight: bold; text-align: right;">Balance: </td>
-                    <td style="width: 50%; font-size: 14px;padding-top: 10px;  text-align: right;">' . currency(((float)$repairs->total - (float)$repairs->advance), 'LKR') . '</td>
+                    <td style="width: 50%; font-size: 14px;padding-top: 10px;  text-align: right;">' . currency(((float)$total - (float)$advance), 'LKR') . '</td>
                 </tr>
             </table>
     ';
@@ -1117,12 +1173,6 @@ function generateThermalInvoice($order_id, $inName, $bill_type)
             </div>
         ';
     }
-    else {
-        $html .= '
-            <h4 style="margin-bottom: 10px;">Product Information</h4>
-            <p style="font-size: 12px; text-align: left;font-weight: bold; border-bottom: 1px solid #000;">Additional Info</p>
-            <p style="font-size: 12px; text-align: left;">' . nl2br(htmlspecialchars($repairs->note)) . '</p>';
-        }
 
     $html .= '
 
@@ -1157,8 +1207,6 @@ function generateThermalInvoice($order_id, $inName, $bill_type)
         </body>
         </html>
     ';
-    // $connector = new FilePrintConnector("/dev/usb/lp0");
-    // $printer = new Printer($connector);
 
     $pdf = new Dompdf();
     $pdf->setPaper([0, 0, 227, 800]);
