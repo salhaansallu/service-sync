@@ -4,8 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Models\customers;
 use App\Models\orders;
+use App\Models\posUsers;
 use App\Models\Products;
 use App\Models\Repairs;
+use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -21,11 +23,19 @@ class RepairsController extends Controller
         //
     }
 
-    public function getRepairs()
+    public function getRepairs(Request $request)
     {
         $response = [];
         if (PosDataController::check()) {
-            return response(json_encode(Repairs::where('pos_code', PosDataController::company()->pos_code)->where('type', '=', 'repair')->where('status', '!=', 'Delivered')->orderBy('customer', 'DESC')->get()));
+            $fromDate = date("Y-m-d")." 00:00:00";
+            $toDate = date("Y-m-d")." 23:59:59";
+
+            if ($request->has("fromDate") && $request->has("toDate")) {
+                $fromDate = date("Y-m-d", strtotime(sanitize($request->input("fromDate"))))." 00:00:00";
+                $toDate = date("Y-m-d", strtotime(sanitize($request->input("toDate"))))." 23:59:59";
+            }
+
+            return response(json_encode(Repairs::where('pos_code', PosDataController::company()->pos_code)->where('type', '=', 'repair')->where('status', '!=', 'Delivered')->whereBetween('created_at', [$fromDate, $toDate])->orderBy('customer', 'DESC')->get()));
         } else {
             $response['error'] = 1;
             $response['msg'] = "not_logged_in";
@@ -33,11 +43,19 @@ class RepairsController extends Controller
         }
     }
 
-    public function OtherPOSgetRepairs()
+    public function OtherPOSgetRepairs(Request $request)
     {
         $response = [];
         if (PosDataController::check()) {
-            return response(json_encode(Repairs::where('pos_code', PosDataController::company()->pos_code)->where('type', '=', 'other')->where('status', '!=', 'Delivered')->orderBy('id', 'DESC')->get()));
+            $fromDate = date("Y-m-d")." 00:00:00";
+            $toDate = date("Y-m-d")." 23:59:59";
+
+            if ($request->has("fromDate") && $request->has("toDate")) {
+                $fromDate = date("Y-m-d", strtotime(sanitize($request->input("fromDate"))))." 00:00:00";
+                $toDate = date("Y-m-d", strtotime(sanitize($request->input("toDate"))))." 23:59:59";
+            }
+
+            return response(json_encode(Repairs::where('pos_code', PosDataController::company()->pos_code)->where('type', '=', 'other')->where('status', '!=', 'Delivered')->whereBetween('created_at', [$fromDate, $toDate])->orderBy('id', 'DESC')->get()));
         } else {
             $response['error'] = 1;
             $response['msg'] = "not_logged_in";
@@ -172,6 +190,7 @@ class RepairsController extends Controller
                 $fault = sanitize($request->input('fault'));
                 $advance = sanitize($request->input('advance'));
                 $customer = sanitize($request->input('customer'));
+                $cashier_no = sanitize($request->input('cashier_no'));
 
                 $customerData = customers::where('pos_code', company()->pos_code)->where('id', $customer)->get();
 
@@ -189,6 +208,12 @@ class RepairsController extends Controller
                 $getBillNo = Repairs::where('pos_code', company()->pos_code)->orderBy('id', 'DESC')->first();
                 $bill_no = $getBillNo && $getBillNo->count() > 0 ? (int)$getBillNo->bill_no + 1 : 1001;
 
+                $getCashier = posUsers::where('pos_code', company()->pos_code)->where('cashier_code', $cashier_no)->get();
+
+                if ($getCashier->count() > 0) {
+                    $cashier_no = $getCashier[0]->user_id;
+                }
+
                 $repair = new Repairs();
                 $repair->bill_no = $bill_no;
                 $repair->model_no = $model_no;
@@ -198,7 +223,7 @@ class RepairsController extends Controller
                 $repair->advance = $advance;
                 $repair->total = $total;
                 $repair->customer = $customer;
-                $repair->cashier = Auth::user()->id;
+                $repair->cashier = $cashier_no;
                 $repair->status = "Pending";
 
                 if (isset($_GET['source']) && sanitize($_GET['source']) == "other-pos") {

@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->integer("user_id");
             $table->string("pos_code");
+            $table->string("cashier_code")->nullable();
             $table->timestamps();
         });
     }

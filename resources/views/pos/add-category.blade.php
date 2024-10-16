@@ -93,6 +93,7 @@
                                                 <option @if($repairs->status == "Return") selected @endif value="Return">Return</option>
                                                 <option @if($repairs->status == "Pending") selected @endif value="Pending">Pending</option>
                                                 <option @if($repairs->status == "Awaiting Parts") selected @endif value="Awaiting Parts">Awaiting Parts</option>
+                                                <option @if($repairs->status == "Customer Pending") selected @endif value="Customer Pending">Customer Pending</option>
                                             </select>
                                         </div>
                                     </div>

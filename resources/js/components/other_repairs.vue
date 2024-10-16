@@ -33,6 +33,16 @@
                         class="fa-solid fa-user-plus"></i>Customers</button>
             </div>
 
+            <div class="favourits">
+                <select @change="filterStatus()" name="" ref="statusFilter" class="form-control border-0 outline-0 text-secondary text-center" style="box-shadow: none;">
+                    <option value="">All Repairs</option>
+                    <option value="Pending">Pending Repairs</option>
+                    <option value="Repaired">Repaired Repairs</option>
+                    <option value="Awaiting Parts">Awaiting Parts</option>
+                    <option value="Customer Pending">Customer Pending</option>
+                </select>
+            </div>
+
             <!-- <div class="favourits">
                 <button @click="newOrder('show')" class="primary-btn submit-btn border-only"><i class="fa-solid fa-cash-register"></i>Generate Coupon</button>
             </div> -->
@@ -45,17 +55,29 @@
         </div>
 
         <div class="products">
-            <div class="searchbar d-flex gap-2">
-                <div class="input">
-                    <select name="" ref="searchType" class="h-100 rounded">
-                        <option value="repairs">Repairs</option>
-                        <option value="customer">Customer</option>
-                    </select>
+            <div class="searchbar d-flex gap-2 justify-content-between">
+                <div class="d-flex gap-2">
+                    <div class="input">
+                        <select name="" ref="searchType" class="h-100 rounded">
+                            <option value="repairs">Repairs</option>
+                            <option value="customer">Customer</option>
+                        </select>
+                    </div>
+                    <div class="input">
+                        <input type="text" ref="searchbar" placeholder="Search here" value=""
+                            @keyup="searchProducts($event)">
+                    </div>
                 </div>
-                <div class="input">
-                    <input type="text" ref="searchbar" placeholder="Search here" value=""
-                        @keyup="searchProducts($event)">
 
+                <div class="filter d-flex gap-2">
+                    <div class="input">
+                        <label for="" class="mx-1">From </label>
+                        <input type="date" ref="ordersFromDate" style="width: 120px;" @change="FilterRepairs()">
+                    </div>
+                    <div class="input">
+                        <label for="" class="mx-2">To </label>
+                        <input type="date" ref="ordersToDate" style="width: 120px;" @change="FilterRepairs()">
+                    </div>
                 </div>
             </div>
 
@@ -105,13 +127,15 @@
                                 <button @click="selectProduct(repair.bill_no)" v-if="repair.status == 'Return'"
                                     class="primary-btn submit-btn"
                                     style="font-size: 14px;padding: 5px 15px;">Checkout</button>
-                                <button @click="selectProduct(repair.bill_no)" v-if="repair.status == 'Repaired'"
+                                <button @click="selectProduct(repair.bill_no)" v-if="repair.status == 'Repaired' || repair.status == 'Customer Pending'"
                                     class="primary-btn submit-btn"
                                     style="font-size: 14px;padding: 5px 15px;">Checkout</button>
                             </div>
                         </div>
                     </div>
                 </div>
+
+                <div v-if="repairs.length == 0" class="col-12 text-center form-text mt-5">No repairs found.</div>
             </div>
         </div>
 
@@ -271,9 +295,38 @@
                             </div>
 
                             <div class="col-12 mt-3">
-                                <button :disabled="isDisabled" @click="PlaceOrder()"
+                                <button :disabled="isDisabled" @click="getCashierModel('show')"
                                     class="primary-btn submit-btn">Save</button>
                                 <button @click="newOrder('hide')"
+                                    style="background: transparent; color: red !important; border: red 1px solid;"
+                                    class="primary-btn submit-btn mx-4">Close</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="getCashier" tabindex="-1" role="dialog" aria-labelledby="getCashier" aria-hidden="true"
+        data-bs-backdrop="static" data-bs-keyboard="false">
+        <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-body d-flex" style="justify-content: center;">
+                    <div class="product-wrp mt-1">
+                        <div class="row justify-content-between">
+
+                            <div class="col-6 mt-3">
+                                <div class="input">
+                                    <label for="" class="mb-1">Cashier No</label>
+                                    <input ref="cashier_no" type="text" placeholder="Cashier No" value="">
+                                </div>
+                            </div>
+
+                            <div class="col-12 mt-3">
+                                <button :disabled="isDisabled" @click="PlaceOrder()"
+                                    class="primary-btn submit-btn">Save</button>
+                                <button @click="getCashierModel('hide')"
                                     style="background: transparent; color: red !important; border: red 1px solid;"
                                     class="primary-btn submit-btn mx-4">Close</button>
                             </div>
@@ -344,6 +397,7 @@
                                         <option value="Repaired">Repaired</option>
                                         <option value="Return">Return</option>
                                         <option value="Awaiting Parts">Awaiting Parts</option>
+                                        <option value="Customer Pending">Customer Pending</option>
                                     </select>
                                 </div>
                             </div>
@@ -482,6 +536,7 @@ export default {
             spareCount: 1,
             finishOrderNo: 0,
             isDisabled: false,
+            cashiers: [],
         }
     },
     methods: {
@@ -508,6 +563,9 @@ export default {
                     }
                 });
             })
+        },
+        getCashierModel(action) {
+            $("#getCashier").modal(action);
         },
         newCustomer(action) {
             $("#NewCustomer").modal(action);
@@ -543,6 +601,7 @@ export default {
                 this.getCustomers();
                 this.getRepairs();
                 this.getSpares();
+                this.getCashiers();
             }
         },
         async getRepairs() {
@@ -553,6 +612,10 @@ export default {
         async getCustomers() {
             const { data } = await axios.post("/other-pos/get_customers");
             this.users = data;
+        },
+        async getCashiers() {
+            const { data } = await axios.post("/pos/get_cashiers");
+            this.cashiers = data;
         },
         async getSpares() {
             const { data } = await axios.post("/other-pos/get_spares");
@@ -700,6 +763,29 @@ export default {
             this.$refs.cash.classList.remove("active");
             this.$refs.credit.classList.remove("active");
             method != "" ? this.$refs[method].classList.add("active") : this.paymentMod = '';
+        },
+        async FilterRepairs() {
+            var fromDate = this.$refs.ordersFromDate.value;
+            var toDate = this.$refs.ordersToDate.value;
+
+            try {
+                fromDate = new Date(fromDate);
+                toDate = new Date(toDate);
+
+                if (fromDate <= toDate) {
+                    const { data } = await axios.post("/other-pos/get_repairs", {
+                        fromDate: fromDate,
+                        toDate: toDate
+                    });
+                    this.repairs = data;
+                    this.proBackup = data;
+                }
+                else {
+                    toastr.error("'From date' should be lower or equals to 'To date'", "Error");
+                }
+            } catch (error) {
+                toastr.error(error, "Error");
+            }
         },
         async proceed() {
             if (Array.isArray(this.selectedRepair) && this.selectedRepair.length > 0) {
@@ -849,6 +935,21 @@ export default {
             var advance = this.$refs.advance.value;
             var note = this.$refs.note.value;
             var customer = this.$refs.customer.value;
+            var cashier_no = this.$refs.cashier_no.value;
+
+            if (cashier_no.trim() == "") {
+                toastr.error("Please enter cashier code", "Error");
+                return;
+            }
+            else {
+                if (this.cashiers.filter(item => item['cashier_code'] == cashier_no).length > 0) {
+                    //
+                }
+                else {
+                    toastr.error("Invalid cashier code", "Error");
+                    return;
+                }
+            }
 
             if (model_no.trim() == "") {
                 toastr.error("Please enter model number", "Error");
@@ -870,6 +971,7 @@ export default {
                 advance: advance,
                 note: note,
                 customer: customer,
+                cashier_no: cashier_no,
             }).catch(function (error) {
                 if (error.response) {
                     this.loadModal("hide");
@@ -889,7 +991,9 @@ export default {
                 this.$refs.fault.value = "";
                 this.$refs.advance.value = "0";
                 this.$refs.finish_note.value = "";
+                this.$refs.cashier_no.value = "";
                 this.newOrder('hide');
+                this.getCashierModel('hide');
                 this.getRepairs();
                 this.reloadPOS();
                 this.isDisabled = false;
@@ -958,6 +1062,10 @@ export default {
             if (status == "Awaiting Parts") {
                 return 'secondary'
             }
+
+            if (status == "Customer Pending") {
+                return 'warning'
+            }
         },
         spareCountUpdate(op) {
             if (op == '-' && this.spareCount >= 1) {
@@ -1000,6 +1108,12 @@ export default {
         openWhatsapp(number, invoice) {
             var text = "Click on the link to get your PDF invoice copy \nhttps://wefixservers.xyz/invoice/" + invoice;
             window.open('https://wa.me/' + reformatPhoneNumbers(number) + "?text=" + encodeURIComponent(text));
+        },
+        filterStatus() {
+            this.repairs = this.proBackup;
+            if (this.$refs.statusFilter.value != "") {
+                this.repairs = this.repairs.filter(item => item['status'] == this.$refs.statusFilter.value);
+            }
         }
     },
     beforeMount() {
@@ -1007,8 +1121,8 @@ export default {
         //document.getElementById("searchbar").addEventListener("keyup", this.searchProducts);
     },
     mounted() {
-        //
-
+        this.$refs.ordersFromDate.value = new Date().toISOString().substr(0, 10);
+        this.$refs.ordersToDate.value = new Date().toISOString().substr(0, 10);
     }
 }
 </script>

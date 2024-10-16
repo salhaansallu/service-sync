@@ -26,8 +26,8 @@
                     class="primary-btn border-only submit-btn">Clear</button>
             </div>
 
-            <div class="customers">
-                <select name="" ref="customer">
+            <div class="customers mx-2">
+                <select name="" ref="customer" class="select2-multiple">
                     <option value="">Select Customer</option>
                     <option v-if="posData.plan == 1" value="">-- Upgrade to premium --</option>
                     <option :value="user['id']" v-for="user in users">{{ user['name'] }} ({{ user['phone'] }})</option>
@@ -365,10 +365,14 @@ export default {
         },
         reloadPOS() {
             this.selectedProduct = [];
-            this.$refs["customer"].value = '';
+            this.$refs.customer.value = '';
 
             this.products.forEach(element => {
                 element['status'] = '';
+            });
+
+            $('.select2-multiple').select2({
+                dropdownParent: $(".customers"),
             });
 
             // var today = new Date();

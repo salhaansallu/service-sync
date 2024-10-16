@@ -99,6 +99,21 @@ class PosDataController extends Controller
         }
     }
 
+    public function getCashiers() {
+        $response = [];
+        if ($this->check()) {
+            $data = posUsers::where('pos_code', company()->pos_code)->get(['cashier_code']);
+            if ($data && $data->count() > 0) {
+                return (object)$data;
+            }
+            return [];
+        } else {
+            $response['error'] = 1;
+            $response['msg'] = "not_logged_in";
+            return response(json_encode($response));
+        }
+    }
+
     public function checkout(Request $request)
     {
         if (Auth::check() && $this->check()) {

@@ -96,6 +96,7 @@ Route::post('/pos/get_repairs', [RepairsController::class, 'getRepairs']);
 Route::post('/pos/update', [RepairsController::class, 'orderUpdate']);
 Route::post('/pos/new_order', [RepairsController::class, 'store']);
 Route::post('/pos/get_customers', [CustomersController::class, 'getCustomers']);
+Route::post('/pos/get_cashiers', [PosDataController::class, 'getCashiers']);
 Route::post('/pos/pos_data', [PosDataController::class, 'getPosData']);
 Route::post('/pos/get_spares', [ProductsController::class, 'getSpares']);
 //Route::post('/pos/get_favourits', [ProductsController::class, 'getFavourits']);
