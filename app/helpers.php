@@ -11,6 +11,7 @@ use App\Models\orderProducts;
 use App\Models\orders;
 use App\Models\posData;
 use App\Models\PosInvitation;
+use App\Models\posUsers;
 use App\Models\Products;
 use App\Models\Repairs;
 use App\Models\supplier;

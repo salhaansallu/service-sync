@@ -41,6 +41,15 @@
                                         </div>
                                     </div>
 
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label>ID Code </label>
+                                            <input type="text" class="form-control" placeholder="Enter ID Code"
+                                                name="code" value="@isset($user){{ $user->cashier_code }}@endisset">
+                                            <div class="help-block with-errors"></div>
+                                        </div>
+                                    </div>
+
                                     @isset($user)
                                     <div class="col-md-6">
                                         <div class="form-group">

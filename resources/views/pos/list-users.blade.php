@@ -19,6 +19,7 @@
                         <table class="data-table table mb-0 tbl-server-info">
                             <thead class="bg-white text-uppercase">
                                 <tr class="ligth ligth-data">
+                                    <th class="text-start">ID Code</th>
                                     <th class="text-start">First Name</th>
                                     <th class="text-start">Last Name</th>
                                     <th class="text-start">Email</th>
@@ -29,6 +30,7 @@
                                 @if ($users && $users->count() > 0)
                                 @foreach ($users as $item)
                                 <tr id="category{{ $item->user_id }}">
+                                    <td class="text-start">{{ $item->cashier_code }}</td>
                                     <td class="text-start">{{ $item->fname }}</td>
                                     <td class="text-start">{{ $item->lname }}</td>
                                     <td class="text-start">{{ $item->email }}</td>

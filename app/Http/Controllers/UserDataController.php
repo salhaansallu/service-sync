@@ -172,6 +172,13 @@ class UserDataController extends Controller
             $id = sanitize($request->input('modelid'));
             $fname = sanitize($request->input('fname'));
             $lname = sanitize($request->input('lname'));
+            $code = sanitize($request->input('code'));
+
+            $code_verify = posUsers::where('cashier_code', $code)->where('user_id', '!=', $id)->get();
+
+            if (!empty($code) && $code_verify && $code_verify->count() > 0) {
+                return response(json_encode(array("error" => 1, "msg" => "ID Code already in use.")));
+            }
 
             if (empty($fname)) {
                 return response(json_encode(array("error" => 1, "msg" => "Please Fill All Required Fields Marked In '*'")));
@@ -199,6 +206,9 @@ class UserDataController extends Controller
             ]);
 
             if ($user) {
+                posUsers::where('user_id', $id)->update([
+                    "cashier_code" => $code
+                ]);
                 return response(json_encode(array("error" => 0, "msg" => "User Updated Successfully")));
             }
 
@@ -213,11 +223,17 @@ class UserDataController extends Controller
             $lname = sanitize($request->input('lname'));
             $email = sanitize($request->input('email'));
             $password = sanitize($request->input('password'));
+            $code = sanitize($request->input('code'));
 
             $email_verify = User::where('email', $email)->get();
+            $code_verify = posUsers::where('cashier_code', $code)->get();
 
             if ($email_verify && $email_verify->count() > 0) {
                 return response(json_encode(array("error" => 1, "msg" => "Email already in use. if you need to assign that user, send an invitation from the invitation section")));
+            }
+
+            if (!empty($code) && $code_verify && $code_verify->count() > 0) {
+                return response(json_encode(array("error" => 1, "msg" => "ID Code already in use.")));
             }
 
             if (empty($fname) || empty($email) || empty($password)) {
@@ -250,6 +266,7 @@ class UserDataController extends Controller
                 $userData = new posUsers();
                 $userData->user_id = $user_id[0]->id;
                 $userData->pos_code = company()->pos_code;
+                $userData->cashier_code = $code;
                 
                 if ($userData->save()) {
                     return response(json_encode(array("error" => 0, "msg" => "User Created Successfully")));
