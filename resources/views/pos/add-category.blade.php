@@ -104,6 +104,13 @@
                                             <textarea name="note" class="form-control" id="" rows="5">{{ str_replace(['<br>', ' <br> ', ' <br>', '<br> '], PHP_EOL, $repairs->note) }}</textarea>
                                         </div>
                                     </div>
+
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label>Cashier Code</label>
+                                            <input type="text" name="" readonly class="form-control" value="{{ $repairs->cashier }}">
+                                        </div>
+                                    </div>
                                 </div>
                                 <button type="submit" id="save_btn" class="btn btn-primary mr-2">Update</button>
                             </form>
