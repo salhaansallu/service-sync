@@ -107,8 +107,8 @@
 
                                     <div class="col-md-6">
                                         <div class="form-group">
-                                            <label>Cashier Code</label>
-                                            <input type="text" name="" readonly class="form-control" value="{{ $repairs->cashier }}">
+                                            <label>Order By</label>
+                                            <input type="text" name="" readonly class="form-control" value="{{ getUser($repairs->cashier)->fname }}">
                                         </div>
                                     </div>
                                 </div>
