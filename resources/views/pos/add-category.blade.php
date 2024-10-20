@@ -24,9 +24,19 @@
                                         </div>
                                     </div>
                                     <div class="col-md-6">
-                                        <div class="form-group">
-                                            <label>Cashier </label>
-                                            <input type="text" class="form-control" disabled value="{{ getUser($repairs->cashier)->fname }}">
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label>Cashier </label>
+                                                    <input type="text" class="form-control" disabled value="{{ getUser($repairs->cashier)->fname }}">
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label>Cashier Code </label>
+                                                    <input type="text" name="" readonly class="form-control" value="{{ getCashierCode($repairs->cashier)->cashier_code }}">
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                     <div class="col-md-6">
@@ -102,13 +112,6 @@
                                         <div class="form-group">
                                             <label>Note</label>
                                             <textarea name="note" class="form-control" id="" rows="5">{{ str_replace(['<br>', ' <br> ', ' <br>', '<br> '], PHP_EOL, $repairs->note) }}</textarea>
-                                        </div>
-                                    </div>
-
-                                    <div class="col-md-6">
-                                        <div class="form-group">
-                                            <label>Order By</label>
-                                            <input type="text" name="" readonly class="form-control" value="{{ getUser($repairs->cashier)->fname }}">
                                         </div>
                                     </div>
                                 </div>

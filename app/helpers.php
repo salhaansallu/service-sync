@@ -554,6 +554,7 @@ function defaultValues()
         "time" => "",
         "datetime" => "",
         "cashier" => "",
+        "cashier_code" => "",
         "title" => "",
     );
     return (object)$arr;
@@ -706,6 +707,18 @@ function formatPhoneNumber($phoneNumber)
 function getUser($id)
 {
     $user = User::where('id', $id)->get();
+    if ($user && $user->count() > 0) {
+        return (object)$user[0];
+    }
+    return defaultValues();
+}
+
+function getCashierCode($id, $pos_code = null)
+{
+    if ($pos_code == null) {
+        $pos_code = company()->pos_code;
+    }
+    $user = posUsers::where('user_id', $id)->where('pos_code', $pos_code)->get();
     if ($user && $user->count() > 0) {
         return (object)$user[0];
     }
