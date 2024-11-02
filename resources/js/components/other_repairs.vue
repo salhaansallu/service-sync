@@ -887,12 +887,12 @@ export default {
                     service_cost = this.$refs.finish_service_cost.value;
                 }
 
-                for (let i = 1; i <= this.spareCount; i++) {
-                    sparePro.push({
-                        id: this.$refs["finish_spare_" + i][0].value,
-                        qty: this.$refs["qty_finish_spare_" + i][0].value,
-                    });
-                }
+                // for (let i = 1; i <= this.spareCount; i++) {
+                //     sparePro.push({
+                //         id: this.$refs["finish_spare_" + i][0].value,
+                //         qty: this.$refs["qty_finish_spare_" + i][0].value,
+                //     });
+                // }
 
                 this.loadModal("show");
 

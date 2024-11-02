@@ -241,6 +241,11 @@
                                         <i class="fa-solid fa-minus"></i><span>Sales report</span>
                                     </a>
                                 </li>
+                                <li class="{{ Request::is('dashboard/spare-report') ? 'active' : '' }}">
+                                    <a href="/dashboard/spare-report">
+                                        <i class="fa-solid fa-minus"></i><span>Spare parts report</span>
+                                    </a>
+                                </li>
                                 <li class="{{ Request::is('dashboard/sales-report/customer') ? 'active' : '' }}">
                                     <a href="/dashboard/sales-report/customer">
                                         <i class="fa-solid fa-minus"></i><span>Customer report</span>

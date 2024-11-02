@@ -7,6 +7,7 @@ use App\Models\orders;
 use App\Models\posUsers;
 use App\Models\Products;
 use App\Models\Repairs;
+use App\Models\spareSaleHistory;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
@@ -27,12 +28,12 @@ class RepairsController extends Controller
     {
         $response = [];
         if (PosDataController::check()) {
-            $fromDate = date("Y-m-d")." 00:00:00";
-            $toDate = date("Y-m-d")." 23:59:59";
+            $fromDate = date("Y-m-d") . " 00:00:00";
+            $toDate = date("Y-m-d") . " 23:59:59";
 
             if ($request->has("fromDate") && $request->has("toDate")) {
-                $fromDate = date("Y-m-d", strtotime(sanitize($request->input("fromDate"))))." 00:00:00";
-                $toDate = date("Y-m-d", strtotime(sanitize($request->input("toDate"))))." 23:59:59";
+                $fromDate = date("Y-m-d", strtotime(sanitize($request->input("fromDate")))) . " 00:00:00";
+                $toDate = date("Y-m-d", strtotime(sanitize($request->input("toDate")))) . " 23:59:59";
             }
 
             return response(json_encode(Repairs::where('pos_code', PosDataController::company()->pos_code)->where('type', '=', 'repair')->where('status', '!=', 'Delivered')->whereBetween('created_at', [$fromDate, $toDate])->orderBy('customer', 'DESC')->get()));
@@ -47,12 +48,12 @@ class RepairsController extends Controller
     {
         $response = [];
         if (PosDataController::check()) {
-            $fromDate = date("Y-m-d")." 00:00:00";
-            $toDate = date("Y-m-d")." 23:59:59";
+            $fromDate = date("Y-m-d") . " 00:00:00";
+            $toDate = date("Y-m-d") . " 23:59:59";
 
             if ($request->has("fromDate") && $request->has("toDate")) {
-                $fromDate = date("Y-m-d", strtotime(sanitize($request->input("fromDate"))))." 00:00:00";
-                $toDate = date("Y-m-d", strtotime(sanitize($request->input("toDate"))))." 23:59:59";
+                $fromDate = date("Y-m-d", strtotime(sanitize($request->input("fromDate")))) . " 00:00:00";
+                $toDate = date("Y-m-d", strtotime(sanitize($request->input("toDate")))) . " 23:59:59";
             }
 
             return response(json_encode(Repairs::where('pos_code', PosDataController::company()->pos_code)->where('type', '=', 'other')->where('status', '!=', 'Delivered')->whereBetween('created_at', [$fromDate, $toDate])->orderBy('id', 'DESC')->get()));
@@ -78,7 +79,7 @@ class RepairsController extends Controller
             if ($status == "Awaiting Parts") {
                 $update =  Repairs::where('bill_no', $bill_no)->where('pos_code', company()->pos_code);
 
-                if ($update->update(["status" => $status])) {
+                if ($update->update(["note" => $note, "status" => $status, "total" => $total, "cost" => $cost, "spares" => json_encode($parts)])) {
 
                     $customerData = customers::where('pos_code', company()->pos_code)->where('id', $update->get()[0]["customer"])->get();
                     $sms = new SMS();
@@ -90,7 +91,7 @@ class RepairsController extends Controller
                         "email" => $customerData[0]["email"],
                     ));
 
-                    $sms->message = "Dear Customer, your repair requires a part we've ordered from our suppliers. This may delay the completion. For more info, please contact us at ".formatPhoneNumber(getUserData(company()->admin_id)->phone).". Thank you for your patience.";
+                    $sms->message = "Dear Customer, \nWe are awaiting parts for your repair. Delivery by air cargo takes 7 to 10 days, and by sea cargo, 45 to 60 days. We’ll update you once they arrive. The total cost is " . currency($update->get()[0]["total"]) . ", with " . currency($update->get()[0]["advance"]) . " paid as advance. For more info, please contact us at " . formatPhoneNumber(getUserData(company()->admin_id)->phone) . ". Thank you for your patience.";
                     $sms->Send();
 
                     return response(json_encode(array("error" => 0, "msg" => "Order Updated Successfully")));
@@ -112,6 +113,15 @@ class RepairsController extends Controller
                     Products::where('id', $value['id'])->where('pos_code', company()->pos_code)->update([
                         "qty" => (float)$stock[0]['qty'] - $value['qty']
                     ]);
+                    
+                    $sale = new spareSaleHistory();
+                    $sale->spare_name = $stock[0]['pro_name'];
+                    $sale->spare_id = $stock[0]['id'];
+                    $sale->cost = $stock[0]['cost'];
+                    $sale->qty = $value['qty'];
+                    $sale->pos_code = company()->pos_code;
+                    $sale->save();
+
                     $cost += (float)$stock[0]['cost'] * (float)$value['qty'];
                     $parts[] = $value['id'];
                 }
@@ -135,7 +145,14 @@ class RepairsController extends Controller
                     "email" => $customerData[0]["email"],
                 ));
 
-                $sms->message = "Dear Customer, your product repair is complete. The total cost is " . currency($update->get()[0]["total"]) . ", with " . currency($update->get()[0]["advance"]) . " paid as advance. The remaining balance is " . currency($update->get()[0]["total"] - $update->get()[0]["advance"]) . ". Thank you for choosing " . company()->company_name . ".";
+                if ($status == "Repaired") {
+                    $sms->message = "Dear Customer, \nyour product repair is complete. The total cost is " . currency($update->get()[0]["total"]) . ", with " . currency($update->get()[0]["advance"]) . " paid as advance. The remaining balance is " . currency($update->get()[0]["total"] - $update->get()[0]["advance"]) . ". \nThank you for choosing " . company()->company_name . ".";
+                } elseif ($status == "Customer Pending") {
+                    $sms->message = "Dear Customer,\nThis is the WeFix.lk team. We tried contacting you regarding your service request but couldn't reach you. The total cost is " . currency($update->get()[0]["total"]) . ", with " . currency($update->get()[0]["advance"]) . " paid as advance. Please let us know a convenient time for us to call, or feel free to contact us at " . formatPhoneNumber(getUserData(company()->admin_id)->phone) . ". \nThank you for choosing " . company()->company_name . ".";
+                } else {
+                    $sms->message = "Dear Customer, \nWe couldn't repair some of your items. The total cost is " . currency($update->get()[0]["total"]) . ", with " . currency($update->get()[0]["advance"]) . " paid as advance. Please collect them within 14 days, as we are not responsible after this period. For any questions, call us at " . formatPhoneNumber(getUserData(company()->admin_id)->phone) . ". \nThank you for choosing " . company()->company_name . ".";
+                }
+
                 $sms->Send();
 
                 return response(json_encode(array("error" => 0, "msg" => "Order Updated Successfully")));
@@ -157,8 +174,7 @@ class RepairsController extends Controller
 
                 if ($bill->status == "Delivered") {
                     $inv_type = "checkout";
-                }
-                elseif ($bill->status == "Pending") {
+                } elseif ($bill->status == "Pending") {
                     $inv_type = "newOrder";
                 }
             }
@@ -228,11 +244,10 @@ class RepairsController extends Controller
 
                 if (isset($_GET['source']) && sanitize($_GET['source']) == "other-pos") {
                     $repair->type = "other";
-                }
-                else {
+                } else {
                     $repair->type = "repair";
                 }
-                
+
                 $repair->pos_code = company()->pos_code;
 
                 if ($repair->save()) {
@@ -361,8 +376,7 @@ class RepairsController extends Controller
                 if ($status == "Pending" || $status == "Awaiting Parts" || $status == "Repaired") {
                     generateInvoice($id_verify[0]->bill_no, str_replace(['newOrder/', 'checkout/'], "", $id_verify[0]->invoice), 'newOrder');
                     generateThermalInvoice($id_verify[0]->bill_no, str_replace(['newOrder/', 'checkout/'], "", str_replace('Invoice', 'Thermal-invoice', $id_verify[0]->invoice)), 'newOrder');
-                }
-                else {
+                } else {
                     generateInvoice($id_verify[0]->bill_no, str_replace(['newOrder/', 'checkout/'], "", $id_verify[0]->invoice), 'checkout');
                     generateThermalInvoice($id_verify[0]->bill_no, str_replace(['newOrder/', 'checkout/'], "", str_replace('Delivery', 'Thermal-delivery', $id_verify[0]->invoice)), 'checkout');
                 }

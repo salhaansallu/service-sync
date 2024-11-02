@@ -11,6 +11,7 @@ use App\Models\posUsers;
 use App\Models\Products;
 use App\Models\Purchases;
 use App\Models\Repairs;
+use App\Models\spareSaleHistory;
 use App\Models\supplier;
 use App\Models\User;
 use App\Models\userData;
@@ -242,6 +243,25 @@ class DashboardController extends Controller
             $result = [];
 
             return view('pos.sales')->with(['sales' => json_encode($result), 'customers' => json_encode($customers), 'cahiers' => json_encode($pos_user)]);
+        } else {
+            return redirect('/account/overview');
+        }
+    }
+
+    public function spareReport()
+    {
+        login_redirect('/' . request()->path());
+
+        if (Auth::check() && $this->check(true)) {
+
+            $result = DB::table('spare_sale_histories')
+            ->select('spare_id', 'spare_code', 'spare_name', DB::raw('SUM(qty) as total_sold'), DB::raw('SUM(qty*cost) as total_revenew'))
+            ->where('pos_code', company()->pos_code) // filter by POS code if necessary
+            ->whereDate('created_at', '=', Carbon::today()) // filter by date range
+            ->groupBy('spare_id', 'spare_name') // group by unique item
+            ->get();
+
+            return view('pos.spare-report')->with(['reports' => json_encode($result)]);
         } else {
             return redirect('/account/overview');
         }

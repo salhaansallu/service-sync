@@ -75,6 +75,10 @@ import dashboardSMS from './components/sendSMS.vue';
 DashboardSMS.component('send-sms', dashboardSMS);
 DashboardSMS.mount('#dashboardSMS');
 
+const SpareReportComp = createApp({});
+import SpareReport from './components/spare_report.vue';
+SpareReportComp.component('spare-report', SpareReport);
+SpareReportComp.mount('#SpareReport');
 
 
 $('#menu_close').click(function (e) {
