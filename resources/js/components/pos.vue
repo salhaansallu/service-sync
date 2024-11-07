@@ -38,7 +38,8 @@
             </div>
 
             <div class="favourits">
-                <select @change="filterStatus()" name="" ref="statusFilter" class="form-control border-0 outline-0 text-secondary text-center" style="box-shadow: none;">
+                <select @change="filterStatus()" name="" ref="statusFilter"
+                    class="form-control border-0 outline-0 text-secondary text-center" style="box-shadow: none;">
                     <option value="">All Repairs</option>
                     <option value="Pending">Pending Repairs</option>
                     <option value="Repaired">Repaired Repairs</option>
@@ -127,7 +128,8 @@
                                 <button @click="selectProduct(repair.bill_no)" v-if="repair.status == 'Return'"
                                     class="primary-btn submit-btn"
                                     style="font-size: 14px;padding: 5px 15px;">Checkout</button>
-                                <button @click="selectProduct(repair.bill_no)" v-if="repair.status == 'Repaired' || repair.status == 'Customer Pending'"
+                                <button @click="selectProduct(repair.bill_no)"
+                                    v-if="repair.status == 'Repaired' || repair.status == 'Customer Pending'"
                                     class="primary-btn submit-btn"
                                     style="font-size: 14px;padding: 5px 15px;">Checkout</button>
                             </div>
@@ -318,6 +320,17 @@
                             </div>
 
                             <div class="col-6 mt-3">
+                                <div class="col-12 mb-3">
+                                    <div class="input">
+                                        <label for="" class="mb-1">Partner</label>
+                                        <select ref="partner" name="" class="select2-multiple">
+                                            <option value=""></option>
+                                            <option v-for="part in partners" :value="part.id">{{ part.name }}
+                                                ({{
+                                                    part.phone }})</option>
+                                        </select>
+                                    </div>
+                                </div>
                                 <div class="input">
                                     <label for="" class="mb-1">Note</label>
                                     <textarea name="" ref="note" rows="4" placeholder="Note"></textarea>
@@ -563,6 +576,7 @@ export default {
             proBackup: [],
             selectedRepair: [],
             users: [],
+            partners: [],
             posData: [],
             paymentMod: 'cash',
             spareCount: 1,
@@ -639,6 +653,7 @@ export default {
             this.posData = data;
             if (this.posData.plan > 1) {
                 this.getCustomers();
+                this.getPartners();
                 this.getRepairs();
                 this.getSpares();
                 this.getCashiers();
@@ -652,6 +667,10 @@ export default {
         async getCustomers() {
             const { data } = await axios.post("/pos/get_customers");
             this.users = data;
+        },
+        async getPartners() {
+            const { data } = await axios.post("/pos/get_partners");
+            this.partners = data;
         },
         async getCashiers() {
             const { data } = await axios.post("/pos/get_cashiers");
@@ -953,6 +972,7 @@ export default {
             var note = this.$refs.note.value;
             var note2 = "";
             var customer = this.$refs.customer.value;
+            var partner = this.$refs.partner.value;
             var cashier_no = this.$refs.cashier_no.value;
 
             if (cashier_no.trim() == "") {
@@ -1004,6 +1024,7 @@ export default {
                 advance: advance,
                 note: note2,
                 customer: customer,
+                partner: partner,
                 cashier_no: cashier_no,
             }).catch(function (error) {
                 if (error.response) {

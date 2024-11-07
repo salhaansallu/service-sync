@@ -1,0 +1,2 @@
+Run php artisan migrate
+Add new column (varchar 225) partner after customers in repairs table

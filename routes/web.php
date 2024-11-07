@@ -12,6 +12,7 @@ use App\Http\Controllers\CustomersController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\NewsletterController;
 use App\Http\Controllers\OrdersController;
+use App\Http\Controllers\PartnersController;
 use App\Http\Controllers\PosDataController;
 use App\Http\Controllers\PosInvitationController;
 use App\Http\Controllers\POSSettingsController;
@@ -97,6 +98,7 @@ Route::post('/pos/get_repairs', [RepairsController::class, 'getRepairs']);
 Route::post('/pos/update', [RepairsController::class, 'orderUpdate']);
 Route::post('/pos/new_order', [RepairsController::class, 'store']);
 Route::post('/pos/get_customers', [CustomersController::class, 'getCustomers']);
+Route::post('/pos/get_partners', [PartnersController::class, 'getPartners']);
 Route::post('/pos/get_cashiers', [PosDataController::class, 'getCashiers']);
 Route::post('/pos/pos_data', [PosDataController::class, 'getPosData']);
 Route::post('/pos/get_spares', [ProductsController::class, 'getSpares']);
@@ -178,6 +180,13 @@ Route::prefix('dashboard')->group(function () {
     Route::get('customer/edit/{id}', [CustomersController::class, 'edit']);
     Route::post('/customer/edit', [CustomersController::class, 'update']);
     Route::delete('/customers/delete', [CustomersController::class, 'destroy']);
+
+    Route::get('partners', [DashboardController::class, 'listPartners']);
+    Route::get('partner/create', [DashboardController::class, 'createPartner']);
+    Route::post('partner/create', [PartnersController::class, 'store']);
+    Route::get('partner/edit/{id}', [PartnersController::class, 'edit']);
+    Route::post('/partner/edit', [PartnersController::class, 'update']);
+    Route::delete('/partners/delete', [PartnersController::class, 'destroy']);
 
     Route::get('users', [DashboardController::class, 'listUsers']);
     Route::get('users/create', [DashboardController::class, 'createUsers']);

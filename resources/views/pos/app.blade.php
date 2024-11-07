@@ -401,6 +401,16 @@
                                         <i class="fa-solid fa-minus"></i><span>Add Customers</span>
                                     </a>
                                 </li>
+                                <li class="{{ Request::is('dashboard/partners') ? 'active' : '' }}">
+                                    <a href="/dashboard/partners">
+                                        <i class="fa-solid fa-minus"></i><span>Partners</span>
+                                    </a>
+                                </li>
+                                <li class="{{ Request::is('dashboard/partner/create') ? 'active' : '' }}">
+                                    <a href="/dashboard/partner/create">
+                                        <i class="fa-solid fa-minus"></i><span>Add Partner</span>
+                                    </a>
+                                </li>
                                 <li class="{{ Request::is('dashboard/users') ? 'active' : '' }}">
                                     <a href="/dashboard/users">
                                         <i class="fa-solid fa-minus"></i><span>Users</span>

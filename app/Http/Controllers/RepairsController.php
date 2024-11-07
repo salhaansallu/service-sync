@@ -206,6 +206,7 @@ class RepairsController extends Controller
                 $fault = sanitize($request->input('fault'));
                 $advance = sanitize($request->input('advance'));
                 $customer = sanitize($request->input('customer'));
+                $partner = sanitize($request->input('partner'));
                 $cashier_no = sanitize($request->input('cashier_no'));
 
                 $customerData = customers::where('pos_code', company()->pos_code)->where('id', $customer)->get();
@@ -239,6 +240,7 @@ class RepairsController extends Controller
                 $repair->advance = $advance;
                 $repair->total = $total;
                 $repair->customer = $customer;
+                $repair->partner = $partner == ""? 0 : $partner;
                 $repair->cashier = $cashier_no;
                 $repair->status = "Pending";
 

@@ -6,6 +6,7 @@ use App\Models\Categories;
 use App\Models\customers;
 use App\Models\orderProducts;
 use App\Models\orders;
+use App\Models\partners;
 use App\Models\posData;
 use App\Models\posUsers;
 use App\Models\Products;
@@ -388,11 +389,32 @@ class DashboardController extends Controller
         }
     }
 
+    public function listPartners()
+    {
+        login_redirect('/' . request()->path());
+        if (Auth::check() && $this->check(true)) {
+            $customers = partners::where('pos_code', company()->pos_code)->get();
+            return view('pos.list-partners')->with(['partners' => $customers]);
+        } else {
+            return redirect('/signin');
+        }
+    }
+
     public function createCustomer()
     {
         login_redirect('/' . request()->path());
         if (Auth::check() && $this->check(true)) {
             return view('pos.add-customer');
+        } else {
+            return redirect('/signin');
+        }
+    }
+
+    public function createPartner()
+    {
+        login_redirect('/' . request()->path());
+        if (Auth::check() && $this->check(true)) {
+            return view('pos.add-partner');
         } else {
             return redirect('/signin');
         }
