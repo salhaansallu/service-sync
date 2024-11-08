@@ -27,6 +27,7 @@
                                     <th class="text-start">Balance</th>
                                     <th class="text-start">Total</th>
                                     <th class="text-start">Customer</th>
+                                    <th class="text-start">Partner</th>
                                     <th class="text-start">Spare(s)</th>
                                     <th class="text-start">Date</th>
                                     <th class="text-start">Status</th>
@@ -45,6 +46,7 @@
                                             <td class="text-start">{{ currency($item->total - $item->advance) }}</td>
                                             <td class="text-start">{{ currency($item->total) }}</td>
                                             <td class="text-start">{{ getCustomer($item->customer)->phone }} ({{ getCustomer($item->customer)->name }})</td>
+                                            <td class="text-start">{{ !empty(getPartner($item->partner)->name) > 0 ? getPartner($item->partner)->phone."(".getPartner($item->partner)->company.")" : "Wefix" }}</td>
                                             <td class="text-start">{{ count((array) json_decode($item->spares)) }}</td>
                                             <td class="text-start">{{ date('d-m-Y', strtotime($item->created_at)) }}</td>
                                             <td

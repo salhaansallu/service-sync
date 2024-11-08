@@ -9,6 +9,7 @@ use App\Models\CreditHistory;
 use App\Models\customers;
 use App\Models\orderProducts;
 use App\Models\orders;
+use App\Models\partners;
 use App\Models\posData;
 use App\Models\PosInvitation;
 use App\Models\posUsers;
@@ -596,6 +597,22 @@ function getSupplier($id)
         $supplier = supplier::where('id', $id)->where('pos_code', company()->pos_code)->get();
         if ($supplier && $supplier->count() > 0) {
             return (object)$supplier[0];
+        }
+    }
+    return defaultValues();
+}
+
+function getPartner($id)
+{
+    if ($id == 'all') {
+        $partners = partners::where('pos_code', company()->pos_code)->get();
+        if ($partners) {
+            return (object)$partners;
+        }
+    } else {
+        $partners = partners::where('id', $id)->where('pos_code', company()->pos_code)->get();
+        if ($partners && $partners->count() > 0) {
+            return (object)$partners[0];
         }
     }
     return defaultValues();

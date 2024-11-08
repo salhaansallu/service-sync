@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\customers;
 use App\Models\orders;
+use App\Models\partners;
 use App\Models\posUsers;
 use App\Models\Products;
 use App\Models\Repairs;
@@ -310,10 +311,11 @@ class RepairsController extends Controller
 
         $product = Repairs::where('id', sanitize($id))->where('pos_code', company()->pos_code)->get();
         $customers = customers::where('pos_code', company()->pos_code)->get();
+        $partners = partners::where('pos_code', company()->pos_code)->get();
         $spares = Products::where('pos_code', company()->pos_code)->get();
 
         if ($product && $product->count() > 0) {
-            return view('pos.add-category')->with(['repairs' => $product[0], 'customers' => $customers, 'spares' => $spares]);
+            return view('pos.add-category')->with(['repairs' => $product[0], 'customers' => $customers, 'partners' => $partners,'spares' => $spares]);
         } else {
             return display404();
         }
@@ -333,6 +335,7 @@ class RepairsController extends Controller
             $advance = sanitize($request->input('advance'));
             $total = sanitize($request->input('total'));
             $customer = sanitize($request->input('customer'));
+            $partner = sanitize($request->input('partner'));
             $spares = [];
             if ($request->has('spares')) {
                 foreach ($request->input('spares') as $key => $val) {
@@ -369,6 +372,7 @@ class RepairsController extends Controller
                 "advance" => $advance,
                 "total" => $total,
                 "customer" => $customer,
+                "partner" => $partner,
                 "spares" => json_encode($spares),
                 "status" => $status,
                 "updated_at" => date('Y-m-d H:i:s'),

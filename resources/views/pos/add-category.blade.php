@@ -86,12 +86,30 @@
 
                                     <div class="col-md-6">
                                         <div class="form-group">
+                                            <label>Partner </label>
+                                            <select name="partner" class="form-control">
+                                                <option value="">None</option>
+                                                @foreach ($partners as $partner)
+                                                    <option @if($partner->id == $repairs->partner) selected @endif value="{{ $partner->id }}">{{ $partner->company }}</option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <div class="form-group">
                                             <label>Spare Parts</label>
                                             <select name="spares[]" multiple="multiple" class="form-control select2-multiple">
                                                 @foreach ($spares as $spare)
                                                     <option @if(in_array($spare->id, (array)json_decode($repairs->spares))) selected @endif value="{{ $spare->id }}">{{ $spare->pro_name }}</option>
                                                 @endforeach
                                             </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label>Note</label>
+                                            <textarea name="note" class="form-control" id="" rows="5">{{ str_replace(['<br>', ' <br> ', ' <br>', '<br> '], PHP_EOL, $repairs->note) }}</textarea>
                                         </div>
                                     </div>
                                     <div class="col-md-6">
@@ -105,13 +123,6 @@
                                                 <option @if($repairs->status == "Awaiting Parts") selected @endif value="Awaiting Parts">Awaiting Parts</option>
                                                 <option @if($repairs->status == "Customer Pending") selected @endif value="Customer Pending">Customer Pending</option>
                                             </select>
-                                        </div>
-                                    </div>
-
-                                    <div class="col-md-6">
-                                        <div class="form-group">
-                                            <label>Note</label>
-                                            <textarea name="note" class="form-control" id="" rows="5">{{ str_replace(['<br>', ' <br> ', ' <br>', '<br> '], PHP_EOL, $repairs->note) }}</textarea>
                                         </div>
                                     </div>
                                 </div>

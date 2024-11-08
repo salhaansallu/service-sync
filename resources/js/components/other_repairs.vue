@@ -293,7 +293,7 @@
                                         <label for="" class="mb-1">Partner</label>
                                         <select ref="partner" name="" class="select2-multiple">
                                             <option value=""></option>
-                                            <option v-for="part in partners" :value="part.id">{{ part.name }}
+                                            <option v-for="part in partners" :value="part.id">{{ part.company }}
                                                 ({{
                                                     part.phone }})</option>
                                         </select>
