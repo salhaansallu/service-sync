@@ -168,6 +168,9 @@ Route::prefix('dashboard')->group(function () {
     Route::get('purchase/edit/{id}', [PurchasesController::class, 'edit']);
     Route::post('/purchase/edit', [PurchasesController::class, 'update']);
 
+    Route::get('/petty-cash/{id}', [PurchasesController::class, 'pettyCashes']);
+    Route::post('/petty-cash/reload', [PurchasesController::class, 'addPattyCash']);
+
     // Route::get('returns', [DashboardController::class, 'listPurchses']);
     // Route::get('returns/create', [DashboardController::class, 'createPurchse']);
     // Route::post('returns/create', [PurchasesController::class, 'store']);
@@ -218,6 +221,15 @@ Route::prefix('dashboard')->group(function () {
     
     Route::get('sms', [SMSController::class, 'index']);
     Route::post('sms/send', [SMSController::class, 'send']);
+});
+
+
+Route::get('/partner-portal', [PartnersController::class, 'index'])->name('partnerDashboard');
+Route::prefix('partner-portal')->group(function () {
+    Route::get('login', [PartnersController::class, 'showLogin'])->name('partnerLogin');
+    Route::post('login', [PartnersController::class, 'login'])->name('partnerSignin');
+    Route::get('/repairs', [PartnersController::class, 'listRepairs']);
+    Route::get('/repair/{id}', [PartnersController::class, 'displayRepair']);
 });
 
 

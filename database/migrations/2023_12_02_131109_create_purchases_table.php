@@ -20,6 +20,7 @@ return new class extends Migration
             $table->float("shipping_charge");
             $table->integer("supplier_id");
             $table->text("note");
+            $table->string("department")->nullable();
             $table->string("pos_code");
             $table->timestamps();
         });

@@ -43,6 +43,14 @@
                 </select>
             </div>
 
+            <div class="favourits">
+                <select @change="filterPartner()" name="" ref="partnerFilter"
+                    class="form-control border-0 outline-0 text-secondary text-center" style="box-shadow: none;">
+                    <option value="">-- Select Partner --</option>
+                    <option :value="partner.id" v-for="partner in partners">{{ partner.name }}</option>
+                </select>
+            </div>
+
             <!-- <div class="favourits">
                 <button @click="newOrder('show')" class="primary-btn submit-btn border-only"><i class="fa-solid fa-cash-register"></i>Generate Coupon</button>
             </div> -->
@@ -1132,6 +1140,12 @@ export default {
             this.repairs = this.proBackup;
             if (this.$refs.statusFilter.value != "") {
                 this.repairs = this.repairs.filter(item => item['status'] == this.$refs.statusFilter.value);
+            }
+        },
+        filterPartner() {
+            this.repairs = this.proBackup;
+            if (this.$refs.partnerFilter.value != "") {
+                this.repairs = this.repairs.filter(item => item['partner'] == this.$refs.partnerFilter.value);
             }
         }
     },

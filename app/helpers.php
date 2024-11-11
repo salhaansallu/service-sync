@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\PartnersController;
 use App\Http\Controllers\PosDataController;
 use App\Http\Controllers\POSSettingsController;
 use App\Http\Controllers\UserDataController;
@@ -606,7 +607,7 @@ function getPartner($id)
 {
     if ($id == 'all') {
         $partners = partners::where('pos_code', company()->pos_code)->get();
-        if ($partners) {
+        if ($partners->count() > 0) {
             return (object)$partners;
         }
     } else {
@@ -616,6 +617,29 @@ function getPartner($id)
         }
     }
     return defaultValues();
+}
+
+function getDepartments() {
+    return array(
+        array(
+            "name" => "TV Repairing",
+            "slug" => "tv-repairs",
+        ),
+        array(
+            "name" => "Other Repairing",
+            "slug" => "other-repairs",
+        ),
+    );
+}
+
+function verifyDepartment($id) {
+    foreach (getDepartments() as $key => $department) {
+        if ($id == $department["slug"]) {
+            return true;
+        }
+    }
+
+    return false;
 }
 
 function getTotalOrderQTY($sku)
@@ -647,6 +671,10 @@ function getDeliveryStatus($bill)
         return $orders[0]->status;
     }
     return "N/A";
+}
+
+function partner() {
+    return PartnersController::getPartnerDetails();
 }
 
 function hasDelivery($bill)

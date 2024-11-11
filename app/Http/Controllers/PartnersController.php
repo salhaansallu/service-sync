@@ -3,9 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Models\partners;
+use App\Models\Products;
+use App\Models\Repairs;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Session;
 
 class PartnersController extends Controller
 {
@@ -14,7 +18,17 @@ class PartnersController extends Controller
      */
     public function index()
     {
-        //
+        if ($this->is_partner()) {
+            $repairs["all"] = Repairs::where('partner', partner()->id)->count();
+            $repairs["pending"] = Repairs::where('partner', partner()->id)->where('status', 'Pending')->count();
+            $repairs["repaired"] = Repairs::where('partner', partner()->id)->where('status', 'Repaired')->count();
+            $repairs["delivered"] = Repairs::where('partner', partner()->id)->where('status', 'Delivered')->count();
+
+            $finishedRepairs = Repairs::where('partner', partner()->id)->where('status', 'Repaired')->limit(5)->get();
+
+            return view('partner-portal.dashboard')->with(['repairs' => (object)$repairs, 'finishedRepairs'=>$finishedRepairs]);
+        }
+        return redirect()->route('partnerLogin');
     }
 
     public function getPartners()
@@ -28,6 +42,103 @@ class PartnersController extends Controller
             $response ['msg'] = "not_logged_in";
             return response(json_encode($response));
         }
+    }
+
+    public static function is_partner($get_details = false)
+    {
+        if (Session::has('WeFixPartner')) {
+            $token = Session::get('WeFixPartner');
+            if (!empty($token)) {
+                $token = json_decode(Crypt::decrypt($token));
+                if (is_object($token)) {
+                    if (isset($token->id) && isset($token->user)) {
+                        $verify = partners::where('username', '=', sanitize($token->user))->where('id', '=', sanitize($token->id))->limit(1)->get();
+                        if ($verify->count() == 1) {
+                            if ($get_details) {
+                                return (object)array(
+                                    "id" => $verify[0]->id,
+                                    "name" => $verify[0]->name,
+                                    "company" => $verify[0]->company,
+                                    "phone" => $verify[0]->phone,
+                                    "address" => $verify[0]->address,
+                                    "email" => $verify[0]->email,
+                                    "username" => $verify[0]->username,
+                                    "pos_code" => $verify[0]->pos_code,
+                                    "created_at" => $verify[0]->created_at,
+                                    "updated_at" => $verify[0]->updated_at,
+                                );
+                            }
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    public static function getPartnerDetails()
+    {
+        return self::is_partner(true);
+    }
+
+    public static function login(Request $request)
+    {
+        $verify = partners::where('username', '=', sanitize($request->input('email')))->orWhere('email', '=', sanitize($request->input('email')))->limit(1)->get();
+        if ($verify->count() == 1) {
+            if (Hash::check(sanitize($request->input('password')), $verify[0]->password)) {
+                Session::put('WeFixPartner', Crypt::encrypt(json_encode(array('user' => $verify[0]->username, 'id' => $verify[0]->id))));
+                return redirect()->route('partnerDashboard');
+            }
+        }
+
+        $error = array(
+            "email" => sanitize($request->input('email')),
+            "message" => "Invalid login credincials"
+        );
+
+        return view('partner-portal.login')->with('error', $error);;
+    }
+
+    public static function showLogin()
+    {
+        if (!self::is_partner()) {
+            return view('partner-portal.login');
+        }
+
+        return redirect()->route('partnerDashboard');
+    }
+
+    public function listRepairs() {
+        if (self::is_partner()) {
+            $status = isset($_GET['status'])? sanitize($_GET['status']) : '';
+            $repairs = [];
+            if (!empty($status) && in_array(ucfirst(str_replace('-', ' ', $status)), ['Repaired', 'Pending', 'Delivered', 'Customer Pending', 'Awaiting Parts', 'Return'])) {
+                $repairs = Repairs::where('partner', partner()->id)->where('status', ucfirst(str_replace('-', ' ', $status)))->get();
+            }
+            else {
+                $repairs = Repairs::where('partner', partner()->id)->where('status', 'Repaired')->get();
+            }
+
+            return view('partner-portal.list-repairs')->with(['repairs'=>$repairs]);
+        }
+        return redirect()->route('partnerLogin');
+    }
+
+    public function displayRepair($id) {
+        if (self::is_partner()) {
+            $id = sanitize($id);
+
+            if (!empty($id)) {
+                $repairs = Repairs::where('partner', partner()->id)->where('id', $id)->get();
+                if ($repairs->count() > 0) {
+                    $spares = Products::where('pos_code', partner()->pos_code)->get();
+                    return view('partner-portal.add-repairs')->with(['repairs'=>$repairs[0], 'spares' => $spares]);
+                }
+            }
+            return display404();
+        }
+        return redirect()->route('partnerLogin');
     }
 
     /**

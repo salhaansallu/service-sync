@@ -7,6 +7,10 @@
         footer {
             display: none;
         }
+
+        .login_form .brand img {
+            width: 100px !important;
+        }
     </style>
 
     <div class="auth-wrap" style="background-image: url('{{ asset('assets/images/auth/auth_bg.png') }}');">
@@ -57,7 +61,7 @@
             </form>
 
             <div class="copyrights mt-5">
-                Copyright &copy; {{ date('Y') }} NMSware Technologies. <br>All Rights Received
+                Copyright &copy; {{ date('Y') }} We Fix TV Panel Repair. <br>All Rights Received. <br>Developed by <a href="https://nmsware.com">NMSware Technologies</a>
             </div>
         </div>
     </div>

@@ -63,15 +63,22 @@
                     <ul id="iq-sidebar-toggle" class="iq-menu">
                         <li class="">
                             <a href="/pos" class="svg-icon">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="20" fill="currentColor" height="20" viewBox="0 0 640 512"><path d="M64 64l0 288 512 0 0-288L64 64zM0 64C0 28.7 28.7 0 64 0L576 0c35.3 0 64 28.7 64 64l0 288c0 35.3-28.7 64-64 64L64 416c-35.3 0-64-28.7-64-64L0 64zM128 448l384 0c17.7 0 32 14.3 32 32s-14.3 32-32 32l-384 0c-17.7 0-32-14.3-32-32s14.3-32 32-32z"/></svg>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" fill="currentColor"
+                                    height="20" viewBox="0 0 640 512">
+                                    <path
+                                        d="M64 64l0 288 512 0 0-288L64 64zM0 64C0 28.7 28.7 0 64 0L576 0c35.3 0 64 28.7 64 64l0 288c0 35.3-28.7 64-64 64L64 416c-35.3 0-64-28.7-64-64L0 64zM128 448l384 0c17.7 0 32 14.3 32 32s-14.3 32-32 32l-384 0c-17.7 0-32-14.3-32-32s14.3-32 32-32z" />
+                                </svg>
                                 <span class="ml-4">TV Repairs</span>
                             </a>
                         </li>
                         <li class="">
                             <a href="/other-pos" class="svg-icon">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none"
-                                stroke="currentColor" stroke-width="30" stroke-linecap="round"
-                                stroke-linejoin="round" viewBox="0 0 512 512"><path d="M352 320c88.4 0 160-71.6 160-160c0-15.3-2.2-30.1-6.2-44.2c-3.1-10.8-16.4-13.2-24.3-5.3l-76.8 76.8c-3 3-7.1 4.7-11.3 4.7L336 192c-8.8 0-16-7.2-16-16l0-57.4c0-4.2 1.7-8.3 4.7-11.3l76.8-76.8c7.9-7.9 5.4-21.2-5.3-24.3C382.1 2.2 367.3 0 352 0C263.6 0 192 71.6 192 160c0 19.1 3.4 37.5 9.5 54.5L19.9 396.1C7.2 408.8 0 426.1 0 444.1C0 481.6 30.4 512 67.9 512c18 0 35.3-7.2 48-19.9L297.5 310.5c17 6.2 35.4 9.5 54.5 9.5zM80 408a24 24 0 1 1 0 48 24 24 0 1 1 0-48z"/></svg>
+                                    stroke="currentColor" stroke-width="30" stroke-linecap="round"
+                                    stroke-linejoin="round" viewBox="0 0 512 512">
+                                    <path
+                                        d="M352 320c88.4 0 160-71.6 160-160c0-15.3-2.2-30.1-6.2-44.2c-3.1-10.8-16.4-13.2-24.3-5.3l-76.8 76.8c-3 3-7.1 4.7-11.3 4.7L336 192c-8.8 0-16-7.2-16-16l0-57.4c0-4.2 1.7-8.3 4.7-11.3l76.8-76.8c7.9-7.9 5.4-21.2-5.3-24.3C382.1 2.2 367.3 0 352 0C263.6 0 192 71.6 192 160c0 19.1 3.4 37.5 9.5 54.5L19.9 396.1C7.2 408.8 0 426.1 0 444.1C0 481.6 30.4 512 67.9 512c18 0 35.3-7.2 48-19.9L297.5 310.5c17 6.2 35.4 9.5 54.5 9.5zM80 408a24 24 0 1 1 0 48 24 24 0 1 1 0-48z" />
+                                </svg>
                                 <span class="ml-4">Other Repairs</span>
                             </a>
                         </li>
@@ -172,9 +179,8 @@
                             <a href="#orders" class="collapsed {{ company()->plan == 1 ? 'no-collapsable' : '' }}"
                                 data-toggle="collapse" aria-expanded="false">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none"
-                                stroke="currentColor" stroke-width="40" stroke-linecap="round"
-                                stroke-linejoin="round"
-                                    viewBox="0 0 640 512">
+                                    stroke="currentColor" stroke-width="40" stroke-linecap="round"
+                                    stroke-linejoin="round" viewBox="0 0 640 512">
                                     <path
                                         d="M112 0C85.5 0 64 21.5 64 48l0 48L16 96c-8.8 0-16 7.2-16 16s7.2 16 16 16l48 0 208 0c8.8 0 16 7.2 16 16s-7.2 16-16 16L64 160l-16 0c-8.8 0-16 7.2-16 16s7.2 16 16 16l16 0 176 0c8.8 0 16 7.2 16 16s-7.2 16-16 16L64 224l-48 0c-8.8 0-16 7.2-16 16s7.2 16 16 16l48 0 144 0c8.8 0 16 7.2 16 16s-7.2 16-16 16L64 288l0 128c0 53 43 96 96 96s96-43 96-96l128 0c0 53 43 96 96 96s96-43 96-96l32 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l0-64 0-32 0-18.7c0-17-6.7-33.3-18.7-45.3L512 114.7c-12-12-28.3-18.7-45.3-18.7L416 96l0-48c0-26.5-21.5-48-48-48L112 0zM544 237.3l0 18.7-128 0 0-96 50.7 0L544 237.3zM160 368a48 48 0 1 1 0 96 48 48 0 1 1 0-96zm272 48a48 48 0 1 1 96 0 48 48 0 1 1 -96 0z" />
                                 </svg>
@@ -249,6 +255,44 @@
                                 <li class="{{ Request::is('dashboard/sales-report/customer') ? 'active' : '' }}">
                                     <a href="/dashboard/sales-report/customer">
                                         <i class="fa-solid fa-minus"></i><span>Customer report</span>
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+
+                        <li class="{{ Request::is('dashboard/petty-cash*') ? 'active' : '' }}">
+                            <a href="#petty-cash" class="collapsed {{ company()->plan == 1 ? 'no-collapsable' : '' }}"
+                                data-toggle="collapse" aria-expanded="false">
+
+                                <svg class="svg-icon" width="20" fill="currentColor" height="20" xmlns="http://www.w3.org/2000/svg"
+                                    viewBox="0 0 576 512">
+                                    <path
+                                        d="M0 112.5L0 422.3c0 18 10.1 35 27 41.3c87 32.5 174 10.3 261-11.9c79.8-20.3 159.6-40.7 239.3-18.9c23 6.3 48.7-9.5 48.7-33.4l0-309.9c0-18-10.1-35-27-41.3C462 15.9 375 38.1 288 60.3C208.2 80.6 128.4 100.9 48.7 79.1C25.6 72.8 0 88.6 0 112.5zM288 352c-44.2 0-80-43-80-96s35.8-96 80-96s80 43 80 96s-35.8 96-80 96zM64 352c35.3 0 64 28.7 64 64l-64 0 0-64zm64-208c0 35.3-28.7 64-64 64l0-64 64 0zM512 304l0 64-64 0c0-35.3 28.7-64 64-64zM448 96l64 0 0 64c-35.3 0-64-28.7-64-64z" />
+                                </svg>
+                                <span class="ml-4">Petty Cash</span>
+                                @if (company()->plan == 1)
+                                    <span class="badge"><i class="fa-solid fa-crown text-warning"></i></span>
+                                @else
+                                    <svg class="svg-icon iq-arrow-right arrow-active" width="20" height="20"
+                                        xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                                        stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                        stroke-linejoin="round">
+                                        <polyline points="10 15 15 20 20 15"></polyline>
+                                        <path d="M4 4h7a4 4 0 0 1 4 4v12"></path>
+                                    </svg>
+                                @endif
+                            </a>
+                            <ul id="petty-cash"
+                                class="iq-submenu collapse {{ Request::is('dashboard/petty-cash*') ? 'show' : '' }}"
+                                data-parent="#iq-sidebar-toggle">
+                                <li class="{{ Request::is('dashboard/petty-cash/tv-repairs') ? 'active' : '' }}">
+                                    <a href="/dashboard/petty-cash/tv-repairs">
+                                        <i class="fa-solid fa-minus"></i><span>TV Repairing</span>
+                                    </a>
+                                </li>
+                                <li class="{{ Request::is('dashboard/petty-cash/other-repairs') ? 'active' : '' }}">
+                                    <a href="/dashboard/petty-cash/other-repairs">
+                                        <i class="fa-solid fa-minus"></i><span>Other Repairing</span>
                                     </a>
                                 </li>
                             </ul>

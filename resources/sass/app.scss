@@ -28,11 +28,7 @@
 
         .brand {
             img {
-                width: 150px;
-
-                @media screen and (max-width: 1440px) {
-                    width: 120px;
-                }
+                width: 60px;
             }
         }
         .nav-links {
@@ -1044,7 +1040,7 @@
             margin-bottom: 50px;
 
             img {
-                width: 200px;
+                width: 100px;
             }
         }
 
