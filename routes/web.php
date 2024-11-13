@@ -170,6 +170,8 @@ Route::prefix('dashboard')->group(function () {
 
     Route::get('/petty-cash/{id}', [PurchasesController::class, 'pettyCashes']);
     Route::post('/petty-cash/reload', [PurchasesController::class, 'addPattyCash']);
+    Route::post('/petty-cash/transfer', [PurchasesController::class, 'transferPattyCash']);
+    Route::get('/petty-cash/{id}/list', [PurchasesController::class, 'listPettyCash']);
 
     // Route::get('returns', [DashboardController::class, 'listPurchses']);
     // Route::get('returns/create', [DashboardController::class, 'createPurchse']);

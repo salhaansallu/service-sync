@@ -24,6 +24,7 @@ return new class extends Migration
             $table->string("customer");
             $table->string("partner");
             $table->string("cashier");
+            $table->string("techie")->nullable();
             $table->string("spares")->nullable();
             $table->string("status", 100);
             $table->string("pos_code");

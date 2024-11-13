@@ -19,7 +19,7 @@
             </div>
 
             <div class="heading mb-4">
-                <h3>Parter Portal Login</h3>
+                <h3>Partner Portal Login</h3>
             </div>
 
             {{-- <div class="new_register">

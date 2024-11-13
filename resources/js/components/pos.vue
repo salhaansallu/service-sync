@@ -56,6 +56,14 @@
                 </select>
             </div>
 
+            <div class="favourits">
+                <select @change="techieFilter()" name="" ref="techieField"
+                    class="form-control border-0 outline-0 text-secondary text-center" style="box-shadow: none;">
+                    <option value="">-- Select Technician --</option>
+                    <option v-for="cashier in cashiers" :value="cashier.user_id">{{ cashier.fname }}</option>
+                </select>
+            </div>
+
             <div class="categories">
                 <ul>
                     <!--  -->
@@ -339,7 +347,17 @@
                                         </select>
                                     </div>
                                 </div>
-                                <div class="input">
+                                <div class="col-12 mt-3">
+                                    <div class="input">
+                                        <label for="" class="mb-1">Technician</label>
+                                        <select ref="techie" name="" class="select2-multiple">
+                                            <option value=""></option>
+                                            <option v-for="cashier in cashiers" :value="cashier.user_id">{{ cashier.fname }}</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="input mt-3">
                                     <label for="" class="mb-1">Note</label>
                                     <textarea name="" ref="note" rows="4" placeholder="Note"></textarea>
                                 </div>
@@ -982,6 +1000,7 @@ export default {
             var customer = this.$refs.customer.value;
             var partner = this.$refs.partner.value;
             var cashier_no = this.$refs.cashier_no.value;
+            var techie = this.$refs.techie.value;
 
             if (cashier_no.trim() == "") {
                 toastr.error("Please enter cashier code", "Error");
@@ -995,6 +1014,11 @@ export default {
                     toastr.error("Invalid cashier code", "Error");
                     return;
                 }
+            }
+
+            if (techie.trim() == "") {
+                toastr.error("Please select technician", "Error");
+                return;
             }
 
             if (model_no.trim() == "") {
@@ -1034,6 +1058,7 @@ export default {
                 customer: customer,
                 partner: partner,
                 cashier_no: cashier_no,
+                techie: techie,
             }).catch(function (error) {
                 if (error.response) {
                     this.loadModal("hide");
@@ -1203,6 +1228,12 @@ export default {
             this.repairs = this.proBackup;
             if (this.$refs.partnerFilter.value != "") {
                 this.repairs = this.repairs.filter(item => item['partner'] == this.$refs.partnerFilter.value);
+            }
+        },
+        techieFilter() {
+            this.repairs = this.proBackup;
+            if (this.$refs.techieField.value != "") {
+                this.repairs = this.repairs.filter(item => item['techie'] == this.$refs.techieField.value);
             }
         }
     },

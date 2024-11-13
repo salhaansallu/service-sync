@@ -34,6 +34,70 @@ class PurchasesController extends Controller
         return redirect('/signin');
     }
 
+    public function transferPattyCash(Request $request)
+    {
+        if (Auth::check() && DashboardController::check()) {
+            $amount = sanitize($request->input('amount'));
+            $dep = sanitize($request->input('department'));
+            $id = sanitize($request->input('model_id'));
+
+            if (!empty($id) && verifyDepartment($id)) {
+
+                if (empty($dep) || !verifyDepartment($dep)) {
+                    return redirect('/dashboard/petty-cash/' . $id . '?error=1&message=Invalid-department');
+                }
+
+                if ($dep == $id) {
+                    return redirect('/dashboard/petty-cash/' . $id . '?error=1&message=Cannot-transfer-fund-to-same-department');
+                }
+
+                if (!is_numeric($amount)) {
+                    //return $this->pettyCashes($id, array('error' => 1, 'message' => 'Enter amount in number', 'note' => $note));
+                    return redirect('/dashboard/petty-cash/' . $id . '?error=1&message=Enter-amount-in-number');
+                }
+
+                $pettycash = new pettyCash();
+                $pettycash->department = $id;
+                $pettycash->amount = -$amount;
+                $pettycash->balance = -$amount;
+                $pettycash->pos_code = company()->pos_code;
+                $pettycash->note = "Transfer fund to " . getDepartment($dep) . " From " . getDepartment($id);
+
+                if ($pettycash->save()) {
+                    $pettycash = new pettyCash();
+                    $pettycash->department = $dep;
+                    $pettycash->amount = $amount;
+                    $pettycash->balance = $amount;
+                    $pettycash->pos_code = company()->pos_code;
+                    $pettycash->note = "Transfer fund to " . getDepartment($dep) . " From " . getDepartment($id);
+                    $pettycash->save();
+
+                    return redirect('/dashboard/petty-cash/' . $id . '?error=0&message=Fund-transfer-successfull');
+                }
+
+                return redirect('/dashboard/petty-cash/' . $id . '?error=1&message=Something-went-wrong');
+            }
+
+            return display404();
+        }
+        return redirect('/signin');
+    }
+
+    public function listPettyCash($id)
+    {
+        if (Auth::check() && DashboardController::check()) {
+            $id = sanitize($id);
+
+            if (!empty($id) && verifyDepartment($id)) {
+                $balance = pettyCash::where('pos_code', company()->pos_code)->where('department', $id)->get();
+                return view('pos.list-pettycash')->with(['lists' => $balance, 'id' => $id]);
+            }
+
+            //return display404();
+        }
+        return redirect('/signin');
+    }
+
     public function addPattyCash(Request $request)
     {
         if (Auth::check() && DashboardController::check()) {
@@ -130,7 +194,7 @@ class PurchasesController extends Controller
                     $pettycash->amount = - ((($price - $discount) * $stock) + $shipping_charge);
                     $pettycash->balance = - ((($price - $discount) * $stock) + $shipping_charge);
                     $pettycash->pos_code = company()->pos_code;
-                    $pettycash->note = "Purchase of purchase number ".$purchase_number;
+                    $pettycash->note = "Purchase of purchase number " . $purchase_number;
                     $pettycash->save();
                 }
 

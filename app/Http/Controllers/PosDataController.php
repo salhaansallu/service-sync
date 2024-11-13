@@ -14,6 +14,7 @@ use App\Models\saveOrders;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 
 class PosDataController extends Controller
@@ -102,7 +103,7 @@ class PosDataController extends Controller
     public function getCashiers() {
         $response = [];
         if ($this->check()) {
-            $data = posUsers::where('pos_code', company()->pos_code)->get(['cashier_code']);
+            $data = DB::table('users')->select('pos_users.*', 'users.fname', 'users.lname', 'users.id', 'users.email')->leftJoin('pos_users', 'users.id', '=', 'pos_users.user_id')->where('pos_code', company()->pos_code)->get();
             if ($data && $data->count() > 0) {
                 return (object)$data;
             }

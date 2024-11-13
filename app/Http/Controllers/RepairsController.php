@@ -13,6 +13,7 @@ use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use SMS;
 
 class RepairsController extends Controller
@@ -209,6 +210,7 @@ class RepairsController extends Controller
                 $customer = sanitize($request->input('customer'));
                 $partner = sanitize($request->input('partner'));
                 $cashier_no = sanitize($request->input('cashier_no'));
+                $techie = sanitize($request->input('techie'));
 
                 $customerData = customers::where('pos_code', company()->pos_code)->where('id', $customer)->get();
 
@@ -243,6 +245,7 @@ class RepairsController extends Controller
                 $repair->customer = $customer;
                 $repair->partner = $partner == ""? 0 : $partner;
                 $repair->cashier = $cashier_no;
+                $repair->techie = $techie;
                 $repair->status = "Pending";
 
                 if (isset($_GET['source']) && sanitize($_GET['source']) == "other-pos") {
@@ -311,11 +314,12 @@ class RepairsController extends Controller
 
         $product = Repairs::where('id', sanitize($id))->where('pos_code', company()->pos_code)->get();
         $customers = customers::where('pos_code', company()->pos_code)->get();
+        $users = DB::table('users')->select('pos_users.*', 'users.fname', 'users.lname', 'users.id', 'users.email')->leftJoin('pos_users', 'users.id', '=', 'pos_users.user_id')->where('pos_code', company()->pos_code)->get();
         $partners = partners::where('pos_code', company()->pos_code)->get();
         $spares = Products::where('pos_code', company()->pos_code)->get();
 
         if ($product && $product->count() > 0) {
-            return view('pos.add-category')->with(['repairs' => $product[0], 'customers' => $customers, 'partners' => $partners,'spares' => $spares]);
+            return view('pos.add-category')->with(['repairs' => $product[0], 'customers' => $customers, 'partners' => $partners,'spares' => $spares, 'users'=> $users]);
         } else {
             return display404();
         }
@@ -336,6 +340,7 @@ class RepairsController extends Controller
             $total = sanitize($request->input('total'));
             $customer = sanitize($request->input('customer'));
             $partner = sanitize($request->input('partner'));
+            $techie = sanitize($request->input('techie'));
             $spares = [];
             if ($request->has('spares')) {
                 foreach ($request->input('spares') as $key => $val) {
@@ -372,6 +377,7 @@ class RepairsController extends Controller
                 "advance" => $advance,
                 "total" => $total,
                 "customer" => $customer,
+                "techie" => $techie,
                 "partner" => $partner,
                 "spares" => json_encode($spares),
                 "status" => $status,
@@ -411,7 +417,6 @@ class RepairsController extends Controller
             return response(json_encode(array("error" => 1, "msg" => "Sorry! something went wrong")));
         }
     }
-
 
     // =============== Sales ====================== ///
 

@@ -22,7 +22,7 @@
                 }
             @endphp
             <div class="row">
-                <div class="col-6">
+                <div class="col-md-6">
                     <div class="card">
                         <div class="card-header d-flex justify-content-between">
                             <div class="header-title">
@@ -51,23 +51,53 @@
                                         </div>
                                     </div>
                                 </div>
-                                <button type="submit" class="btn btn-primary mr-2">Add purchase</button>
+                                <button type="submit" class="btn btn-primary mr-2">Add</button>
                             </form>
                         </div>
                     </div>
                 </div>
 
-                <div class="col-6">
+                <div class="col-md-6">
                     <div class="card">
-                        <div class="card-header d-flex justify-content-center">
-                            <div class="header-title">
-                                <h4 class="card-title text-right">Petty Cash Balance</h4>
+                        <div class="card-header d-flex">
+                            <div class="header-title row w-100">
+                                <div class="col-md-7"><h4 class="card-title text-left">Petty Cash Balance</h4></div>
+                                <div class="col-md-5"><a class="d-block text-end" href="/dashboard/petty-cash/{{ isset($id) ? $id : '' }}/list" >See all transactions</a></div>
                             </div>
                         </div>
-                        <div class="card-body">
+                        <div class="card-body text-center">
                             <h1
-                                class="fw-bold text-center {{ isset($balance) && is_numeric($balance) ? ($balance > 0 ? 'text-success' : 'text-danger') : 'text-danger' }}">
+                                class="fw-bold text-center my-3 {{ isset($balance) && is_numeric($balance) ? ($balance > 0 ? 'text-success' : 'text-danger') : 'text-danger' }}">
                                 {{ isset($balance) ? currency($balance) : 0.0 }}</h1>
+
+                                <form class="pt-4" action="/dashboard/petty-cash/transfer" method="POST" data-toggle="validator">
+                                    @csrf
+                                    <input type="hidden" name="model_id" value="{{ isset($id) ? $id : '' }}">
+                                    <div class="row justify-content-center">
+                                        <div class="col-md-5">
+                                            <div class="form-group">
+                                                <label>Transfer Amount <span class="text-danger">*</span></label>
+                                                <input type="text" class="form-control" placeholder="Enter Amount"
+                                                    name="amount" value="" required>
+                                                <div class="help-block with-errors"></div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-5">
+                                            <div class="form-group">
+                                                <label>Transfer Department <span class="text-danger">*</span></label>
+                                                    <select id="" class="form-control" name="department" required>
+                                                        <option value="other">-- Select --</option>
+                                                        @foreach (getDepartments() as $item)
+                                                            <option value="{{ $item['slug'] }}">{{ $item['name'] }}
+                                                            </option>
+                                                        @endforeach
+                                                    </select>
+                                                <div class="help-block with-errors"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary mr-2">Transfer</button>
+                                </form>
                         </div>
                     </div>
                 </div>

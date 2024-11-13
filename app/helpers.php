@@ -632,6 +632,16 @@ function getDepartments() {
     );
 }
 
+function getDepartment($id) {
+
+    foreach (getDepartments() as $key => $value) {
+        if ($value["slug"] == $id) {
+            return $value["name"];
+        }
+    }
+    return "";
+}
+
 function verifyDepartment($id) {
     foreach (getDepartments() as $key => $department) {
         if ($id == $department["slug"]) {
