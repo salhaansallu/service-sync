@@ -24,6 +24,8 @@ use App\Http\Controllers\SMSController;
 use App\Http\Controllers\SpareSaleHistoryController;
 use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\UserDataController;
+use App\Models\customers;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -130,6 +132,20 @@ Route::get('/pos-dashboard/{id}', [DashboardController::class, 'index']);
 Route::get('/dashboard', [DashboardController::class, 'dashboard'])->name('dashboard');
 Route::get('/', [DashboardController::class, 'dashboard']);
 
+Route::get('/format-number', function() {
+    if (Auth::check() && DashboardController::check()) {
+        $customers = customers::all();
+
+        foreach ($customers as $key => $customer) {
+            customers::where('id', $customer->id)->update([
+                "phone" => formatOriginalPhoneNumber($customer->phone) != null ? formatOriginalPhoneNumber($customer->phone) : $customer->phone,
+            ]);
+        }
+
+        echo 'done';
+    }
+});
+
 Route::prefix('dashboard')->group(function () {
     Route::get('products', [DashboardController::class, 'listProducts']);
     Route::get('products/create', [DashboardController::class, 'createProduct']);
@@ -234,6 +250,14 @@ Route::prefix('partner-portal')->group(function () {
     Route::get('/repair/{id}', [PartnersController::class, 'displayRepair']);
 });
 
+
+Route::get('/customer-portal', function () {
+    return view('customer-portal.customer-portal');
+});
+Route::prefix('customer-portal')->group(function () {
+    Route::post('send-code', [CustomersController::class, 'sendCode']);
+    Route::post('verify-code', [CustomersController::class, 'OTPVerify']);
+});
 
 
 Route::get('/signin', function() {

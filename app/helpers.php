@@ -759,6 +759,18 @@ function formatPhoneNumber($phoneNumber)
     }
 }
 
+
+function formatOriginalPhoneNumber($phone) {
+    // Remove any leading "+" or "94" country code
+    $phone = preg_replace('/^(?:\+94|94)/', '0', $phone);
+
+    // Ensure the phone number has exactly 10 digits starting with "0"
+    if (preg_match('/^0\d{9}$/', $phone)) {
+        return $phone;
+    }
+    return null; // Return null if the number doesn't match the expected format
+}
+
 function getUser($id)
 {
     $user = User::where('id', $id)->get();
