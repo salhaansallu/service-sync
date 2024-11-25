@@ -6,6 +6,7 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\ResetPasswordController;
 use App\Http\Controllers\CategoriesController;
+use App\Http\Controllers\ChinaOrdersController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\CreditController;
 use App\Http\Controllers\CustomersController;
@@ -19,6 +20,7 @@ use App\Http\Controllers\POSSettingsController;
 use App\Http\Controllers\pricePlan;
 use App\Http\Controllers\ProductsController;
 use App\Http\Controllers\PurchasesController;
+use App\Http\Controllers\QuotationsController;
 use App\Http\Controllers\RepairsController;
 use App\Http\Controllers\SMSController;
 use App\Http\Controllers\SpareSaleHistoryController;
@@ -159,11 +161,26 @@ Route::prefix('dashboard')->group(function () {
     Route::post('/repairs/edit', [RepairsController::class, 'update']);
     Route::delete('/repairs/delete', [RepairsController::class, 'destroy']);
 
+    Route::get('quotations', [DashboardController::class, 'listQuotations']);
+    Route::get('quotations/create', [QuotationsController::class, 'create']);
+    Route::post('quotations/create', [QuotationsController::class, 'store']);
+    Route::get('/quotations/edit/{id}', [QuotationsController::class, 'edit']);
+    Route::post('/quotations/edit', [QuotationsController::class, 'update']);
+    Route::delete('/quotations/delete', [QuotationsController::class, 'destroy']);
+
     Route::get('orders', [DashboardController::class, 'listOrders']);
     Route::get('/order/edit/{id}', [OrdersController::class, 'edit']);
     Route::post('/order/edit', [OrdersController::class, 'update']);
     Route::post('/order/return', [OrdersController::class, 'return']);
     Route::delete('/order/delete', [OrdersController::class, 'destroy']);
+
+    Route::get('/china-order-list', [ChinaOrdersController::class, 'index']);
+    Route::post('/china-order-get', [ChinaOrdersController::class, 'get']);
+    Route::get('/china-order-add', [ChinaOrdersController::class, 'create']);
+    Route::post('/china-order-add', [ChinaOrdersController::class, 'store']);
+    Route::get('/china-order-update/{id}', [ChinaOrdersController::class, 'edit']);
+    Route::post('/china-order-update', [ChinaOrdersController::class, 'update']);
+    Route::post('/china-order-bulkedit', [ChinaOrdersController::class, 'bulkEdit']);
 
     Route::get('bills', [DashboardController::class, 'listBills']);
     Route::get('/bill/edit/{id}', [RepairsController::class, 'salesEdit']);

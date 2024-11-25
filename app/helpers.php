@@ -15,6 +15,7 @@ use App\Models\posData;
 use App\Models\PosInvitation;
 use App\Models\posUsers;
 use App\Models\Products;
+use App\Models\quotations;
 use App\Models\Repairs;
 use App\Models\supplier;
 use App\Models\User;
@@ -401,7 +402,8 @@ function company($pos_code = null)
     return PosDataController::company();
 }
 
-function printInvoice($invoice) {
+function printInvoice($invoice)
+{
     // Check if the invoice is empty
     if (empty($invoice)) {
         // Error handling (in PHP, you'd typically handle this with a redirect, log, or display message)
@@ -619,7 +621,8 @@ function getPartner($id)
     return defaultValues();
 }
 
-function getDepartments() {
+function getDepartments()
+{
     return array(
         array(
             "name" => "TV Repairing",
@@ -632,7 +635,8 @@ function getDepartments() {
     );
 }
 
-function getDepartment($id) {
+function getDepartment($id)
+{
 
     foreach (getDepartments() as $key => $value) {
         if ($value["slug"] == $id) {
@@ -642,7 +646,8 @@ function getDepartment($id) {
     return "";
 }
 
-function verifyDepartment($id) {
+function verifyDepartment($id)
+{
     foreach (getDepartments() as $key => $department) {
         if ($id == $department["slug"]) {
             return true;
@@ -683,7 +688,13 @@ function getDeliveryStatus($bill)
     return "N/A";
 }
 
-function partner() {
+function getQuotationURL($q_no, $pos_code)
+{
+    return asset('quotations/' . str_replace([' ', '.', "'", '"'], ['', '', "", ''], $q_no) . '-' . $pos_code . '.pdf');
+}
+
+function partner()
+{
     return PartnersController::getPartnerDetails();
 }
 
@@ -759,8 +770,8 @@ function formatPhoneNumber($phoneNumber)
     }
 }
 
-
-function formatOriginalPhoneNumber($phone) {
+function formatOriginalPhoneNumber($phone)
+{
     // Remove any leading "+" or "94" country code
     $phone = preg_replace('/^(?:\+94|94)/', '0', $phone);
 
@@ -843,20 +854,19 @@ function generateInvoice($order_id, $inName, $bill_type)
                 $temp_order = $temp_order[0];
                 $total += $temp_order->total;
                 $advance += $temp_order->advance;
-                $orders[] = array("id"=> $id, "total"=>$temp_order->total, "advance"=>$temp_order->advance, "model"=> $temp_order->model_no);
+                $orders[] = array("id" => $id, "total" => $temp_order->total, "advance" => $temp_order->advance, "model" => $temp_order->model_no);
             }
         }
 
         $repairs = Repairs::where('bill_no', $order_id[0])->where('pos_code', $company->pos_code)->get()[0];
         $customer = getCustomer($repairs->customer);
-    }
-    else {
+    } else {
         $temp_order = Repairs::where('bill_no', $order_id)->where('pos_code', $company->pos_code)->get();
         if ($temp_order->count() > 0) {
             $temp_order = $temp_order[0];
             $total += $temp_order->total;
             $advance += $temp_order->advance;
-            $orders[] = array("id"=> $order_id, "total"=>$temp_order->total, "advance"=>$temp_order->advance, "model"=> $temp_order->model_no);
+            $orders[] = array("id" => $order_id, "total" => $temp_order->total, "advance" => $temp_order->advance, "model" => $temp_order->model_no);
         }
 
         $repairs = Repairs::where('bill_no', $order_id)->where('pos_code', $company->pos_code)->get()[0];
@@ -934,8 +944,8 @@ function generateInvoice($order_id, $inName, $bill_type)
                     </tr>
             ';
 
-            foreach ($orders as $key => $order) {
-                $html .= '
+    foreach ($orders as $key => $order) {
+        $html .= '
                     <tr>
                         <td style="padding: 5px; border: 1px solid black;">' . $order["id"] . ' - ' . $order["model"] . '</td>
                         <td style="padding: 5px; border: 1px solid black;">' . currency($order["total"], '') . '</td>
@@ -943,9 +953,9 @@ function generateInvoice($order_id, $inName, $bill_type)
                         <td style="padding: 5px; border: 1px solid black;">' . currency($order["total"] - $order["advance"], '') . '</td>
                     </tr>
                 ';
-            }
+    }
 
-            $html .= '
+    $html .= '
                 </table>
             </div>
 
@@ -1091,27 +1101,26 @@ function generateThermalInvoice($order_id, $inName, $bill_type)
                 $temp_order = $temp_order[0];
                 $total += $temp_order->total;
                 $advance += $temp_order->advance;
-                $orders[] = array("id"=> $id, "total"=>$temp_order->total, "advance"=>$temp_order->advance, "model"=> $temp_order->model_no);
+                $orders[] = array("id" => $id, "total" => $temp_order->total, "advance" => $temp_order->advance, "model" => $temp_order->model_no);
             }
         }
 
         $repairs = Repairs::where('bill_no', $order_id[0])->where('pos_code', $company->pos_code)->get()[0];
         $customer = getCustomer($repairs->customer);
-    }
-    else {
+    } else {
         $temp_order = Repairs::where('bill_no', $order_id)->where('pos_code', $company->pos_code)->get();
         if ($temp_order->count() > 0) {
             $temp_order = $temp_order[0];
             $total += $temp_order->total;
             $advance += $temp_order->advance;
-            $orders[] = array("id"=> $order_id, "total"=>$temp_order->total, "advance"=>$temp_order->advance, "model"=> $temp_order->model_no);
+            $orders[] = array("id" => $order_id, "total" => $temp_order->total, "advance" => $temp_order->advance, "model" => $temp_order->model_no);
         }
 
         $repairs = Repairs::where('bill_no', $order_id)->where('pos_code', $company->pos_code)->get()[0];
         $customer = getCustomer($repairs->customer);
     }
 
-    $qr_code_image = generateQR("https://wefixservers.xyz/invoice/". $bill_type . "/" . str_replace(["Thermal-delivery", "Thermal-invoice"], ["Delivery", "Invoice"], $inName), true);
+    $qr_code_image = generateQR("https://wefixservers.xyz/invoice/" . $bill_type . "/" . str_replace(["Thermal-delivery", "Thermal-invoice"], ["Delivery", "Invoice"], $inName), true);
     //$POSSettings = POSSettings();
 
     $note = $bill_type == 'newOrder' ? 'Received' : 'Delivered';
@@ -1177,8 +1186,8 @@ function generateThermalInvoice($order_id, $inName, $bill_type)
                 </tr>
             ';
 
-            foreach ($orders as $key => $order) {
-                $html .= '
+    foreach ($orders as $key => $order) {
+        $html .= '
                     <tr style="width: 100%;">
                         <td style="font-size: 14px; padding-top: 5px;" colspan="4"><span style="margin-right: 5px;">' . $key + 1 . '. </span> <span style="margin-right: 10px;">' . $order["id"] . ' - ' . $order["model"] . '</span></td>
                     </tr>
@@ -1189,9 +1198,9 @@ function generateThermalInvoice($order_id, $inName, $bill_type)
                         <td style="font-size: 14px; text-align: right;border-bottom: #8d8d8d 2px dotted;">' . currency($order["total"] - $order["advance"], '') . '</td>
                     </tr>
                 ';
-            }
+    }
 
-            $html .= '
+    $html .= '
             </table>
 
             <table style="width: 100%; border-collapse: collapse; border-top: 1px solid #000; margin-top: 10px;">
@@ -1269,7 +1278,7 @@ function generateThermalInvoice($order_id, $inName, $bill_type)
                     Please scan this QR code to get your invoice PDF copy
                 </td>
                 <td style="font-size: 14px; text-align: right;">
-                    <img src="data:image/svg+xml;base64,'.$qr_code_image.'" alt="QR Code">
+                    <img src="data:image/svg+xml;base64,' . $qr_code_image . '" alt="QR Code">
                 </td>
             </tr>
         </table>
@@ -1621,7 +1630,7 @@ function generateThermalSalesInvoice($order_id, $inName, $products, $cashin)
                         Please scan this QR code to get your invoice PDF copy
                     </td>
                     <td style="font-size: 14px; text-align: right; padding-bottom: 10px">
-                        <img src="data:image/svg+xml;base64,'.$qr_code_image.'" alt="QR Code">
+                        <img src="data:image/svg+xml;base64,' . $qr_code_image . '" alt="QR Code">
                     </td>
                 </tr>
             </table>
@@ -2000,6 +2009,175 @@ function generateCreditPay($totalDue, $paid, $customer, $datetime, $bill_name)
     return true;
 }
 
+function generateQuotation($q_no)
+{
+    $company = PosDataController::company();
+    $quotation = quotations::where('q_no', $q_no)->where('pos_code', $company->pos_code)->first();
+
+    if ($quotation == null) {
+        exit;
+    }
+
+    $repair = Repairs::where('bill_no', $quotation->bill_no)->where('pos_code', $company->pos_code)->first();
+
+    if ($repair == null) {
+        exit;
+    }
+
+    $html = '
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Quotation</title>
+            <style>
+                @page { 
+                    margin: 10px;
+                    height: auto;
+                    width: 210mm;
+                 }
+                body { margin: 10px; }
+            </style>
+        </head>
+        <body style="font-family: Arial, sans-serif; margin: 0; padding: 30px; padding-top: 30px; box-sizing: border-box;">
+
+            <header style="text-align: center; margin-bottom: 20px;">
+                <h1 style="margin: 0; font-size: 24px;">Quotation</h1>
+                <p style="margin: 5px 0; font-size: 14px; color: #666;">' . $company->company_name . '</p>
+                <p style="margin: 5px 0; font-size: 14px; color: #666;">' . getUserData($company->admin_id)->address . ' <br> ' . formatPhoneNumber(getUserData($company->admin_id)->phone) . ' <br> www.wefix.lk</p>
+            </header>
+
+            <section style="margin-bottom: 20px;">
+                <table style="width: 100%; border-collapse: collapse;">
+                    <tbody>
+                    <tr>
+                        <td style="vertical-align: bottom;">
+                            <p style="font-size: 13px;"><strong>Client Name:</strong> ' . getCustomer($repair->customer)->name . '</p>
+                            <p style="font-size: 13px;"><strong>Phone Number:</strong> ' . getCustomer($repair->customer)->phone . '</p>
+                            <p style="font-size: 13px;"><strong>Address:</strong> ' . getCustomer($repair->customer)->address . '</p>
+                        </td>
+
+                        <td style="vertical-align: bottom;">
+                            <p style="font-size: 13px; text-align: right;"><strong>Date:</strong> ' . date('Y-m-d', strtotime($quotation->created_at)) . '</p>
+                            <p style="font-size: 13px; text-align: right;"><strong>Valid Until:</strong> ' . date('Y-m-d', strtotime($quotation->expiry_date)) . '</p>
+                            <p style="font-size: 13px; text-align: right;"><strong>Cargo Type:</strong> ' . $quotation->cargo_type . '</p>
+                            <p style="font-size: 13px; text-align: right;"><strong>Estimated Delivery:</strong> ' . date('Y-m-d', strtotime($quotation->delivery_date)) . '</p>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </section>
+
+            <section style="margin-bottom: 20px;">
+                <table style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr style="background-color: #f4f4f4;">
+                            <th style="text-align: left; padding: 8px; border: 1px solid #ddd;">Bill No</th>
+                            <th style="text-align: left; padding: 8px; border: 1px solid #ddd;">Fault</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td style="padding: 8px; border: 1px solid #ddd;">' . $repair->bill_no . '</td>
+                            <td style="padding: 8px; border: 1px solid #ddd;">' . $repair->fault . '</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+
+            <table style="width: 100%; border-collapse: collapse; border-bottom: 1px solid #ddd;margin-bottom: 20px;">
+                <tbody>
+                    <tr>
+                        <td style="vertical-align: top;">
+                            <div style="margin-top: 0px; text-align: right; font-size: 18px;">
+                                <p>Sub Total: ' . currency($quotation->total, 'LKR') . '</p>
+                            </div>
+                            <div style="margin-top: -20px; text-align: right; font-size: 18px;">
+                                <p>Paid Advance: ' . currency($repair->advance, 'LKR') . '</p>
+                            </div>
+                            <div style="margin-top: -20px; text-align: right; font-size: 18px; font-weight: bold;">
+                                <p>Total Due: ' . currency($quotation->total - $repair->advance, 'LKR') . '</p>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <b style="font-size: 13px;color: red;margin-top: 20px;">Please Note:</b>
+            <p style="font-size: 13px;color: #838383;margin-top: 5px;padding-bottom: 20px;border-bottom: 1px solid #ddd;">While we ensure proper documentation and preparation for the shipment process, any delays, penalties, or issues arising from government regulations, customs policies, or unforeseen legal requirements during the clearing of the shipment will be beyond our responsibility. The client is advised to ensure compliance with all relevant laws and requirements to avoid such situations.</p>
+
+            <p style="margin-top: 20px;"><strong>Bank Details:</strong></p>
+
+            <table style="width: 100%; border-collapse: collapse;">
+                <tbody>
+                    <tr>
+                        <td style="vertical-align: top;">
+                            <section style="">
+                                <p>BOC Bank:</p>
+                                <ul style="padding: 0; margin: 0;">
+                                    <li style="list-style: none;">Branch: Grandpass</li>
+                                    <li style="list-style: none;">A/C Number: 86433388</li>
+                                    <li style="list-style: none;">A/C Name: M.N.Sirajdeen</li>
+                                </ul>
+                            </section>
+                        </td>
+                        <td style="vertical-align: top;">
+                            <section style="">
+                                <p>Sampath Bank:</p>
+                                <ul style="padding: 0; margin: 0;">
+                                    <li style="list-style: none;">Branch: Prince Street</li>
+                                    <li style="list-style: none;">A/C Number: 104254656031</li>
+                                    <li style="list-style: none;">A/C Name: M.N.Sirajdeen</li>
+                                </ul>
+                            </section>
+                        </td>
+                        <td style="vertical-align: top;">
+                            <section style="">
+                                <p>Nation Trust Bank:</p>
+                                <ul style="padding: 0; margin: 0;">
+                                    <li style="list-style: none;">Branch: Sri Sangarajah Mawatte</li>
+                                    <li style="list-style: none;">A/C No: 003108033298</li>
+                                    <li style="list-style: none;">A/C Name: M.A.M.Rameez</li>
+                                </ul>
+                            </section>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td style="vertical-align: top;">
+                            <section style="">
+                                <p>Commercial Bank:</p>
+                                <ul style="padding: 0; margin: 0;">
+                                    <li style="list-style: none;">Branch: Kezar Street</li>
+                                    <li style="list-style: none;">A/C No: 8017429449</li>
+                                    <li style="list-style: none;">A/C Name: M.N.Siraj</li>
+                                </ul>
+                            </section>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <footer style="text-align: center; margin-top: 30px; font-size: 12px; color: #777;">
+                <p>Thank you for choosing our services!</p>
+            </footer>
+        </body>
+        </html>
+
+    ';
+    // $connector = new FilePrintConnector("/dev/usb/lp0");
+    // $printer = new Printer($connector);
+
+    $pdf = new Dompdf();
+    $pdf->setPaper("A4", "portrait");
+    $pdf->loadHtml($html, 'UTF-8');
+    $pdf->render();
+    $path = public_path('quotations/' . str_replace([' ', '.', "'", '"'], ['', '', "", ''], $q_no) . '-' . $company->pos_code . '.pdf');
+    file_put_contents($path, $pdf->output());
+    return (object)array('generated' => true, 'url' => '/quotations/' . str_replace([' ', '.', "'", '"'], ['', '', "", ''], $q_no) . '-' . $company->pos_code . '.pdf');
+}
+
 function sendInvitation($email)
 {
     $verify = User::where('email', $email)->get();
@@ -2019,7 +2197,7 @@ function sendInvitation($email)
     return false;
 }
 
-function getOrder($type="", $order_number, $pos_id)
+function getOrder($type = "", $order_number, $pos_id)
 {
     $order_number = $order_number;
     $pos_id = $pos_id;

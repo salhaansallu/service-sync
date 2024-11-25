@@ -8,7 +8,7 @@
     <!-- CSRF Token -->
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>NMSware CRM System</title>
+    <title>We Fix CRM System</title>
     <meta name="robots" content="noindex">
 
 

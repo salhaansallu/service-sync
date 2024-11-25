@@ -44,7 +44,11 @@ class CustomersController extends Controller
             $phone = sanitize($request->input('phone'));
             $otp = str_pad(random_int(0, 9999), 4, '0', STR_PAD_LEFT);
 
-            $sessionData = json_encode(["time" => Carbon::now(), "otp" => Hash::make($otp), 'phone' => formatOriginalPhoneNumber($phone)]); 
+            if (customers::where("phone", $phone)->count() <= 0) {
+                return response(json_encode(array("error" => 1, "msg" => "Invalid Phone Number")));
+            }
+
+            $sessionData = json_encode(["time" => Carbon::now(), "otp" => Hash::make($otp), 'phone' => formatOriginalPhoneNumber($phone)]);
 
             if ($_SESSION[self::$otpSessionName] = Crypt::encrypt($sessionData)) {
                 $sms = new SMS();

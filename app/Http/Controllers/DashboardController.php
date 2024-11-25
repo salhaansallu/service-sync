@@ -11,6 +11,7 @@ use App\Models\posData;
 use App\Models\posUsers;
 use App\Models\Products;
 use App\Models\Purchases;
+use App\Models\quotations;
 use App\Models\Repairs;
 use App\Models\spareSaleHistory;
 use App\Models\supplier;
@@ -193,6 +194,19 @@ class DashboardController extends Controller
 
             $categories = Repairs::where('pos_code', company()->pos_code)->where('type', '=', 'repair')->get();
             return view('pos.list-categories')->with(['repairs' => $categories]);
+        } else {
+            return redirect('/signin');
+        }
+    }
+
+    public function listQuotations()
+    {
+        login_redirect('/' . request()->path());
+
+        if (Auth::check() && $this->check(true)) {
+            $company = company();
+            $results = DB::select('select quotations.total AS quote_total, quotations.id AS q_id, quotations.*, repairs.* from quotations, repairs WHERE quotations.bill_no = repairs.bill_no AND quotations.pos_code = "'.$company->pos_code.'" AND repairs.pos_code = "'.$company->pos_code.'" ORDER BY quotations.id DESC');
+            return view('pos.list-quotations')->with(['quotations' => $results]);
         } else {
             return redirect('/signin');
         }

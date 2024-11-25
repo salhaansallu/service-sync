@@ -80,6 +80,11 @@ import SpareReport from './components/spare_report.vue';
 SpareReportComp.component('spare-report', SpareReport);
 SpareReportComp.mount('#SpareReport');
 
+const ChinaOrders = createApp({});
+import ChinaOrderComp from './components/china-orders.vue';
+ChinaOrders.component('china-orders', ChinaOrderComp);
+ChinaOrders.mount('#ChinaOrders');
+
 
 $('#menu_close').click(function (e) {
   $('.open_menu').removeClass('hide')

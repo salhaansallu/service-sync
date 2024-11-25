@@ -8,7 +8,7 @@
     <!-- CSRF Token -->
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>NMSware CRM System</title>
+    <title>We Fix CRM System</title>
     <meta name="robots" content="noindex">
 
 
@@ -136,6 +136,7 @@
                                 </li>
                             </ul>
                         </li>
+
                         <li class="{{ Request::is('dashboard/repairs*') ? 'active' : '' }}">
                             <a href="#category" class="collapsed {{ company()->plan == 1 ? 'no-collapsable' : '' }}"
                                 data-toggle="collapse" aria-expanded="false">
@@ -175,12 +176,50 @@
                             </ul>
                         </li>
 
+                        <li class="{{ Request::is('dashboard/quotation*') ? 'active' : '' }}">
+                            <a href="#quotation" class="collapsed {{ company()->plan == 1 ? 'no-collapsable' : '' }}"
+                                data-toggle="collapse" aria-expanded="false">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="svg-icon" width="20"
+                                    height="20" fill="none" stroke="currentColor" stroke-width="40"
+                                    stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 384 512">
+                                    <path
+                                        d="M64 0C28.7 0 0 28.7 0 64L0 448c0 35.3 28.7 64 64 64l256 0c35.3 0 64-28.7 64-64l0-288-128 0c-17.7 0-32-14.3-32-32L224 0 64 0zM256 0l0 128 128 0L256 0zM64 80c0-8.8 7.2-16 16-16l64 0c8.8 0 16 7.2 16 16s-7.2 16-16 16L80 96c-8.8 0-16-7.2-16-16zm0 64c0-8.8 7.2-16 16-16l64 0c8.8 0 16 7.2 16 16s-7.2 16-16 16l-64 0c-8.8 0-16-7.2-16-16zm128 72c8.8 0 16 7.2 16 16l0 17.3c8.5 1.2 16.7 3.1 24.1 5.1c8.5 2.3 13.6 11 11.3 19.6s-11 13.6-19.6 11.3c-11.1-3-22-5.2-32.1-5.3c-8.4-.1-17.4 1.8-23.6 5.5c-5.7 3.4-8.1 7.3-8.1 12.8c0 3.7 1.3 6.5 7.3 10.1c6.9 4.1 16.6 7.1 29.2 10.9l.5 .1s0 0 0 0s0 0 0 0c11.3 3.4 25.3 7.6 36.3 14.6c12.1 7.6 22.4 19.7 22.7 38.2c.3 19.3-9.6 33.3-22.9 41.6c-7.7 4.8-16.4 7.6-25.1 9.1l0 17.1c0 8.8-7.2 16-16 16s-16-7.2-16-16l0-17.8c-11.2-2.1-21.7-5.7-30.9-8.9c0 0 0 0 0 0c-2.1-.7-4.2-1.4-6.2-2.1c-8.4-2.8-12.9-11.9-10.1-20.2s11.9-12.9 20.2-10.1c2.5 .8 4.8 1.6 7.1 2.4c0 0 0 0 0 0s0 0 0 0s0 0 0 0c13.6 4.6 24.6 8.4 36.3 8.7c9.1 .3 17.9-1.7 23.7-5.3c5.1-3.2 7.9-7.3 7.8-14c-.1-4.6-1.8-7.8-7.7-11.6c-6.8-4.3-16.5-7.4-29-11.2l-1.6-.5s0 0 0 0c-11-3.3-24.3-7.3-34.8-13.7c-12-7.2-22.6-18.9-22.7-37.3c-.1-19.4 10.8-32.8 23.8-40.5c7.5-4.4 15.8-7.2 24.1-8.7l0-17.3c0-8.8 7.2-16 16-16z" />
+                                </svg>
+                                <span class="ml-4">Quotations</span>
+                                @if (company()->plan == 1)
+                                    <span class="badge"><i class="fa-solid fa-crown text-warning"></i></span>
+                                @else
+                                    <svg class="svg-icon iq-arrow-right arrow-active" width="20" height="20"
+                                        xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                                        stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                        stroke-linejoin="round">
+                                        <polyline points="10 15 15 20 20 15"></polyline>
+                                        <path d="M4 4h7a4 4 0 0 1 4 4v12"></path>
+                                    </svg>
+                                @endif
+                            </a>
+                            <ul id="quotation"
+                                class="iq-submenu collapse {{ Request::is('dashboard/quotation*') ? 'show' : '' }}"
+                                data-parent="#iq-sidebar-toggle">
+                                <li class="{{ Request::is('dashboard/quotations') ? 'active' : '' }}">
+                                    <a href="/dashboard/quotations">
+                                        <i class="fa-solid fa-minus"></i><span>List Quotations</span>
+                                    </a>
+                                </li>
+                                <li class="{{ Request::is('dashboard/quotations/create') ? 'active' : '' }}">
+                                    <a href="/dashboard/quotations/create">
+                                        <i class="fa-solid fa-minus"></i><span>Add Quotation</span>
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+
                         <li class="{{ Request::is('dashboard/order*') ? 'active' : '' }}">
                             <a href="#orders" class="collapsed {{ company()->plan == 1 ? 'no-collapsable' : '' }}"
                                 data-toggle="collapse" aria-expanded="false">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none"
-                                    stroke="currentColor" stroke-width="40" stroke-linecap="round"
-                                    stroke-linejoin="round" viewBox="0 0 640 512">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="svg-icon" width="20"
+                                    height="20" fill="none" stroke="currentColor" stroke-width="40"
+                                    stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 640 512">
                                     <path
                                         d="M112 0C85.5 0 64 21.5 64 48l0 48L16 96c-8.8 0-16 7.2-16 16s7.2 16 16 16l48 0 208 0c8.8 0 16 7.2 16 16s-7.2 16-16 16L64 160l-16 0c-8.8 0-16 7.2-16 16s7.2 16 16 16l16 0 176 0c8.8 0 16 7.2 16 16s-7.2 16-16 16L64 224l-48 0c-8.8 0-16 7.2-16 16s7.2 16 16 16l48 0 144 0c8.8 0 16 7.2 16 16s-7.2 16-16 16L64 288l0 128c0 53 43 96 96 96s96-43 96-96l128 0c0 53 43 96 96 96s96-43 96-96l32 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l0-64 0-32 0-18.7c0-17-6.7-33.3-18.7-45.3L512 114.7c-12-12-28.3-18.7-45.3-18.7L416 96l0-48c0-26.5-21.5-48-48-48L112 0zM544 237.3l0 18.7-128 0 0-96 50.7 0L544 237.3zM160 368a48 48 0 1 1 0 96 48 48 0 1 1 0-96zm272 48a48 48 0 1 1 96 0 48 48 0 1 1 -96 0z" />
                                 </svg>
@@ -208,6 +247,45 @@
                                 <li class="{{ Request::is('dashboard/bills') ? 'active' : '' }}">
                                     <a href="/dashboard/bills">
                                         <i class="fa-solid fa-minus"></i><span>List Orders</span>
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+
+                        <li class="{{ Request::is('dashboard/china-order*') ? 'active' : '' }}">
+                            <a href="#chinaOrders"
+                                class="collapsed {{ company()->plan == 1 ? 'no-collapsable' : '' }}"
+                                data-toggle="collapse" aria-expanded="false">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="svg-icon" width="20"
+                                    height="20" fill="none" stroke="currentColor" stroke-width="40"
+                                    stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 512 512">
+                                    <path
+                                        d="M192 93.7C192 59.5 221 0 256 0c36 0 64 59.5 64 93.7l0 66.3L497.8 278.5c8.9 5.9 14.2 15.9 14.2 26.6l0 56.7c0 10.9-10.7 18.6-21.1 15.2L320 320l0 80 57.6 43.2c4 3 6.4 7.8 6.4 12.8l0 42c0 7.8-6.3 14-14 14c-1.3 0-2.6-.2-3.9-.5L256 480 145.9 511.5c-1.3 .4-2.6 .5-3.9 .5c-7.8 0-14-6.3-14-14l0-42c0-5 2.4-9.8 6.4-12.8L192 400l0-80L21.1 377C10.7 380.4 0 372.7 0 361.8l0-56.7c0-10.7 5.3-20.7 14.2-26.6L192 160l0-66.3z" />
+                                </svg>
+                                <span class="ml-4">China Orders</span>
+                                @if (company()->plan == 1)
+                                    <span class="badge"><i class="fa-solid fa-crown text-warning"></i></span>
+                                @else
+                                    <svg class="svg-icon iq-arrow-right arrow-active" width="20" height="20"
+                                        xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                                        stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                        stroke-linejoin="round">
+                                        <polyline points="10 15 15 20 20 15"></polyline>
+                                        <path d="M4 4h7a4 4 0 0 1 4 4v12"></path>
+                                    </svg>
+                                @endif
+                            </a>
+                            <ul id="chinaOrders"
+                                class="iq-submenu collapse {{ Request::is('dashboard/china-order*') ? 'show' : '' }}"
+                                data-parent="#iq-sidebar-toggle">
+                                <li class="{{ Request::is('dashboard/china-order-list') ? 'active' : '' }}">
+                                    <a href="/dashboard/china-order-list">
+                                        <i class="fa-solid fa-minus"></i><span>List China Orders</span>
+                                    </a>
+                                </li>
+                                <li class="{{ Request::is('dashboard/add-china-order') ? 'active' : '' }}">
+                                    <a href="/dashboard/china-order-add">
+                                        <i class="fa-solid fa-minus"></i><span>Add China Order</span>
                                     </a>
                                 </li>
                             </ul>
@@ -261,11 +339,12 @@
                         </li>
 
                         <li class="{{ Request::is('dashboard/petty-cash*') ? 'active' : '' }}">
-                            <a href="#petty-cash" class="collapsed {{ company()->plan == 1 ? 'no-collapsable' : '' }}"
+                            <a href="#petty-cash"
+                                class="collapsed {{ company()->plan == 1 ? 'no-collapsable' : '' }}"
                                 data-toggle="collapse" aria-expanded="false">
 
-                                <svg class="svg-icon" width="20" fill="currentColor" height="20" xmlns="http://www.w3.org/2000/svg"
-                                    viewBox="0 0 576 512">
+                                <svg class="svg-icon" width="20" fill="currentColor" height="20"
+                                    xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512">
                                     <path
                                         d="M0 112.5L0 422.3c0 18 10.1 35 27 41.3c87 32.5 174 10.3 261-11.9c79.8-20.3 159.6-40.7 239.3-18.9c23 6.3 48.7-9.5 48.7-33.4l0-309.9c0-18-10.1-35-27-41.3C462 15.9 375 38.1 288 60.3C208.2 80.6 128.4 100.9 48.7 79.1C25.6 72.8 0 88.6 0 112.5zM288 352c-44.2 0-80-43-80-96s35.8-96 80-96s80 43 80 96s-35.8 96-80 96zM64 352c35.3 0 64 28.7 64 64l-64 0 0-64zm64-208c0 35.3-28.7 64-64 64l0-64 64 0zM512 304l0 64-64 0c0-35.3 28.7-64 64-64zM448 96l64 0 0 64c-35.3 0-64-28.7-64-64z" />
                                 </svg>

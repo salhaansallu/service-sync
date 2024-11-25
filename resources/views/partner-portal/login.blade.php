@@ -60,7 +60,7 @@
             </form>
 
             <div class="copyrights mt-5">
-                Copyright &copy; {{ date('Y') }} We Fix TV Panel Repair. <br>All Rights Received. <br>Developed by <a href="https://nmsware.com">NMSware Technologies</a>
+                Copyright &copy; {{ date('Y') }} We Fix TV Panel Repair. <br>All Rights Received.
             </div>
         </div>
     </div>
