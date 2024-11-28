@@ -2309,3 +2309,78 @@ function hasDashboard()
 
     return false;
 }
+
+function getTotalRepairSum($repairs, $field)
+{
+    $sum = 0;
+
+    $repairs = (array)$repairs;
+
+    if(count($repairs) > 0) {
+        foreach ($repairs as $key => $repair) {
+            
+            $sum += $repair[$field];
+    
+            foreach ($repair["child"] as $key => $child) {
+                $sum += $child[$field];
+            }
+        }
+    }
+
+    return $sum;
+}
+
+function getSpare($id)
+{
+    $pare = products::where('id', $id)->get();
+    if ($pare && $pare->count() > 0) {
+        return (object)array(
+            "code" => $pare[0]["sku"],
+            "name" => $pare[0]["pro_name"],
+            "price" => $pare[0]["price"],
+            "cost" => $pare[0]["cost"],
+            "qty" => $pare[0]["qty"],
+        );
+    }
+
+    return (object)array(
+        "code" => "",
+        "name" => "",
+        "price" => "",
+        "cost" => "",
+        "qty" => "",
+    );
+}
+
+function getRepair($id)
+{
+    $repair = Repairs::where('bill_no', $id)->where('pos_code', company()->pos_code)->first();
+
+    if ($repair && $repair->count() > 0) {
+        return $repair;
+    }
+
+    return (object)array(
+        "bill_no" => '',
+        "model_no" => '',
+        "serial_no" => '',
+        "fault" => '',
+        "note" => '',
+        "advance" => '',
+        "total" => '',
+        "cost" => '',
+        "customer" => '',
+        "partner" => '',
+        "cashier" => '',
+        "techie" => '',
+        "spares" => '',
+        "status" => '',
+        "pos_code" => '',
+        "invoice" => '',
+        "type" => '',
+        "products" => '',
+        "parent" => '',
+        "created_at" => '',
+        "updated_at" => '',
+    );
+}

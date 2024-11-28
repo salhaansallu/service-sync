@@ -1,6 +1,7 @@
 /.phpunit.cache
 /node_modules
 /public/invoice
+/public/quotations
 /public/qr_codes
 /public/user_profile
 /public/credit-invoice

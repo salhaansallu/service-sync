@@ -194,6 +194,8 @@ Route::prefix('dashboard')->group(function () {
     Route::post('/sales/get-products', [DashboardController::class, 'getSalesProducts']);
     Route::post('/sales/get-invoice', [DashboardController::class, 'getSalesInvoice']);
     Route::post('/sales/get-customer-invoice', [DashboardController::class, 'getCustomerInvoice']);
+    Route::get('sales-report/re-service', [RepairsController::class, 'reServiceListView']);
+    Route::get('repair-history/{id}', [RepairsController::class, 'viewHistory']);
 
     Route::get('purchases', [DashboardController::class, 'listPurchses']);
     Route::get('purchase/create', [DashboardController::class, 'createPurchse']);

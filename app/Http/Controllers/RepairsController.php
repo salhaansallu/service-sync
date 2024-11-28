@@ -26,16 +26,64 @@ class RepairsController extends Controller
         //
     }
 
+    public function reServiceListView() {
+        if (Auth::check() && DashboardController::check(true)) {
+            return view('pos.list-re_services')->with(['repairs' => $this->reServiceList()]);
+        }
+    }
+
+    public function viewHistory() {
+        if (Auth::check() && DashboardController::check(true)) {
+            $result = $this->reServiceList();
+            if (count($result) > 0) {
+                return view('pos.display-repair-history')->with(['repair' => $this->reServiceList()]);
+            }
+            return display404();
+        }
+    }
+
+    public function reServiceList($bill_no = null)
+    {
+        if (Auth::check() && DashboardController::check(true)) {
+            $company = company();
+            $results = [];
+            $parent_repairs = [];
+
+            if ($bill_no != null) {
+                $parent_repairs = Repairs::where('pos_code', $company->pos_code)->where('status', 'Delivered')->whereNull('parent')->where('bill_no', $bill_no)->get();
+            }
+            else {
+                $parent_repairs = Repairs::where('pos_code', $company->pos_code)->where('status', 'Delivered')->whereNull('parent')->get();
+            }
+
+            foreach($parent_repairs as $key => $parent) {
+                $child_repairs = Repairs::where('pos_code', $company->pos_code)->where('parent', $parent->bill_no)->get();
+
+                if($child_repairs->count() > 0) {
+                    $results[$key] = $parent;
+                    $results[$key]["child"] = $child_repairs;
+                }
+            }
+
+            return $results;
+        }
+    }
+
     public function getRepairs(Request $request)
     {
         $response = [];
         if (PosDataController::check()) {
             $fromDate = date("Y-m-d") . " 00:00:00";
             $toDate = date("Y-m-d") . " 23:59:59";
+            $status = $request->has('status') ? sanitize($request->input('status')) : '';
 
             if ($request->has("fromDate") && $request->has("toDate")) {
                 $fromDate = date("Y-m-d", strtotime(sanitize($request->input("fromDate")))) . " 00:00:00";
                 $toDate = date("Y-m-d", strtotime(sanitize($request->input("toDate")))) . " 23:59:59";
+            }
+
+            if (!empty($status)) {
+                return response(json_encode(Repairs::where('pos_code', PosDataController::company()->pos_code)->where('type', '=', 'repair')->where('status', '=', $status)->whereNull('parent')->whereBetween('created_at', [$fromDate, $toDate])->orderBy('customer', 'DESC')->get()));
             }
 
             return response(json_encode(Repairs::where('pos_code', PosDataController::company()->pos_code)->where('type', '=', 'repair')->where('status', '!=', 'Delivered')->whereBetween('created_at', [$fromDate, $toDate])->orderBy('customer', 'DESC')->get()));
@@ -52,10 +100,15 @@ class RepairsController extends Controller
         if (PosDataController::check()) {
             $fromDate = date("Y-m-d") . " 00:00:00";
             $toDate = date("Y-m-d") . " 23:59:59";
+            $status = $request->has('status') ? sanitize($request->input('status')) : '';
 
             if ($request->has("fromDate") && $request->has("toDate")) {
                 $fromDate = date("Y-m-d", strtotime(sanitize($request->input("fromDate")))) . " 00:00:00";
                 $toDate = date("Y-m-d", strtotime(sanitize($request->input("toDate")))) . " 23:59:59";
+            }
+
+            if (!empty($status)) {
+                return response(json_encode(Repairs::where('pos_code', PosDataController::company()->pos_code)->where('type', '=', 'other')->where('status', '=', $status)->whereNull('parent')->whereBetween('created_at', [$fromDate, $toDate])->orderBy('customer', 'DESC')->get()));
             }
 
             return response(json_encode(Repairs::where('pos_code', PosDataController::company()->pos_code)->where('type', '=', 'other')->where('status', '!=', 'Delivered')->whereBetween('created_at', [$fromDate, $toDate])->orderBy('id', 'DESC')->get()));
@@ -115,12 +168,13 @@ class RepairsController extends Controller
                     Products::where('id', $value['id'])->where('pos_code', company()->pos_code)->update([
                         "qty" => (float)$stock[0]['qty'] - $value['qty']
                     ]);
-                    
+
                     $sale = new spareSaleHistory();
                     $sale->spare_name = $stock[0]['pro_name'];
                     $sale->spare_id = $stock[0]['id'];
                     $sale->cost = $stock[0]['cost'];
                     $sale->qty = $value['qty'];
+                    $sale->bill_no = $bill_no;
                     $sale->pos_code = company()->pos_code;
                     $sale->save();
 
@@ -211,11 +265,27 @@ class RepairsController extends Controller
                 $partner = sanitize($request->input('partner'));
                 $cashier_no = sanitize($request->input('cashier_no'));
                 $techie = sanitize($request->input('techie'));
+                $bill_type = sanitize($request->input('bill_type'));
+                $parent_bill_no = sanitize($request->input('parent_bill_no'));
 
-                $customerData = customers::where('pos_code', company()->pos_code)->where('id', $customer)->get();
+                if ($bill_type == 'new-order') {
+                    $customerData = customers::where('pos_code', company()->pos_code)->where('id', $customer)->get();
 
-                if ($customerData->count() == 0) {
-                    return response(json_encode(array("error" => 1, "msg" => "Invalid customer")));
+                    if ($customerData->count() == 0) {
+                        return response(json_encode(array("error" => 1, "msg" => "Invalid customer")));
+                    }
+                } else {
+                    $billData = Repairs::where('pos_code', company()->pos_code)->where('bill_no', $parent_bill_no)->where('status', 'Delivered')->get();
+
+                    if ($billData->count() == 0) {
+                        return response(json_encode(array("error" => 1, "msg" => "Invalid bill number")));
+                    }
+
+                    $model_no = $billData[0]->model_no;
+                    $serial_no = $billData[0]->serial_no;
+                    $customer = $billData[0]->customer;
+                    $partner = $billData[0]->partner;
+                    $model_no = $billData[0]->bill_no;
                 }
 
                 if (!is_numeric($total)) {
@@ -243,10 +313,11 @@ class RepairsController extends Controller
                 $repair->advance = $advance;
                 $repair->total = $total;
                 $repair->customer = $customer;
-                $repair->partner = $partner == ""? 0 : $partner;
+                $repair->partner = $partner == "" ? 0 : $partner;
                 $repair->cashier = $cashier_no;
                 $repair->techie = $techie;
                 $repair->status = "Pending";
+                $repair->parent = $bill_type == 'new-order'? NULL : $parent_bill_no;
 
                 if (isset($_GET['source']) && sanitize($_GET['source']) == "other-pos") {
                     $repair->type = "other";
@@ -319,7 +390,7 @@ class RepairsController extends Controller
         $spares = Products::where('pos_code', company()->pos_code)->get();
 
         if ($product && $product->count() > 0) {
-            return view('pos.add-category')->with(['repairs' => $product[0], 'customers' => $customers, 'partners' => $partners,'spares' => $spares, 'users'=> $users]);
+            return view('pos.add-category')->with(['repairs' => $product[0], 'customers' => $customers, 'partners' => $partners, 'spares' => $spares, 'users' => $users]);
         } else {
             return display404();
         }

@@ -95,7 +95,7 @@ class DashboardController extends Controller
             $yearcost = array();
             $yearexpense = array();
             $company = posData::where('admin_id', Auth::user()->id)->get()[0];
-            $todaysalesqry = Repairs::where('pos_code', $company->pos_code)->where('status', 'Delivered')->whereDate('created_at', Carbon::today())->get();
+            $todaysalesqry = Repairs::where('pos_code', $company->pos_code)->where('status', 'Delivered')->whereDate('paid_at', Carbon::today())->get();
             $low_stock = Products::where('pos_code', $company->pos_code)->where('qty', '<=', 3)->limit(4)->get();
             //$best_selling = DB::table('order_products')->select('*')->where('pos_id', $company->pos_code)->leftJoin('orders', 'order_products.order_id', '=', 'orders.order_number')->where('pos_code', $company->pos_code)->groupBy('sku')->orderByDesc('qty')->limit(3)->get();
             $best_selling = [];
@@ -107,22 +107,22 @@ class DashboardController extends Controller
                 }
             }
 
-            $salesqry = Repairs::where('pos_code', $company->pos_code)->where('status', 'Delivered')->whereYear('created_at', date('Y'))->orderBy('created_at', 'ASC')->get();
+            $salesqry = Repairs::where('pos_code', $company->pos_code)->where('status', 'Delivered')->whereYear('paid_at', date('Y'))->orderBy('paid_at', 'ASC')->get();
 
             if ($salesqry && $salesqry->count() > 0) {
                 foreach ($salesqry as $key => $sale) {
-                    if (array_key_exists(date('M', strtotime($sale['created_at'])), $sales)) {
-                        (float)$sales[date('M', strtotime($sale['created_at']))] += (float)$sale['total'];
+                    if (array_key_exists(date('M', strtotime($sale['paid_at'])), $sales)) {
+                        (float)$sales[date('M', strtotime($sale['paid_at']))] += (float)$sale['total'];
                     } else {
-                        (float)$sales[date('M', strtotime($sale['created_at']))] = 0;
-                        (float)$sales[date('M', strtotime($sale['created_at']))] += (float)$sale['total'];
+                        (float)$sales[date('M', strtotime($sale['paid_at']))] = 0;
+                        (float)$sales[date('M', strtotime($sale['paid_at']))] += (float)$sale['total'];
                     }
 
-                    if (array_key_exists(date('M', strtotime($sale['created_at'])), $yearcost)) {
-                        (float)$yearcost[date('M', strtotime($sale['created_at']))] += (float)$sale['cost'];
+                    if (array_key_exists(date('M', strtotime($sale['paid_at'])), $yearcost)) {
+                        (float)$yearcost[date('M', strtotime($sale['paid_at']))] += (float)$sale['cost'];
                     } else {
-                        (float)$yearcost[date('M', strtotime($sale['created_at']))] = 0;
-                        (float)$yearcost[date('M', strtotime($sale['created_at']))] += (float)$sale['cost'];
+                        (float)$yearcost[date('M', strtotime($sale['paid_at']))] = 0;
+                        (float)$yearcost[date('M', strtotime($sale['paid_at']))] += (float)$sale['cost'];
                     }
                 }
             }
@@ -343,7 +343,7 @@ class DashboardController extends Controller
             return 0;
         }
 
-        $reports = DB::select('select * from repairs ' . $customer . $cashier . ' pos_code = "' . company()->pos_code . '" AND status = "Delivered" AND created_at BETWEEN "' . date('Y-m-d', strtotime($fromdate)) . ' 00:00:00" AND "' . date('Y-m-d', strtotime($todate)) . ' 23:59:59"');
+        $reports = DB::select('select * from repairs ' . $customer . $cashier . ' pos_code = "' . company()->pos_code . '" AND status = "Delivered" AND paid_at BETWEEN "' . date('Y-m-d', strtotime($fromdate)) . ' 00:00:00" AND "' . date('Y-m-d', strtotime($todate)) . ' 23:59:59"');
 
         //dd($result);
         return response(json_encode($reports));

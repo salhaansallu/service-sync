@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string("spare_id")->nullable();
             $table->string("cost")->nullable();
             $table->string("qty")->nullable();
+            $table->string("bill_no")->nullable();
             $table->text("pos_code");
             $table->timestamps();
         });

@@ -34,12 +34,14 @@
             </div>
 
             <div class="favourits">
-                <select @change="filterStatus()" name="" ref="statusFilter" class="form-control border-0 outline-0 text-secondary text-center" style="box-shadow: none;">
+                <select @change="filterStatus()" name="" ref="statusFilter"
+                    class="form-control border-0 outline-0 text-secondary text-center" style="box-shadow: none;">
                     <option value="">All Repairs</option>
                     <option value="Pending">Pending Repairs</option>
                     <option value="Repaired">Repaired Repairs</option>
                     <option value="Awaiting Parts">Awaiting Parts</option>
                     <option value="Customer Pending">Customer Pending</option>
+                    <option value="Delivered">Delivered</option>
                 </select>
             </div>
 
@@ -106,22 +108,20 @@
                             <div class="col-2 form-text">Serial No</div>
                             <div class="col-2 form-text">Fault</div>
                             <div class="col-2 form-text">Customer</div>
-                            <div class="col-1 form-text" style="width: 100px;">Status</div>
-                            <div class="col-1 form-text" style="width: 100px;">Action</div>
+                            <div class="col-1 form-text" style="width: 200px;">Status</div>
                         </div>
                     </div>
                 </div>
 
                 <div v-for="repair in repairs"
                     :class="'col-12 mt-2 py-2 bg-light pos-status-' + getStatus(repair.status) + ' ' + repair.selectStatus"
-                    style="border-radius: 5px;box-shadow: 0px 0px 2px 0px #00000029;">
+                    style="border-radius: 5px;box-shadow: 0px 0px 2px 0px #00000029;"
+                    @contextmenu.prevent="openContext(repair.bill_no, $event)">
                     <div class="order-display">
                         <div class="row">
                             <div style="cursor: pointer;"
                                 class="col-1 form-text mt-0 d-flex align-items-center control-text-overflow text-primary">
-                                <span @click="printInvoice(repair.invoice)">{{ repair.bill_no }}</span> <span
-                                    @click="openWhatsapp(searchCustomer(repair.customer)['phone'], repair.invoice)"
-                                    class="mx-3" title="WhatsApp Customer"><i class="fa-brands fa-whatsapp"></i></span>
+                                <span>{{ repair.bill_no }}</span>
                             </div>
                             <div class="col-2 form-text mt-0 d-flex align-items-center control-text-overflow">{{
                                 repair.model_no }}</div>
@@ -133,20 +133,27 @@
                                 searchCustomer(repair.customer)["phone"] }} ({{
                                     searchCustomer(repair.customer)["name"] }})</div>
                             <div class="col-1 form-text mt-0 d-flex align-items-center control-text-overflow"
-                                style="width: 100px;"><span :class="'badge bg-' + getStatus(repair.status)">{{
+                                style="width: 200px;"><span :class="'badge bg-' + getStatus(repair.status)">{{
                                     repair.status }}</span></div>
-                            <div class="col-1 form-text mt-0 d-flex align-items-center" style="width: 100px;">
-                                <button @click="finishOrder('show', repair.bill_no)"
-                                    v-if="repair.status == 'Pending' || repair.status == 'Awaiting Parts'"
-                                    class="primary-btn submit-btn"
-                                    style="font-size: 14px;padding: 5px 15px;">Update</button>
-                                <button @click="selectProduct(repair.bill_no)" v-if="repair.status == 'Return'"
-                                    class="primary-btn submit-btn"
-                                    style="font-size: 14px;padding: 5px 15px;">Checkout</button>
-                                <button @click="selectProduct(repair.bill_no)" v-if="repair.status == 'Repaired' || repair.status == 'Customer Pending'"
-                                    class="primary-btn submit-btn"
-                                    style="font-size: 14px;padding: 5px 15px;">Checkout</button>
-                            </div>
+                        </div>
+                        <div class="context_menu" :id="'order_wrap_' + repair.bill_no" style="display: none;">
+                            <ul>
+                                <li><a href="javascript:void(0)" @click="printInvoice(repair.invoice)">Open Invoice</a>
+                                </li>
+                                <li><a href="javascript:void(0)"
+                                        @click="openWhatsapp(searchCustomer(repair.customer)['phone'], repair.invoice)">Send
+                                        Invoice on WhatsApp</a></li>
+                                <li @click="finishOrder('show', repair.bill_no)"
+                                v-if="repair.status == 'Pending' || repair.status == 'Awaiting Parts'"><a href="javascript:void(0)">Update
+                                        Order Status</a></li>
+                                <li v-if="repair.status == 'Return'"><a href="javascript:void(0)"
+                                        @click="selectProduct('show', repair.bill_no)">Checkout Order</a></li>
+                                <li v-if="repair.status == 'Repaired' || repair.status == 'Customer Pending'"><a
+                                        href="javascript:void(0)" @click="selectProduct(repair.bill_no)">Checkout
+                                        Order</a></li>
+
+                                <li v-if="repair.status == 'Delivered'"><a href="javascript:void(0)">Re-service</a></li>
+                            </ul>
                         </div>
                     </div>
                 </div>
@@ -259,12 +266,29 @@
 
                             <div class="col-6 mt-3">
                                 <div class="input">
+                                    <label for="" class="mb-1">Bill Type</label>
+                                    <select ref="bill_type" name="" class="" @change="changeBillType">
+                                        <option value="new-order">New Order</option>
+                                        <option value="re-service">Re-service</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="col-6 mt-3" v-if="!new_bill">
+                                <div class="input">
+                                    <label for="" class="mb-1">Old Bill No</label>
+                                    <input ref="parent_bill_no" type="text" placeholder="Old Bill No" value="">
+                                </div>
+                            </div>
+
+                            <div class="col-6 mt-3" v-if="new_bill">
+                                <div class="input">
                                     <label for="" class="mb-1">Model No</label>
                                     <input ref="model_no" type="text" placeholder="Model No" value="">
                                 </div>
                             </div>
 
-                            <div class="col-6 mt-3">
+                            <div class="col-6 mt-3" v-if="new_bill">
                                 <div class="input">
                                     <label for="" class="mb-1">Serial No</label>
                                     <input ref="serial_no" type="text" placeholder="Serial No" value="">
@@ -292,7 +316,7 @@
                                 </div>
                             </div>
 
-                            <div class="col-6 mt-3">
+                            <div class="col-6 mt-3" v-if="new_bill">
                                 <div class="input">
                                     <label for="" class="mb-1">Customer</label>
                                     <select ref="customer" name="" class="select2-multiple">
@@ -350,7 +374,8 @@
                                         <label for="" class="mb-1">Technician</label>
                                         <select ref="techie" name="" class="select2-multiple">
                                             <option value=""></option>
-                                            <option v-for="cashier in cashiers" :value="cashier.user_id">{{ cashier.fname }}</option>
+                                            <option v-for="cashier in cashiers" :value="cashier.user_id">{{
+                                                cashier.fname }}</option>
                                         </select>
                                     </div>
                                 </div>
@@ -605,6 +630,7 @@ export default {
             finishOrderNo: 0,
             isDisabled: false,
             cashiers: [],
+            new_bill: true,
         }
     },
     methods: {
@@ -661,6 +687,9 @@ export default {
                     }
                 });
             })
+        },
+        changeBillType() {
+            this.new_bill = this.$refs.bill_type.value == 'new-order'? true : false
         },
         async getPosData() {
             const { data } = await axios.post("/other-pos/pos_data");
@@ -1002,15 +1031,18 @@ export default {
         },
         async PlaceOrder() {
             var total = this.$refs.total.value;
-            var model_no = this.$refs.model_no.value;
-            var serial_no = this.$refs.serial_no.value;
+            var model_no = this.new_bill==true? this.$refs.model_no.value : '';
+            var serial_no = this.new_bill==true? this.$refs.serial_no.value : '';
             var fault = this.$refs.fault.value;
             var advance = this.$refs.advance.value;
             var note = this.$refs.note.value;
-            var customer = this.$refs.customer.value;
+            var note2 = "";
+            var customer = this.new_bill==true? this.$refs.customer.value : '';
             var partner = this.$refs.partner.value;
             var cashier_no = this.$refs.cashier_no.value;
             var techie = this.$refs.techie.value;
+            var bill_type = this.$refs.bill_type.value;
+            var parent_bill_no = this.new_bill == false ? this.$refs.parent_bill_no.value : '';
 
             if (cashier_no.trim() == "") {
                 toastr.error("Please enter cashier code", "Error");
@@ -1031,17 +1063,40 @@ export default {
                 return;
             }
 
-            if (model_no.trim() == "") {
-                toastr.error("Please enter model number", "Error");
-                return;
-            }
+            if (this.new_bill) {
+                if (model_no.trim() == "") {
+                    toastr.error("Please enter model number", "Error");
+                    return;
+                }
 
-            if (customer.trim() == "") {
-                toastr.error("Please select customer", "Error");
-                return;
+                if (customer.trim() == "") {
+                    toastr.error("Please select customer", "Error");
+                    return;
+                }
+            }
+            else {
+                if (parent_bill_no.trim() == "") {
+                    toastr.error("Please enter old bill number", "Error");
+                    return;
+                }
             }
 
             this.isDisabled = true;
+
+            const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+
+            checkboxes.forEach((checkbox, index) => {
+                if (checkbox.checked) {
+                    if (index == 0) {
+                        note2 += 'Has ' + checkbox.value;
+                    }
+                    else {
+                        note2 += '\nHas ' + checkbox.value;
+                    }
+                }
+            });
+
+            note2 += "\n" + note.replace(/\r?\n/g, '\n');
 
             const { data } = await axios.post('/other-pos/new_order?source=other-pos', {
                 total: total,
@@ -1049,17 +1104,18 @@ export default {
                 serial_no: serial_no,
                 fault: fault,
                 advance: advance,
-                note: note,
+                note: note2,
                 customer: customer,
                 partner: partner,
                 cashier_no: cashier_no,
                 techie: techie,
+                bill_type: bill_type,
+                parent_bill_no: parent_bill_no
             }).catch(function (error) {
                 if (error.response) {
                     this.loadModal("hide");
                 }
             });
-
             this.loadModal("hide");
             this.isDisabled = false;
 
@@ -1067,9 +1123,22 @@ export default {
                 this.loadModal("hide");
                 toastr.success(data.msg, "Success");
                 printJS(data.invoiceURL);
+                this.$refs.bill_type.value = "new-order";
+                if (!this.new_bill) {
+                    this.$refs.parent_bill_no.value = '';
+                }
+                else {
+                    this.$refs.model_no.value = "";
+                    this.$refs.serial_no.value = "";
+                    this.$refs.customer.value = "";
+                    $(this.$refs.customer).val("").trigger("change");
+                }
+                this.$refs.techie.value = "";
+                this.$refs.partner.value = "";
+                $(this.$refs.techie).val("").trigger("change");
+                $(this.$refs.partner).val("").trigger("change");
+                this.new_bill = true;
                 this.$refs.total.value = "0";
-                this.$refs.model_no.value = "";
-                this.$refs.serial_no.value = "";
                 this.$refs.fault.value = "";
                 this.$refs.advance.value = "0";
                 this.$refs.finish_note.value = "";
@@ -1148,6 +1217,10 @@ export default {
             if (status == "Customer Pending") {
                 return 'warning'
             }
+
+            if (status == "Delivered") {
+                return 'info'
+            }
         },
         spareCountUpdate(op) {
             if (op == '-' && this.spareCount >= 1) {
@@ -1191,8 +1264,35 @@ export default {
             var text = "Click on the link to get your PDF invoice copy \nhttps://wefixservers.xyz/invoice/" + invoice;
             window.open('https://wa.me/' + reformatPhoneNumbers(number) + "?text=" + encodeURIComponent(text));
         },
-        filterStatus() {
+        async filterStatus() {
             this.repairs = this.proBackup;
+            if (this.$refs.statusFilter.value == "Delivered") {
+                this.repairs = [];
+                var fromDate = this.$refs.ordersFromDate.value;
+                var toDate = this.$refs.ordersToDate.value;
+
+                try {
+                    fromDate = new Date(fromDate);
+                    toDate = new Date(toDate);
+
+                    if (fromDate <= toDate) {
+                        const { data } = await axios.post("/other-pos/get_repairs", {
+                            fromDate: fromDate,
+                            toDate: toDate,
+                            status: 'Delivered',
+                        });
+                        this.repairs = data;
+                    }
+                    else {
+                        toastr.error("'From date' should be lower or equals to 'To date'", "Error");
+                    }
+                } catch (error) {
+                    toastr.error(error, "Error");
+                }
+
+                return
+            }
+
             if (this.$refs.statusFilter.value != "") {
                 this.repairs = this.repairs.filter(item => item['status'] == this.$refs.statusFilter.value);
             }
@@ -1208,7 +1308,39 @@ export default {
             if (this.$refs.techieField.value != "") {
                 this.repairs = this.repairs.filter(item => item['techie'] == this.$refs.techieField.value);
             }
-        }
+        },
+        openContext(bill, event) {
+            document.querySelectorAll('.context_menu').forEach(element => {
+                element.style.display = "none";
+            });
+            var menu = $('#order_wrap_' + bill);
+
+            let mouseX = event.clientX;
+            let mouseY = event.clientY;
+
+            // Get menu dimensions
+            $(menu).css('display', 'block');
+            $(menu).css('opacity', '0');
+            const menuWidth = $(menu).get(0).offsetWidth;
+            const menuHeight = $(menu).get(0).offsetHeight;
+
+            // Get viewport dimensions
+            const viewportWidth = window.innerWidth;
+            const viewportHeight = window.innerHeight;
+
+            // Adjust position if menu overflows the right or bottom of the screen
+            if (mouseX + menuWidth > viewportWidth) {
+                mouseX = viewportWidth - menuWidth; // Position it within the screen
+            }
+
+            if (mouseY + menuHeight > viewportHeight) {
+                mouseY = viewportHeight - menuHeight; // Position it within the screen
+            }
+            $(menu).css('left', `${mouseX}px`);
+            $(menu).css('top', `${mouseY}px`);
+            $(menu).css('opacity', '1');
+            //document.addEventListener("click", this.closeContextMenu('#order_wrap_' + bill));
+        },
     },
     beforeMount() {
         this.getPosData();
@@ -1217,6 +1349,11 @@ export default {
     mounted() {
         this.$refs.ordersFromDate.value = new Date().toISOString().substr(0, 10);
         this.$refs.ordersToDate.value = new Date().toISOString().substr(0, 10);
+
+        document.addEventListener('click', (e) => {
+            const menus = document.querySelectorAll('.context_menu');
+            menus.forEach(menu => menu.style.display = 'none');
+        });
     }
 }
 </script>

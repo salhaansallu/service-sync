@@ -11,6 +11,7 @@ use App\Models\posUsers;
 use App\Models\Products;
 use App\Models\Repairs;
 use App\Models\saveOrders;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Crypt;
@@ -136,6 +137,7 @@ class PosDataController extends Controller
                     "status" => "Delivered",
                     "updated_at" => date('d-m-Y H:i:s'),
                     "invoice" => "checkout/" . $inName,
+                    "paid_at" => Carbon::now(),
                 ]);
             }
 

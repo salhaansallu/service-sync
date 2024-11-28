@@ -31,6 +31,8 @@ return new class extends Migration
             $table->text("invoice")->nullable();
             $table->string("type")->nullable();
             $table->text("products")->nullable();
+            $table->string("parent")->nullable();
+            $table->timestamp("paid_date")->nullable();
             $table->timestamps();
         });
     }

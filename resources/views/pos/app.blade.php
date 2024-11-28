@@ -335,6 +335,11 @@
                                         <i class="fa-solid fa-minus"></i><span>Customer report</span>
                                     </a>
                                 </li>
+                                <li class="{{ Request::is('dashboard/sales-report/re-service') ? 'active' : '' }}">
+                                    <a href="/dashboard/sales-report/re-service">
+                                        <i class="fa-solid fa-minus"></i><span>Re-service report</span>
+                                    </a>
+                                </li>
                             </ul>
                         </li>
 
