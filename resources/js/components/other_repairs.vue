@@ -147,7 +147,7 @@
                                 v-if="repair.status == 'Pending' || repair.status == 'Awaiting Parts'"><a href="javascript:void(0)">Update
                                         Order Status</a></li>
                                 <li v-if="repair.status == 'Return'"><a href="javascript:void(0)"
-                                        @click="selectProduct('show', repair.bill_no)">Checkout Order</a></li>
+                                        @click="selectProduct(repair.bill_no)">Checkout Order</a></li>
                                 <li v-if="repair.status == 'Repaired' || repair.status == 'Customer Pending'"><a
                                         href="javascript:void(0)" @click="selectProduct(repair.bill_no)">Checkout
                                         Order</a></li>
@@ -313,6 +313,13 @@
                                 <div class="input">
                                     <label for="" class="mb-1">Total</label>
                                     <input ref="total" type="text" placeholder="Total" value="0">
+                                </div>
+                            </div>
+
+                            <div class="col-6 mt-3">
+                                <div class="input">
+                                    <label for="" class="mb-1">QTY</label>
+                                    <input ref="new_order_qty" type="text" placeholder="Quantity" value="1">
                                 </div>
                             </div>
 
@@ -703,9 +710,7 @@ export default {
             }
         },
         async getRepairs() {
-            const { data } = await axios.post("/other-pos/get_repairs");
-            this.repairs = data;
-            this.proBackup = data;
+            this.FilterRepairs()
         },
         async getCustomers() {
             const { data } = await axios.post("/other-pos/get_customers");
@@ -1043,6 +1048,7 @@ export default {
             var techie = this.$refs.techie.value;
             var bill_type = this.$refs.bill_type.value;
             var parent_bill_no = this.new_bill == false ? this.$refs.parent_bill_no.value : '';
+            var new_order_qty = this.$refs.new_order_qty.value;
 
             if (cashier_no.trim() == "") {
                 toastr.error("Please enter cashier code", "Error");
@@ -1110,7 +1116,8 @@ export default {
                 cashier_no: cashier_no,
                 techie: techie,
                 bill_type: bill_type,
-                parent_bill_no: parent_bill_no
+                parent_bill_no: parent_bill_no,
+                new_order_qty: new_order_qty
             }).catch(function (error) {
                 if (error.response) {
                     this.loadModal("hide");

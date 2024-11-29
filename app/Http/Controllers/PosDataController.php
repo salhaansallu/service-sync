@@ -132,6 +132,7 @@ class PosDataController extends Controller
 
             foreach ($bill_no as $key => $id) {
                 $total += Repairs::where('bill_no', $id)->where('pos_code', $company->pos_code)->sum('total');
+                $advance += Repairs::where('bill_no', $id)->where('pos_code', $company->pos_code)->sum('advance');
 
                 Repairs::where('bill_no', $id)->where('pos_code', $company->pos_code)->update([
                     "status" => "Delivered",
@@ -148,7 +149,7 @@ class PosDataController extends Controller
                 $credit->customer_id = $repairs->customer;
                 $credit->ammount = ($total - $advance) - $cashin;
                 $credit->pos_code = $company->pos_code;
-                $credit->order_id = json_encode($bill_no);
+                $credit->order_id = implode(',', $bill_no);
                 $credit->save();
             }
 

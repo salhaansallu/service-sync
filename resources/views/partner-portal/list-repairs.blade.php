@@ -44,7 +44,8 @@
                                             <td class="text-start">{{ currency($item->advance) }}</td>
                                             <td class="text-start">{{ currency($item->total - $item->advance) }}</td>
                                             <td class="text-start">{{ currency($item->total) }}</td>
-                                            <td class="text-start">{{ getCustomer($item->customer)->phone }} ({{ getCustomer($item->customer)->name }})</td>
+                                            <td class="text-start">{{ getCustomer($item->customer)->phone }}
+                                                ({{ getCustomer($item->customer)->name }})</td>
                                             <td class="text-start">{{ count((array) json_decode($item->spares)) }}</td>
                                             <td class="text-start">{{ date('d-m-Y', strtotime($item->created_at)) }}</td>
                                             <td
@@ -52,10 +53,23 @@
                                                 {{ $item->status }}</td>
                                             <td class="text-start">
                                                 <div class="d-flex align-items-center list-action justify-content-start">
-                                                    <a class="badge bg-secondary mr-2" data-toggle="tooltip"
-                                                        data-placement="top" title="View Repair Details"
-                                                        data-original-title="View Repair Details" href="/partner-portal/repair/{{ $item->id }}"><i
+                                                    <a class="badge bg-info mr-2" data-toggle="tooltip" data-placement="top"
+                                                        title="View Repair Details"
+                                                        data-original-title="View Repair Details"
+                                                        href="/partner-portal/repair/{{ $item->id }}"><i
                                                             class="fa-regular fa-eye"></i></a>
+                                                    @if (!empty($item->invoice))
+                                                        <a class="badge bg-secondary mr-2" data-toggle="tooltip"
+                                                            data-placement="top" title="View Invoice"
+                                                            data-original-title="View Invoice"
+                                                            href="/invoice/{{ $item->invoice }}" target="_blank"><i
+                                                                class="fa-solid fa-file-invoice"></i></a>
+                                                        <a class="badge bg-secondary mr-2" data-toggle="tooltip"
+                                                            data-placement="top" title="View Thermal Invoice"
+                                                            data-original-title="View Thermal Invoice"
+                                                            href="/invoice/{{ str_replace(['Delivery', 'Invoice'], ['Thermal-delivery', 'Thermal-invoice'], $item->invoice) }}"
+                                                            target="_blank"><i class="fa-solid fa-receipt"></i></a>
+                                                    @endif
                                                 </div>
                                             </td>
                                         </tr>
@@ -95,9 +109,8 @@
 
         function ViewInvoice(invoice) {
             if (invoice !== "") {
-                window.open("/invoice/"+invoice, "_blank");
-            }
-            else {
+                window.open("/invoice/" + invoice, "_blank");
+            } else {
                 toastr.error("Invoice not found", "Error");
             }
             return 0;

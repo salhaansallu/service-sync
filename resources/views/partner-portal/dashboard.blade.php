@@ -98,6 +98,25 @@
                         </div>
                     </div>
                 </div>
+                <div class="col-lg-3 col-md-3">
+                    <div class="card card-block card-stretch card-height">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center card-total-sale">
+                                <div class="icon iq-icon-box-2 bg-warning-light">
+                                    <i class="fa-solid fa-receipt"></i>
+                                </div>
+                                <div>
+                                    <p class="mb-2">Pending Payments</p>
+                                    <h4>{{ currency($payments->pending) }}</h4>
+                                </div>
+                            </div>
+                            {{-- <div class="iq-progress-bar mt-2">
+                            <span class="bg-info iq-progress progress-1" data-percent="85">
+                            </span>
+                        </div> --}}
+                        </div>
+                    </div>
+                </div>
                 <div class="col-lg-12">
                     <div class="card card-block card-stretch card-height">
                         <div class="card-header d-flex align-items-center justify-content-between">
@@ -144,32 +163,4 @@
             </div>
         </div>
     </div>
-{{-- 
-    <script>
-        $(document).ready(function() {
-            $.ajax({
-                type: "post",
-                url: "/dashboard/sms/get-balance",
-                data: {
-                    _token: '{{ csrf_token() }}'
-                },
-                dataType: "json",
-                success: function(response) {
-                    if (response.balance != undefined) {
-                        $("#smsBalance").text(response.balance);
-                        if (response.balance < 50) {
-                            $("#AlertMessage").removeClass('d-none');
-                            $("#AlertMessage > span").text(
-                                "SMS fund balance low. Please reload to use this service without any interruption."
-                                );
-                        }
-                    }
-                    else {
-                        $("#smsBalance").text(0);
-                    }
-
-                }
-            });
-        });
-    </script> --}}
 @endsection

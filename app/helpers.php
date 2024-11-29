@@ -2027,48 +2027,65 @@ function generateQuotation($q_no)
     $html = '
         <!DOCTYPE html>
         <html lang="en">
+        
         <head>
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <title>Quotation</title>
             <style>
-                @page { 
+                @page {
                     margin: 10px;
                     height: auto;
                     width: 210mm;
-                 }
-                body { margin: 10px; }
+                }
+        
+                body {
+                    margin: 10px;
+                }
             </style>
         </head>
+        
         <body style="font-family: Arial, sans-serif; margin: 0; padding: 30px; padding-top: 30px; box-sizing: border-box;">
-
+        
             <header style="text-align: center; margin-bottom: 20px;">
                 <h1 style="margin: 0; font-size: 24px;">Quotation</h1>
                 <p style="margin: 5px 0; font-size: 14px; color: #666;">' . $company->company_name . '</p>
-                <p style="margin: 5px 0; font-size: 14px; color: #666;">' . getUserData($company->admin_id)->address . ' <br> ' . formatPhoneNumber(getUserData($company->admin_id)->phone) . ' <br> www.wefix.lk</p>
+                <p style="margin: 5px 0; font-size: 14px; color: #666;">' . getUserData($company->admin_id)->address . ' <br> '
+                . formatPhoneNumber(getUserData($company->admin_id)->phone) . ' <br> www.wefix.lk</p>
             </header>
-
+        
             <section style="margin-bottom: 20px;">
                 <table style="width: 100%; border-collapse: collapse;">
                     <tbody>
-                    <tr>
-                        <td style="vertical-align: bottom;">
-                            <p style="font-size: 13px;"><strong>Client Name:</strong> ' . getCustomer($repair->customer)->name . '</p>
-                            <p style="font-size: 13px;"><strong>Phone Number:</strong> ' . getCustomer($repair->customer)->phone . '</p>
-                            <p style="font-size: 13px;"><strong>Address:</strong> ' . getCustomer($repair->customer)->address . '</p>
-                        </td>
-
-                        <td style="vertical-align: bottom;">
-                            <p style="font-size: 13px; text-align: right;"><strong>Date:</strong> ' . date('Y-m-d', strtotime($quotation->created_at)) . '</p>
-                            <p style="font-size: 13px; text-align: right;"><strong>Valid Until:</strong> ' . date('Y-m-d', strtotime($quotation->expiry_date)) . '</p>
-                            <p style="font-size: 13px; text-align: right;"><strong>Cargo Type:</strong> ' . $quotation->cargo_type . '</p>
-                            <p style="font-size: 13px; text-align: right;"><strong>Estimated Delivery:</strong> ' . date('Y-m-d', strtotime($quotation->delivery_date)) . '</p>
-                        </td>
-                    </tr>
+                        <tr>
+                            <td style="vertical-align: bottom;">
+                                <p style="font-size: 13px;"><strong>Client Name:</strong> ' .
+                getCustomer($repair->customer)->name . '</p>
+                                <p style="font-size: 13px;"><strong>Phone Number:</strong> ' .
+                getCustomer($repair->customer)->phone . '</p>
+                                <p style="font-size: 13px;"><strong>Address:</strong> ' .
+                getCustomer($repair->customer)->address . '</p>
+                            </td>
+        
+                            <td style="vertical-align: bottom;">
+                                <p style="font-size: 13px; text-align: right;"><strong>Date:</strong> ' . date(
+                    'Y-m-d',
+                    strtotime($quotation->created_at)
+                ) . '</p>
+                                <p style="font-size: 13px; text-align: right;"><strong>Valid Until:</strong> ' . date(
+                    'Y-m-d',
+                    strtotime($quotation->expiry_date)
+                ) . '</p>
+                                <p style="font-size: 13px; text-align: right;"><strong>Cargo Type:</strong> ' .
+                $quotation->cargo_type . '</p>
+                                <p style="font-size: 13px; text-align: right;"><strong>Estimated Delivery:</strong> ' .
+                date('Y-m-d', strtotime($quotation->delivery_date)) . '</p>
+                            </td>
+                        </tr>
                     </tbody>
                 </table>
             </section>
-
+                                
             <section style="margin-bottom: 20px;">
                 <table style="width: 100%; border-collapse: collapse;">
                     <thead>
@@ -2085,13 +2102,13 @@ function generateQuotation($q_no)
                     </tbody>
                 </table>
             </section>
-
+                                
             <table style="width: 100%; border-collapse: collapse; border-bottom: 1px solid #ddd;margin-bottom: 20px;">
                 <tbody>
                     <tr>
                         <td style="vertical-align: top;">
                             <div style="margin-top: 0px; text-align: right; font-size: 18px;">
-                                <p>Sub Total: ' . currency($quotation->total, 'LKR') . '</p>
+                        <p>Sub Total: ' . currency($quotation->total, 'LKR') . '</p>
                             </div>
                             <div style="margin-top: -20px; text-align: right; font-size: 18px;">
                                 <p>Paid Advance: ' . currency($repair->advance, 'LKR') . '</p>
@@ -2103,12 +2120,56 @@ function generateQuotation($q_no)
                     </tr>
                 </tbody>
             </table>
-
-            <b style="font-size: 13px;color: red;margin-top: 20px;">Please Note:</b>
-            <p style="font-size: 13px;color: #838383;margin-top: 5px;padding-bottom: 20px;border-bottom: 1px solid #ddd;">While we ensure proper documentation and preparation for the shipment process, any delays, penalties, or issues arising from government regulations, customs policies, or unforeseen legal requirements during the clearing of the shipment will be beyond our responsibility. The client is advised to ensure compliance with all relevant laws and requirements to avoid such situations.</p>
-
+                                
+            <table style="border-bottom: 1px solid #ddd;padding-bottom: 20px;width: 100%;">
+                <tr>
+                    <td style="width: max-content;">
+                        <b style="font-size: 13px;color: red;margin-top: 20px;width: 400px;">Please Note:</b>
+                        <p style="font-size: 13px;color: #838383;margin-top: 5px;padding-bottom: 20px;width: 400px;">
+                            While we ensure proper documentation and preparation for the shipment process, any delays,
+                            penalties, or issues arising from government regulations, customs policies, or unforeseen legal
+                            requirements during the clearing of the shipment will be beyond our responsibility. The client is
+                            advised to ensure compliance with all relevant laws and requirements to avoid such situations.</p>
+                    </td>
+                    <td>
+                        <table>
+                            <thead>
+                                <tr style="background-color: #f4f4f4;">
+                                    <th style="text-align: left;width: 250px;padding: 5px 0;font-size: 13px;">Checking Charges</th>
+                                    <th style="text-align: right;padding: 5px;font-size: 13px;">Rs</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td style="text-align: left;padding-top: 10px;font-size: 13px;">24" INCH LCD LED</td>
+                                    <td style="text-align: right;padding-top: 10px;font-size: 13px;">1,000.00</td>
+                                </tr>
+                                <tr>
+                                    <td style="text-align: left;font-size: 13px;">32" INCH LCD LED</td>
+                                    <td style="text-align: right;font-size: 13px;">1,500.00</td>
+                                </tr>
+                                <tr>
+                                    <td style="text-align: left;font-size: 13px;">40" TO 50" INCH LCD LED</td>
+                                    <td style="text-align: right;font-size: 13px;">2,000.00</td>
+                                </tr>
+                                <tr>
+                                    <td style="text-align: left;font-size: 13px;">55" INCH LCD LED</td>
+                                    <td style="text-align: right;font-size: 13px;">3,000.00</td>
+                                </tr>
+                                <tr>
+                                    <td style="text-align: left;font-size: 13px;">55" TO 100" INCH LCD LED</td>
+                                    <td style="text-align: right;font-size: 13px;">5,000.00</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </td>
+                </tr>
+            </table>
+                                
+                                
+                                
             <p style="margin-top: 20px;"><strong>Bank Details:</strong></p>
-
+                                
             <table style="width: 100%; border-collapse: collapse;">
                 <tbody>
                     <tr>
@@ -2143,7 +2204,7 @@ function generateQuotation($q_no)
                             </section>
                         </td>
                     </tr>
-
+                                
                     <tr>
                         <td style="vertical-align: top;">
                             <section style="">
@@ -2151,20 +2212,20 @@ function generateQuotation($q_no)
                                 <ul style="padding: 0; margin: 0;">
                                     <li style="list-style: none;">Branch: Kezar Street</li>
                                     <li style="list-style: none;">A/C No: 8017429449</li>
-                                    <li style="list-style: none;">A/C Name: M.N.Siraj</li>
+                                    <li style="list-style: none;">A/C Name: M.N.Sirajdeen</li>
                                 </ul>
                             </section>
                         </td>
                     </tr>
                 </tbody>
             </table>
-
-            <footer style="text-align: center; margin-top: 30px; font-size: 12px; color: #777;">
+                                
+            <footer style="text-align: center; font-size: 12px; color: #777;">
                 <p>Thank you for choosing our services!</p>
             </footer>
         </body>
+                                
         </html>
-
     ';
     // $connector = new FilePrintConnector("/dev/usb/lp0");
     // $printer = new Printer($connector);
@@ -2316,11 +2377,11 @@ function getTotalRepairSum($repairs, $field)
 
     $repairs = (array)$repairs;
 
-    if(count($repairs) > 0) {
+    if (count($repairs) > 0) {
         foreach ($repairs as $key => $repair) {
-            
+
             $sum += $repair[$field];
-    
+
             foreach ($repair["child"] as $key => $child) {
                 $sum += $child[$field];
             }

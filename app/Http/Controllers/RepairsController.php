@@ -26,13 +26,15 @@ class RepairsController extends Controller
         //
     }
 
-    public function reServiceListView() {
+    public function reServiceListView()
+    {
         if (Auth::check() && DashboardController::check(true)) {
             return view('pos.list-re_services')->with(['repairs' => $this->reServiceList()]);
         }
     }
 
-    public function viewHistory() {
+    public function viewHistory()
+    {
         if (Auth::check() && DashboardController::check(true)) {
             $result = $this->reServiceList();
             if (count($result) > 0) {
@@ -51,15 +53,14 @@ class RepairsController extends Controller
 
             if ($bill_no != null) {
                 $parent_repairs = Repairs::where('pos_code', $company->pos_code)->where('status', 'Delivered')->whereNull('parent')->where('bill_no', $bill_no)->get();
-            }
-            else {
+            } else {
                 $parent_repairs = Repairs::where('pos_code', $company->pos_code)->where('status', 'Delivered')->whereNull('parent')->get();
             }
 
-            foreach($parent_repairs as $key => $parent) {
+            foreach ($parent_repairs as $key => $parent) {
                 $child_repairs = Repairs::where('pos_code', $company->pos_code)->where('parent', $parent->bill_no)->get();
 
-                if($child_repairs->count() > 0) {
+                if ($child_repairs->count() > 0) {
                     $results[$key] = $parent;
                     $results[$key]["child"] = $child_repairs;
                 }
@@ -253,6 +254,7 @@ class RepairsController extends Controller
     public function store(Request $request)
     {
         if (Auth::check() && DashboardController::check(true)) {
+
             try {
                 $bill_no = 1001;
                 $total = sanitize($request->input('total'));
@@ -267,6 +269,7 @@ class RepairsController extends Controller
                 $techie = sanitize($request->input('techie'));
                 $bill_type = sanitize($request->input('bill_type'));
                 $parent_bill_no = sanitize($request->input('parent_bill_no'));
+                $new_order_qty = sanitize($request->input('new_order_qty'));
 
                 if ($bill_type == 'new-order') {
                     $customerData = customers::where('pos_code', company()->pos_code)->where('id', $customer)->get();
@@ -295,71 +298,81 @@ class RepairsController extends Controller
                     return response(json_encode(array("error" => 1, "msg" => "Invalid advance format")));
                 }
 
-                $getBillNo = Repairs::where('pos_code', company()->pos_code)->orderBy('id', 'DESC')->first();
-                $bill_no = $getBillNo && $getBillNo->count() > 0 ? (int)$getBillNo->bill_no + 1 : 1001;
-
                 $getCashier = posUsers::where('pos_code', company()->pos_code)->where('cashier_code', $cashier_no)->get();
 
                 if ($getCashier->count() > 0) {
                     $cashier_no = $getCashier[0]->user_id;
                 }
 
-                $repair = new Repairs();
-                $repair->bill_no = $bill_no;
-                $repair->model_no = $model_no;
-                $repair->serial_no = $serial_no;
-                $repair->fault = $fault;
-                $repair->note = $note;
-                $repair->advance = $advance;
-                $repair->total = $total;
-                $repair->customer = $customer;
-                $repair->partner = $partner == "" ? 0 : $partner;
-                $repair->cashier = $cashier_no;
-                $repair->techie = $techie;
-                $repair->status = "Pending";
-                $repair->parent = $bill_type == 'new-order'? NULL : $parent_bill_no;
+                $success_count = 0;
+                $bills = [];
 
-                if (isset($_GET['source']) && sanitize($_GET['source']) == "other-pos") {
-                    $repair->type = "other";
-                } else {
-                    $repair->type = "repair";
-                }
+                if ($new_order_qty > 0) {
+                    for ($i = 0; $i < $new_order_qty; $i++) {
+                        try {
+                            $getBillNo = Repairs::where('pos_code', company()->pos_code)->orderBy('id', 'DESC')->first();
+                            $bill_no = $getBillNo && $getBillNo->count() > 0 ? (int)$getBillNo->bill_no + 1 : 1001;
 
-                $repair->pos_code = company()->pos_code;
+                            $repair = new Repairs();
+                            $repair->bill_no = $bill_no;
+                            $repair->model_no = $model_no;
+                            $repair->serial_no = $serial_no;
+                            $repair->fault = $fault;
+                            $repair->note = $note;
+                            $repair->advance = $advance;
+                            $repair->total = $total;
+                            $repair->customer = $customer;
+                            $repair->partner = $partner == "" ? 0 : $partner;
+                            $repair->cashier = $cashier_no;
+                            $repair->techie = $techie;
+                            $repair->status = "Pending";
+                            $repair->parent = $bill_type == 'new-order' ? NULL : $parent_bill_no;
 
-                if ($repair->save()) {
+                            if (isset($_GET['source']) && sanitize($_GET['source']) == "other-pos") {
+                                $repair->type = "other";
+                            } else {
+                                $repair->type = "repair";
+                            }
 
-                    // $sms = new SMS();
-                    // $sms->contact = array(array(
-                    //     "fname" => $customerData[0]["name"],
-                    //     "lname" => "",
-                    //     "group" => "",
-                    //     "number" => $customerData[0]["phone"],
-                    //     "email" => $customerData[0]["email"],
-                    // ));
-                    // $sms->message = "Dear Customer, your account with " . company()->company_name . " has been successfully created. We have received your product and will notify you via this number once the repair is complete. Thank you for choosing " . company()->company_name . ".";
-                    // $sms->Send();
+                            $repair->pos_code = company()->pos_code;
 
-                    $rand = date('d-m-Y-h-i-s') . '-' . rand(0, 9999999) . '.pdf';
-                    $inName = str_replace(' ', '-', str_replace('.', '-', $bill_no)) . '-Invoice-' . $rand;
-                    $thermalInName = str_replace(' ', '-', str_replace('.', '-', $bill_no)) . '-Thermal-invoice-' . $rand;
+                            if ($repair->save()) {
 
-                    $generate_invoice = generateInvoice($bill_no, $inName, 'newOrder');
-                    $generate_thermal_invoice = generateThermalInvoice($bill_no, $thermalInName, 'newOrder');
+                                // $sms = new SMS();
+                                // $sms->contact = array(array(
+                                //     "fname" => $customerData[0]["name"],
+                                //     "lname" => "",
+                                //     "group" => "",
+                                //     "number" => $customerData[0]["phone"],
+                                //     "email" => $customerData[0]["email"],
+                                // ));
+                                // $sms->message = "Dear Customer, your account with " . company()->company_name . " has been successfully created. We have received your product and will notify you via this number once the repair is complete. Thank you for choosing " . company()->company_name . ".";
+                                // $sms->Send();
 
-                    if ($generate_invoice->generated == true) {
+                                $rand = date('d-m-Y-h-i-s') . '-' . rand(0, 9999999) . '.pdf';
+                                $inName = str_replace(' ', '-', str_replace('.', '-', $bill_no)) . '-Invoice-' . $rand;
+                                $thermalInName = str_replace(' ', '-', str_replace('.', '-', $bill_no)) . '-Thermal-invoice-' . $rand;
+                                $success_count++;
+                                $bills[] = $bill_no;
 
-                        Repairs::where('bill_no', $bill_no)->where('pos_code', company()->pos_code)->update([
-                            "invoice" => "newOrder/" . $inName,
-                        ]);
+                                $generate_invoice = generateInvoice($bill_no, $inName, 'newOrder');
+                                $generate_thermal_invoice = generateThermalInvoice($bill_no, $thermalInName, 'newOrder');
 
-                        return response(json_encode(array("error" => 0, "msg" => "Order Added Successfully", "invoiceURL" => $generate_thermal_invoice->url)));
-                    } else {
-                        return response(json_encode(array("error" => 0, "msg" => "Order Added Successfully, Couldn't print invoice: " . $generate_thermal_invoice->msg)));
+                                if ($generate_invoice->generated == true) {
+                                    Repairs::where('bill_no', $bill_no)->where('pos_code', company()->pos_code)->update([
+                                        "invoice" => "newOrder/" . $inName,
+                                    ]);
+                                }
+                            }
+                        } catch (Exception $e) {
+                        }
                     }
+
+                    $tempBill = 'temp-muilti-repairs-invoice';
+                    $generate_temp_thermal_invoice = generateThermalInvoice($bills, $tempBill, 'newOrder');
                 }
 
-                return response(json_encode(array("error" => 1, "msg" => "Something went wrong, please try again later")));
+                return response(json_encode(array("error" => $new_order_qty != $success_count, "msg" => $success_count . " out of " . $new_order_qty . " orders placed", "invoiceURL" => $generate_temp_thermal_invoice->url)));
             } catch (Exception $e) {
                 return response(json_encode(array("error" => 1, "msg" => "Error: " . $e->getMessage())));
             }

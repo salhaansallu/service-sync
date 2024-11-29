@@ -18,19 +18,22 @@
                                 <div class="col-12">
                                     <div class="form-group">
                                         <label>Mobile Number <span class="text-danger">*</span></label>
-                                        <input type="text" class="mobile_number form-control" placeholder="Enter Mobile Number" name="phone" required>
+                                        <input type="text" class="mobile_number form-control"
+                                            placeholder="Enter Mobile Number" name="phone" required>
                                         <div class="help-block with-errors"></div>
                                     </div>
                                 </div>
                                 <div class="otp-field col-12" style="display: none">
                                     <div class="form-group">
                                         <label>OTP <span class="text-danger">*</span></label>
-                                        <input type="text" class="otp_code form-control" placeholder="Enter OTP" name="otp">
+                                        <input type="text" class="otp_code form-control" placeholder="Enter OTP"
+                                            name="otp">
                                     </div>
                                 </div>
                             </div>
                             <button type="button" id="send_btn" class="btn btn-primary mr-2">Send OTP</button>
-                            <button type="button" id="verify" class="btn btn-primary mr-2" style="display: none;">Verify OTP</button>
+                            <button type="button" id="verify" class="btn btn-primary mr-2" style="display: none;">Verify
+                                OTP</button>
                         </form>
                     </div>
                 </div>
@@ -55,6 +58,7 @@
                                         <th class="text-start" style="min-width: 70px;">Total</th>
                                         <th class="text-start" style="min-width: 100px;">Status</th>
                                         <th class="text-start" style="min-width: 170px;">Date</th>
+                                        <th class="text-start" style="min-width: 170px;">Invoice</th>
                                     </tr>
                                 </thead>
                                 <tbody class="ligth-body">
@@ -178,6 +182,11 @@
 
                                     row += '<td>' + new Date(item["created_at"])
                                         .toLocaleString() + '</td>';
+                                    row += `<td><a class="view_invoice badge bg-secondary mr-2" data-toggle="tooltip"
+                                                data-placement="top" title="View Invoice"
+                                                data-original-title="View Invoice" href="/invoice/` + item["invoice"] + `" target="_blank">
+                                                <i class="fa-regular fa-eye"></i></a>
+                                            </td>`;
                                     row += '</tr>';
                                     tableBody.append(row);
                                 });

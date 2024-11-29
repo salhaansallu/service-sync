@@ -9,10 +9,8 @@
     <!-- CSRF Token -->
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>NMSware Technologies, CRM System</title>
+    <title>We Fix CRM System</title>
         <meta name=”robots” content="noindex">
-        <meta name="description" content="Project by NMSware Technologies PVT LTD">
-        <meta property="og:title" content="Project by NMSware Technologies PVT LTD, Delivering World-Class IT Services | nmsware.com" />
         <meta property="og:type" content="website" />
         <meta property="og:image" content="https://nmsware.com/assets/images/brand/logo-grey-bg-og.jpg" />
         <meta property="og:url" content="{{ Request::url() }}" />

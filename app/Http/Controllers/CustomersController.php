@@ -65,12 +65,12 @@ class CustomersController extends Controller
                 }
             }
 
-            return response(json_encode(array("error" => 1, "msg" => "Error sending OTP", $_SESSION[self::$otpSessionName] )));
+            return response(json_encode(array("error" => 1, "msg" => "Error sending OTP")));
         }
         return response(json_encode(array("error" => 1, "msg" => "Invalid Phone Number")));
     }
 
-    public function OTPVerify(Request $request) {    
+    public function OTPVerify(Request $request) {
         if ($request->has('code') && preg_match('/^\d{4}$/', sanitize($request->input('code')))) {
             $code = sanitize($request->input('code'));
             
@@ -90,7 +90,7 @@ class CustomersController extends Controller
                     $data = customers::where("phone", $sessionData->phone)->get(['phone', 'id']);
     
                     if ($data->count() > 0) {
-                        $repairs = Repairs::where('customer', $data[0]->id)->orderBy('id', 'DESC')->get(['bill_no', 'model_no', 'serial_no', 'fault', 'advance', 'total', 'status', 'created_at']);
+                        $repairs = Repairs::where('customer', $data[0]->id)->orderBy('id', 'DESC')->get(['bill_no', 'model_no', 'serial_no', 'fault', 'advance', 'total', 'status', 'invoice', 'created_at']);
                         return response(json_encode(array("error" => 0, "msg" => "OTP verification successful", "repairs"=>$repairs)));
                     }
     

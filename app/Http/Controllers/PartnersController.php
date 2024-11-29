@@ -8,6 +8,7 @@ use App\Models\Repairs;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Session;
 
@@ -23,10 +24,18 @@ class PartnersController extends Controller
             $repairs["pending"] = Repairs::where('partner', partner()->id)->where('status', 'Pending')->count();
             $repairs["repaired"] = Repairs::where('partner', partner()->id)->where('status', 'Repaired')->count();
             $repairs["delivered"] = Repairs::where('partner', partner()->id)->where('status', 'Delivered')->count();
+            $payments["pending"] = DB::table('credits')
+            ->join('repairs', function ($join) {
+                $join->on(DB::raw('FIND_IN_SET(repairs.bill_no, credits.order_id)'), '>', DB::raw('0'));
+            })
+            ->where('credits.status', '=', 'pending')
+            ->where('repairs.partner', '=', partner()->id)
+            ->select('*')
+            ->sum('credits.ammount');
 
             $finishedRepairs = Repairs::where('partner', partner()->id)->where('status', 'Repaired')->limit(5)->get();
 
-            return view('partner-portal.dashboard')->with(['repairs' => (object)$repairs, 'finishedRepairs'=>$finishedRepairs]);
+            return view('partner-portal.dashboard')->with(['repairs' => (object)$repairs, 'payments'=>(object)$payments, 'finishedRepairs'=>$finishedRepairs]);
         }
         return redirect()->route('partnerLogin');
     }
