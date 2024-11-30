@@ -24,15 +24,25 @@ class PartnersController extends Controller
             $repairs["pending"] = Repairs::where('partner', partner()->id)->where('status', 'Pending')->count();
             $repairs["repaired"] = Repairs::where('partner', partner()->id)->where('status', 'Repaired')->count();
             $repairs["delivered"] = Repairs::where('partner', partner()->id)->where('status', 'Delivered')->count();
-            $payments["pending"] = DB::table('credits')
-            ->join('repairs', function ($join) {
-                $join->on(DB::raw('FIND_IN_SET(repairs.bill_no, credits.order_id)'), '>', DB::raw('0'))->where('repairs.partner', '=', partner()->id)->where('credits.status', '=', 'pending');
-            })
-            ->sum('credits.ammount');
+
+            $billNumbers = [];
+
+            foreach (Repairs::where('partner', partner()->id)->where('status', 'Delivered')->get() as $key => $value) {
+                $billNumbers[] = $value->bill_no;
+            }
+
+            $payments["pending"] =  DB::table('credits')
+                ->whereExists(function ($query) use ($billNumbers) {
+                    $query->select(DB::raw(1))
+                        ->from('repairs')
+                        ->whereRaw('FIND_IN_SET(repairs.bill_no, credits.order_id) > 0')
+                        ->whereIn('repairs.bill_no', $billNumbers);
+                })
+                ->sum('credits.ammount');
 
             $finishedRepairs = Repairs::where('partner', partner()->id)->where('status', 'Repaired')->limit(5)->get();
 
-            return view('partner-portal.dashboard')->with(['repairs' => (object)$repairs, 'payments'=>(object)$payments, 'finishedRepairs'=>$finishedRepairs]);
+            return view('partner-portal.dashboard')->with(['repairs' => (object)$repairs, 'payments' => (object)$payments, 'finishedRepairs' => $finishedRepairs]);
         }
         return redirect()->route('partnerLogin');
     }
@@ -42,10 +52,9 @@ class PartnersController extends Controller
         $response = [];
         if (PosDataController::check()) {
             return response(json_encode(partners::where('pos_code', PosDataController::company()->pos_code)->get()));
-        }
-        else {
-            $response ['error'] = 1;
-            $response ['msg'] = "not_logged_in";
+        } else {
+            $response['error'] = 1;
+            $response['msg'] = "not_logged_in";
             return response(json_encode($response));
         }
     }
@@ -115,23 +124,24 @@ class PartnersController extends Controller
         return redirect()->route('partnerDashboard');
     }
 
-    public function listRepairs() {
+    public function listRepairs()
+    {
         if (self::is_partner()) {
-            $status = isset($_GET['status'])? sanitize($_GET['status']) : '';
+            $status = isset($_GET['status']) ? sanitize($_GET['status']) : '';
             $repairs = [];
             if (!empty($status) && in_array(ucfirst(str_replace('-', ' ', $status)), ['Repaired', 'Pending', 'Delivered', 'Customer Pending', 'Awaiting Parts', 'Return'])) {
                 $repairs = Repairs::where('partner', partner()->id)->where('status', ucfirst(str_replace('-', ' ', $status)))->get();
-            }
-            else {
+            } else {
                 $repairs = Repairs::where('partner', partner()->id)->where('status', 'Repaired')->get();
             }
 
-            return view('partner-portal.list-repairs')->with(['repairs'=>$repairs]);
+            return view('partner-portal.list-repairs')->with(['repairs' => $repairs]);
         }
         return redirect()->route('partnerLogin');
     }
 
-    public function displayRepair($id) {
+    public function displayRepair($id)
+    {
         if (self::is_partner()) {
             $id = sanitize($id);
 
@@ -139,7 +149,7 @@ class PartnersController extends Controller
                 $repairs = Repairs::where('partner', partner()->id)->where('id', $id)->get();
                 if ($repairs->count() > 0) {
                     $spares = Products::where('pos_code', partner()->pos_code)->get();
-                    return view('partner-portal.add-repairs')->with(['repairs'=>$repairs[0], 'spares' => $spares]);
+                    return view('partner-portal.add-repairs')->with(['repairs' => $repairs[0], 'spares' => $spares]);
                 }
             }
             return display404();
