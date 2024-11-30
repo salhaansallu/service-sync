@@ -26,11 +26,8 @@ class PartnersController extends Controller
             $repairs["delivered"] = Repairs::where('partner', partner()->id)->where('status', 'Delivered')->count();
             $payments["pending"] = DB::table('credits')
             ->join('repairs', function ($join) {
-                $join->on(DB::raw('FIND_IN_SET(repairs.bill_no, credits.order_id)'), '>', DB::raw('0'));
+                $join->on(DB::raw('FIND_IN_SET(repairs.bill_no, credits.order_id)'), '>', DB::raw('0'))->where('repairs.partner', '=', partner()->id)->where('credits.status', '=', 'pending');
             })
-            ->where('credits.status', '=', 'pending')
-            ->where('repairs.partner', '=', partner()->id)
-            ->select('*')
             ->sum('credits.ammount');
 
             $finishedRepairs = Repairs::where('partner', partner()->id)->where('status', 'Repaired')->limit(5)->get();
