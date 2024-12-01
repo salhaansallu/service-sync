@@ -56,6 +56,7 @@
                                         <th class="text-start" style="min-width: 200px;">Fault</th>
                                         <th class="text-start" style="min-width: 70px;">Advance</th>
                                         <th class="text-start" style="min-width: 70px;">Total</th>
+                                        <th class="text-start" style="min-width: 70px;">Delivery</th>
                                         <th class="text-start" style="min-width: 100px;">Status</th>
                                         <th class="text-start" style="min-width: 170px;">Date</th>
                                         <th class="text-start" style="min-width: 170px;">Invoice</th>
@@ -154,6 +155,7 @@
                                     row += '<td>' + item["fault"] + '</td>';
                                     row += '<td>' + item["advance"] + '</td>';
                                     row += '<td>' + item["total"] + '</td>';
+                                    row += '<td>' + item["delivery"] + '</td>';
                                     if (item["status"] == "Pending") {
                                         row +=
                                             '<td class="text-bg-warning text-light text-center fw-bold">' +

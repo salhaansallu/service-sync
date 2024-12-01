@@ -21,6 +21,7 @@ return new class extends Migration
             $table->float("advance", 10, 2)->default(0);
             $table->float("total", 10, 2)->default(0);
             $table->float("cost", 10, 2)->default(0);
+            $table->float("delivery", 10, 2)->default(0);
             $table->string("customer");
             $table->string("partner");
             $table->string("cashier");

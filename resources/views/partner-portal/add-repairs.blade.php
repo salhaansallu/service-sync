@@ -50,7 +50,14 @@
                                         </div>
                                     </div>
 
-                                    <div class="col-md-6">
+                                    <div class="col-md-3">
+                                        <div class="form-group">
+                                            <label>Delivery</label>
+                                            <input readonly type="text" name="delivery" class="form-control" value="{{ $repairs->delivery }}">
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-3">
                                         <div class="form-group">
                                             <label>Advance</label>
                                             <input readonly type="text" name="advance" class="form-control" value="{{ $repairs->advance }}">

@@ -90,7 +90,7 @@ class CustomersController extends Controller
                     $data = customers::where("phone", $sessionData->phone)->get(['phone', 'id']);
     
                     if ($data->count() > 0) {
-                        $repairs = Repairs::where('customer', $data[0]->id)->orderBy('id', 'DESC')->get(['bill_no', 'model_no', 'serial_no', 'fault', 'advance', 'total', 'status', 'invoice', 'created_at']);
+                        $repairs = Repairs::where('customer', $data[0]->id)->orderBy('id', 'DESC')->get(['bill_no', 'model_no', 'serial_no', 'fault', 'advance', 'total', 'delivery', 'status', 'invoice', 'created_at']);
                         return response(json_encode(array("error" => 0, "msg" => "OTP verification successful", "repairs"=>$repairs)));
                     }
     

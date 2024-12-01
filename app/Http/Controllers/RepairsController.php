@@ -420,6 +420,7 @@ class RepairsController extends Controller
             $serial_no = sanitize($request->input('serial_no'));
             $fault = sanitize($request->input('fault'));
             $note = sanitize($request->input('note'));
+            $delivery = sanitize($request->input('delivery'));
             $advance = sanitize($request->input('advance'));
             $total = sanitize($request->input('total'));
             $customer = sanitize($request->input('customer'));
@@ -460,6 +461,7 @@ class RepairsController extends Controller
                 "note" => $note,
                 "advance" => $advance,
                 "total" => $total,
+                "delivery" => $delivery,
                 "customer" => $customer,
                 "techie" => $techie,
                 "partner" => $partner,

@@ -172,6 +172,16 @@
             <div class="total bg-grey">
                 <div class="row row-cols-2">
                     <div class="col">
+                        Delivery
+                    </div>
+                    <div class="col">
+                        <input type="number" ref="order_delivery" value="0"
+                        @keyup="$event.key == 'Enter' ? $refs.cashin.select() : updateOrder()" @focus="$event.target.select();">
+                    </div>
+                </div>
+
+                <div class="row row-cols-2">
+                    <div class="col">
                         Sub total
                     </div>
                     <div class="col" ref="subtotal">
@@ -750,6 +760,8 @@ export default {
                     advance += element["advance"];
                 });
 
+                total += parseFloat(this.$refs.order_delivery.value != ""? this.$refs.order_delivery.value : 0);
+
                 this.$refs["subtotal"].innerText = currency(total, this.posData.currency);
                 this.$refs["order_advance"].innerText = currency(advance, this.posData.currency);
                 this.$refs["order_total"].innerText = currency((total - advance), this.posData.currency);
@@ -761,6 +773,7 @@ export default {
             this.$refs["order_advance"].innerText = currency("0.00", this.posData.currency);
             this.$refs["order_total"].innerText = currency("0.00", this.posData.currency);
             this.$refs["balance"].innerText = currency("0.00", this.posData.currency);
+            this.$refs["order_delivery"].innerText = currency("0.00", this.posData.currency);
         },
         searchProducts(e) {
             var pro = this.proBackup;
@@ -853,6 +866,7 @@ export default {
             this.$refs["order_advance"].innerText = "LKR 0.00";
             this.$refs["subtotal"].innerText = "LKR 0.00";
             this.$refs["balance"].innerText = "LKR 0.00";
+            this.$refs["order_delivery"].innerText = "LKR 0.00";
             this.paymentMethod("cash");
         },
         get_total() {
@@ -860,8 +874,12 @@ export default {
             var price = 0.00;
 
             if (this.selectedRepair.length > 0) {
-                price = (this.selectedRepair[0]["total"] - this.selectedRepair[0]["advance"])
+                this.selectedRepair.forEach(element => {
+                    price += (element["total"] - element["advance"])
+                });
             }
+
+            price += parseFloat(this.$refs.order_delivery.value != ""? this.$refs.order_delivery.value : 0);
 
             return parseFloat(price);
         },
@@ -881,6 +899,7 @@ export default {
                 var payment = this.paymentMod;
                 var cashin = this.$refs.cashin.value == "" ? 0 : this.$refs.cashin.value;
                 var repair = [];
+                var order_delivery = this.$refs.order_delivery.value == "" ? 0 : this.$refs.order_delivery.value;
 
                 if (parseFloat(cashin) < parseFloat(total) && (payment == "cash")) {
                     if (confirm('Are you sure you want to add remaining as credit?')) {
@@ -899,10 +918,11 @@ export default {
                         repair.push(element['bill_no']);
                     });
 
-                    const { data } = await axios.post('/other-pos/checkout', {
+                    const { data } = await axios.post('/pos/checkout', {
                         params: {
                             bill_no: repair,
                             cashin: cashin,
+                            delivery: order_delivery,
                         }
                     }).catch(function (error) {
                         if (error.response) {

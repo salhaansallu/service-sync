@@ -844,6 +844,7 @@ function generateInvoice($order_id, $inName, $bill_type)
 
     $total = 0;
     $advance = 0;
+    $delivery = 0;
     $orders = [];
     $customer = [];
 
@@ -852,6 +853,7 @@ function generateInvoice($order_id, $inName, $bill_type)
             $temp_order = Repairs::where('bill_no', $id)->where('pos_code', $company->pos_code)->get();
             if ($temp_order->count() > 0) {
                 $temp_order = $temp_order[0];
+                $delivery = $temp_order->delivery;
                 $total += $temp_order->total;
                 $advance += $temp_order->advance;
                 $orders[] = array("id" => $id, "total" => $temp_order->total, "advance" => $temp_order->advance, "model" => $temp_order->model_no);
@@ -865,6 +867,7 @@ function generateInvoice($order_id, $inName, $bill_type)
         if ($temp_order->count() > 0) {
             $temp_order = $temp_order[0];
             $total += $temp_order->total;
+            $delivery = $temp_order->delivery;
             $advance += $temp_order->advance;
             $orders[] = array("id" => $order_id, "total" => $temp_order->total, "advance" => $temp_order->advance, "model" => $temp_order->model_no);
         }
@@ -955,7 +958,8 @@ function generateInvoice($order_id, $inName, $bill_type)
                 ';
     }
 
-    $html .= '
+    if ($bill_type == "newOrder") {
+        $html .= '
                 </table>
             </div>
 
@@ -976,11 +980,7 @@ function generateInvoice($order_id, $inName, $bill_type)
                     </tr>
                 </table>
             </div>
-
-            
     ';
-
-    if ($bill_type == "newOrder") {
         $html .= '
             <!-- Checking Charges -->
             <div>
@@ -1046,6 +1046,34 @@ function generateInvoice($order_id, $inName, $bill_type)
         ';
     } else {
         $html .= '
+                </table>
+            </div>
+
+            <!-- Total -->
+            <div>
+                <table style="width: 30%; border-collapse: collapse;margin-left: auto;">
+                    <tr>
+                        <td style="padding: 5px; text-align: right;font-size: 20px;font-weight: 800;">Subtotal:</td>
+                        <td style="padding: 5px; text-align: right;font-size: 20px;font-weight: 800; width: 230px;">' . currency($total, 'LKR') . '</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 5px; text-align: right;">Advance:</td>
+                        <td style="padding: 5px; text-align: right; width: 230px;">' . currency($advance, 'LKR') . '</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 5px; text-align: right;">Delivery:</td>
+                        <td style="padding: 5px; text-align: right; width: 230px;">' . currency($delivery, 'LKR') . '</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 5px; text-align: right;">Total:</td>
+                        <td style="padding: 5px; text-align: right; width: 230px;">' . currency(((float)$total - (float)$advance)+$delivery, 'LKR') . '</td>
+                    </tr>
+                </table>
+            </div>
+
+            
+    ';
+        $html .= '
             <!-- Signature Section -->
             <div style="border-top: 1px solid black; border-bottom: 1px solid black;margin-top: 30px;">
                 <table style="width: 100%; border-top: 1px solid black;">
@@ -1091,6 +1119,7 @@ function generateThermalInvoice($order_id, $inName, $bill_type)
 
     $total = 0;
     $advance = 0;
+    $delivery = 0;
     $orders = [];
     $customer = [];
 
@@ -1100,6 +1129,7 @@ function generateThermalInvoice($order_id, $inName, $bill_type)
             if ($temp_order->count() > 0) {
                 $temp_order = $temp_order[0];
                 $total += $temp_order->total;
+                $delivery = $temp_order->delivery;
                 $advance += $temp_order->advance;
                 $orders[] = array("id" => $id, "total" => $temp_order->total, "advance" => $temp_order->advance, "model" => $temp_order->model_no);
             }
@@ -1112,6 +1142,7 @@ function generateThermalInvoice($order_id, $inName, $bill_type)
         if ($temp_order->count() > 0) {
             $temp_order = $temp_order[0];
             $total += $temp_order->total;
+            $delivery = $temp_order->delivery;
             $advance += $temp_order->advance;
             $orders[] = array("id" => $order_id, "total" => $temp_order->total, "advance" => $temp_order->advance, "model" => $temp_order->model_no);
         }
@@ -1200,7 +1231,8 @@ function generateThermalInvoice($order_id, $inName, $bill_type)
                 ';
     }
 
-    $html .= '
+    if ($bill_type == "newOrder" && $repairs->type != "other") {
+        $html .= '
             </table>
 
             <table style="width: 100%; border-collapse: collapse; border-top: 1px solid #000; margin-top: 10px;">
@@ -1217,9 +1249,7 @@ function generateThermalInvoice($order_id, $inName, $bill_type)
                     <td style="width: 50%; font-size: 14px;padding-top: 10px;  text-align: right;">' . currency(((float)$total - (float)$advance), 'LKR') . '</td>
                 </tr>
             </table>
-    ';
-
-    if ($bill_type == "newOrder" && $repairs->type != "other") {
+        ';
         $html .= '
             <h4 style="margin-bottom: 10px;">Product Information</h4>
 
@@ -1265,6 +1295,30 @@ function generateThermalInvoice($order_id, $inName, $bill_type)
                     The company is not responsible for items not collected within 14 days after repair.
                 </p>
             </div>
+        ';
+    }
+    else {
+        $html .= '
+            </table>
+
+            <table style="width: 100%; border-collapse: collapse; border-top: 1px solid #000; margin-top: 10px;">
+                <tr>
+                    <td style="width: 50%; font-size: 14px;padding-top: 10px; font-weight: bold; text-align: right;">Subtotal: </td>
+                    <td style="width: 50%; font-size: 14px;padding-top: 10px;  text-align: right;">' . currency($total, 'LKR') . '</td>
+                </tr>
+                <tr>
+                    <td style="width: 50%; font-size: 14px;padding-top: 10px; font-weight: bold; text-align: right;">Advance: </td>
+                    <td style="width: 50%; font-size: 14px;padding-top: 10px;  text-align: right;">' . currency($advance, 'LKR') . '</td>
+                </tr>
+                <tr>
+                    <td style="width: 50%; font-size: 14px;padding-top: 10px; font-weight: bold; text-align: right;">Delivery: </td>
+                    <td style="width: 50%; font-size: 14px;padding-top: 10px;  text-align: right;">' . currency($delivery, 'LKR') . '</td>
+                </tr>
+                <tr>
+                    <td style="width: 50%; font-size: 14px;padding-top: 10px; font-weight: bold; text-align: right;">Total: </td>
+                    <td style="width: 50%; font-size: 14px;padding-top: 10px;  text-align: right;">' . currency(((float)$total - (float)$advance)+$delivery, 'LKR') . '</td>
+                </tr>
+            </table>
         ';
     }
 

@@ -125,6 +125,7 @@ class PosDataController extends Controller
             $company = PosDataController::company();
             $total = 0;
             $advance = 0;
+            $delivery = sanitize($request['delivery']);
 
             $rand = date('d-m-Y-h-i-s') . '-' . rand(0, 9999999) . '.pdf';
             $inName = str_replace(' ', '-', str_replace('.', '-', $bill_no[0])) . '-Delivery-' . $rand;
@@ -139,6 +140,7 @@ class PosDataController extends Controller
                     "updated_at" => date('d-m-Y H:i:s'),
                     "invoice" => "checkout/" . $inName,
                     "paid_at" => Carbon::now(),
+                    "delivery" => $delivery,
                 ]);
             }
 

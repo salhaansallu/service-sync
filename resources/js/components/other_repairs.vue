@@ -144,7 +144,8 @@
                                         @click="openWhatsapp(searchCustomer(repair.customer)['phone'], repair.invoice)">Send
                                         Invoice on WhatsApp</a></li>
                                 <li @click="finishOrder('show', repair.bill_no)"
-                                v-if="repair.status == 'Pending' || repair.status == 'Awaiting Parts'"><a href="javascript:void(0)">Update
+                                    v-if="repair.status == 'Pending' || repair.status == 'Awaiting Parts'"><a
+                                        href="javascript:void(0)">Update
                                         Order Status</a></li>
                                 <li v-if="repair.status == 'Return'"><a href="javascript:void(0)"
                                         @click="selectProduct(repair.bill_no)">Checkout Order</a></li>
@@ -169,6 +170,17 @@
             </div>
 
             <div class="total bg-grey">
+                <div class="row row-cols-2">
+                    <div class="col">
+                        Delivery
+                    </div>
+                    <div class="col">
+                        <input type="number" ref="order_delivery" value="0"
+                            @keyup="$event.key == 'Enter' ? $refs.cashin.select() : updateOrder()"
+                            @focus="$event.target.select();">
+                    </div>
+                </div>
+
                 <div class="row row-cols-2">
                     <div class="col">
                         Sub total
@@ -462,7 +474,8 @@
                                     <label for="" class="mb-1">Spares</label>
                                     <div class="row" v-for="spare in spareCount">
                                         <div class="col-9">
-                                            <select :ref="'finish_spare_' + spare" :name="'finish_spare_' + spare" class="select2-multiple">
+                                            <select :ref="'finish_spare_' + spare" :name="'finish_spare_' + spare"
+                                                class="select2-multiple">
                                                 <option value="">-- Select spare --</option>
                                                 <option v-for="spare in Spares" :value="spare.id">{{ spare.pro_name }}
                                                 </option>
@@ -476,7 +489,8 @@
                                     <span class="d-flex w-100 justify-content-between">
                                         <span @click="spareCountUpdate('-')" class="form-text mt-3"
                                             style="cursor: pointer;">- Remove spare</span>
-                                        <span @click="spareCountUpdate('+')" class="form-text mt-3" style="cursor: pointer;">+
+                                        <span @click="spareCountUpdate('+')" class="form-text mt-3"
+                                            style="cursor: pointer;">+
                                             Add spare</span>
                                     </span>
                                 </div>
@@ -696,7 +710,7 @@ export default {
             })
         },
         changeBillType() {
-            this.new_bill = this.$refs.bill_type.value == 'new-order'? true : false
+            this.new_bill = this.$refs.bill_type.value == 'new-order' ? true : false
         },
         async getPosData() {
             const { data } = await axios.post("/other-pos/pos_data");
@@ -744,6 +758,8 @@ export default {
                     advance += element["advance"];
                 });
 
+                total += parseFloat(this.$refs.order_delivery.value != "" ? this.$refs.order_delivery.value : 0);
+
                 this.$refs["subtotal"].innerText = currency(total, this.posData.currency);
                 this.$refs["order_advance"].innerText = currency(advance, this.posData.currency);
                 this.$refs["order_total"].innerText = currency((total - advance), this.posData.currency);
@@ -755,6 +771,7 @@ export default {
             this.$refs["order_advance"].innerText = currency("0.00", this.posData.currency);
             this.$refs["order_total"].innerText = currency("0.00", this.posData.currency);
             this.$refs["balance"].innerText = currency("0.00", this.posData.currency);
+            this.$refs["order_delivery"].innerText = currency("0.00", this.posData.currency);
         },
         searchProducts(e) {
             var pro = this.proBackup;
@@ -849,6 +866,7 @@ export default {
             this.$refs["order_advance"].innerText = "LKR 0.00";
             this.$refs["subtotal"].innerText = "LKR 0.00";
             this.$refs["balance"].innerText = "LKR 0.00";
+            this.$refs["order_delivery"].innerText = "LKR 0.00";
             this.paymentMethod("cash");
         },
         get_total() {
@@ -856,8 +874,12 @@ export default {
             var price = 0.00;
 
             if (this.selectedRepair.length > 0) {
-                price = (this.selectedRepair[0]["total"] - this.selectedRepair[0]["advance"])
+                this.selectedRepair.forEach(element => {
+                    price += (element["total"] - element["advance"])
+                });
             }
+
+            price += parseFloat(this.$refs.order_delivery.value != "" ? this.$refs.order_delivery.value : 0);
 
             return parseFloat(price);
         },
@@ -900,6 +922,7 @@ export default {
                 var payment = this.paymentMod;
                 var cashin = this.$refs.cashin.value == "" ? 0 : this.$refs.cashin.value;
                 var repair = [];
+                var order_delivery = this.$refs.order_delivery.value == "" ? 0 : this.$refs.order_delivery.value;
 
                 if (parseFloat(cashin) < parseFloat(total) && (payment == "cash")) {
                     if (confirm('Are you sure you want to add remaining as credit?')) {
@@ -922,6 +945,7 @@ export default {
                         params: {
                             bill_no: repair,
                             cashin: cashin,
+                            delivery: order_delivery,
                         }
                     }).catch(function (error) {
                         if (error.response) {
@@ -1036,13 +1060,13 @@ export default {
         },
         async PlaceOrder() {
             var total = this.$refs.total.value;
-            var model_no = this.new_bill==true? this.$refs.model_no.value : '';
-            var serial_no = this.new_bill==true? this.$refs.serial_no.value : '';
+            var model_no = this.new_bill == true ? this.$refs.model_no.value : '';
+            var serial_no = this.new_bill == true ? this.$refs.serial_no.value : '';
             var fault = this.$refs.fault.value;
             var advance = this.$refs.advance.value;
             var note = this.$refs.note.value;
             var note2 = "";
-            var customer = this.new_bill==true? this.$refs.customer.value : '';
+            var customer = this.new_bill == true ? this.$refs.customer.value : '';
             var partner = this.$refs.partner.value;
             var cashier_no = this.$refs.cashier_no.value;
             var techie = this.$refs.techie.value;
