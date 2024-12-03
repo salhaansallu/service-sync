@@ -129,7 +129,7 @@
                                             <textarea name="note" class="form-control" id="" rows="5">{{ str_replace(['<br>', ' <br> ', ' <br>', '<br> '], PHP_EOL, $repairs->note) }}</textarea>
                                         </div>
                                     </div>
-                                    <div class="col-md-6">
+                                    <div class="col-md-3">
                                         <div class="form-group">
                                             <label>Status <span class="text-danger">*</span></label>
                                             <select name="status" class="form-control" required>
@@ -139,6 +139,18 @@
                                                 <option @if($repairs->status == "Pending") selected @endif value="Pending">Pending</option>
                                                 <option @if($repairs->status == "Awaiting Parts") selected @endif value="Awaiting Parts">Awaiting Parts</option>
                                                 <option @if($repairs->status == "Customer Pending") selected @endif value="Customer Pending">Customer Pending</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="form-group">
+                                            <label>Warranty <span class="text-danger">*</span></label>
+                                            <select name="warranty" class="form-control" required>
+                                                <option @if($repairs->warranty == "0") selected @endif value="0">No warranty</option>
+                                                <option @if($repairs->warranty == "1") selected @endif value="1">1 Month</option>
+                                                <option @if($repairs->warranty == "3") selected @endif value="3">3 Months</option>
+                                                <option @if($repairs->warranty == "6") selected @endif value="6">6 Months</option>
+                                                <option @if($repairs->warranty == "12") selected @endif value="12">1 Year</option>
                                             </select>
                                         </div>
                                     </div>

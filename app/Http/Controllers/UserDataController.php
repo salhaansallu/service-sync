@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\posData;
 use App\Models\PosInvitation;
 use App\Models\posUsers;
+use App\Models\repairCommissions;
 use App\Models\User;
 use App\Models\userData;
 use Illuminate\Http\Request;
@@ -28,6 +29,36 @@ class UserDataController extends Controller
             return defaultValues();
         }
         return defaultValues();
+    }
+
+    public function listRepairCommisions()
+    {
+        if (Auth::check() && DashboardController::check(true)) {
+
+            $results = [];
+            $users = User::where('id', '!=', Auth::user()->id)->get();
+            foreach ($users as $key => $user) {
+                $commision = repairCommissions::where('user', $user->id)->where('status', 'pending')->sum('amount');
+                $user['commission'] = $commision;
+                $results[] = $user;
+            }
+
+            return view('pos.list-repair-commission')->with(["results" => $results]);
+        }
+
+        return redirect('/signin');
+    }
+
+    public function updateRepairCommisions(Request $request)
+    {
+        if (Auth::check() && DashboardController::check(true)) {
+
+            if (repairCommissions::where('user', sanitize($request->user_id))->update(['status' => 'paid'])) {
+                return response(json_encode(array("error" => 0, "msg" => "Commission paid successfully")));
+            }
+        }
+
+        return display404();
     }
 
     public function index()

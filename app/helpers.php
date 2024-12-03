@@ -856,7 +856,7 @@ function generateInvoice($order_id, $inName, $bill_type)
                 $delivery = $temp_order->delivery;
                 $total += $temp_order->total;
                 $advance += $temp_order->advance;
-                $orders[] = array("id" => $id, "total" => $temp_order->total, "advance" => $temp_order->advance, "model" => $temp_order->model_no);
+                $orders[] = array("id" => $id, "total" => $temp_order->total, "advance" => $temp_order->advance, "model" => $temp_order->model_no, 'warranty' => $temp_order->warranty);
             }
         }
 
@@ -869,7 +869,7 @@ function generateInvoice($order_id, $inName, $bill_type)
             $total += $temp_order->total;
             $delivery = $temp_order->delivery;
             $advance += $temp_order->advance;
-            $orders[] = array("id" => $order_id, "total" => $temp_order->total, "advance" => $temp_order->advance, "model" => $temp_order->model_no);
+            $orders[] = array("id" => $order_id, "total" => $temp_order->total, "advance" => $temp_order->advance, "model" => $temp_order->model_no, 'warranty' => $temp_order->warranty);
         }
 
         $repairs = Repairs::where('bill_no', $order_id)->where('pos_code', $company->pos_code)->get()[0];
@@ -886,7 +886,7 @@ function generateInvoice($order_id, $inName, $bill_type)
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <title>Document</title>
             <style>
-                @page { 
+                @page {
                     margin: 10px;
                     height: auto;
                     width: 210mm;
@@ -1071,8 +1071,36 @@ function generateInvoice($order_id, $inName, $bill_type)
                 </table>
             </div>
 
-            
-    ';
+
+        ';
+
+        $html .= '
+            <p style="font-size: 14px; text-align: left;font-weight: bold; border-bottom: 1px solid #000;padding-bottom: 5px;">Warranty Disclaimer</p>
+        ';
+
+        if($orders[0]["warranty"] == 0) {
+            $html .= '
+                <table style="width: 100%; border-collapse: collapse;">
+                    <tr>
+                        <td style="font-size: 14px; text-align: left;">
+                            This product has been repaired and is sold as-is with no warranty, express or implied. We assume no responsibility for any defects or issues that may arise after the purchase. All sales are final.
+                        </td>
+                    </tr>
+                </table>
+            ';
+        }
+        elseif ($orders[0]["warranty"] > 0) {
+            $html .= '
+                <table style="width: 100%; border-collapse: collapse;">
+                    <tr>
+                        <td style="font-size: 14px; text-align: left;">
+                            This product includes a warranty valid for '.$orders[0]["warranty"].' months from the date of recived. For detailed terms and conditions, please contact us.
+                        </td>
+                    </tr>
+                </table>
+            ';
+        }
+
         $html .= '
             <!-- Signature Section -->
             <div style="border-top: 1px solid black; border-bottom: 1px solid black;margin-top: 30px;">
@@ -1093,7 +1121,7 @@ function generateInvoice($order_id, $inName, $bill_type)
     }
 
     $html .= '
-        
+
         <!-- Footer -->
         <p style="text-align: center; font-weight: bold;">Thank You Please Come Again</p>
 
@@ -1131,7 +1159,7 @@ function generateThermalInvoice($order_id, $inName, $bill_type)
                 $total += $temp_order->total;
                 $delivery = $temp_order->delivery;
                 $advance += $temp_order->advance;
-                $orders[] = array("id" => $id, "total" => $temp_order->total, "advance" => $temp_order->advance, "model" => $temp_order->model_no);
+                $orders[] = array("id" => $id, "total" => $temp_order->total, "advance" => $temp_order->advance, "model" => $temp_order->model_no, 'warranty' => $temp_order->warranty);
             }
         }
 
@@ -1144,7 +1172,7 @@ function generateThermalInvoice($order_id, $inName, $bill_type)
             $total += $temp_order->total;
             $delivery = $temp_order->delivery;
             $advance += $temp_order->advance;
-            $orders[] = array("id" => $order_id, "total" => $temp_order->total, "advance" => $temp_order->advance, "model" => $temp_order->model_no);
+            $orders[] = array("id" => $order_id, "total" => $temp_order->total, "advance" => $temp_order->advance, "model" => $temp_order->model_no, 'warranty' => $temp_order->warranty);
         }
 
         $repairs = Repairs::where('bill_no', $order_id)->where('pos_code', $company->pos_code)->get()[0];
@@ -1158,7 +1186,7 @@ function generateThermalInvoice($order_id, $inName, $bill_type)
     $note2 = $bill_type == 'newOrder' ? 'Receive Note' : 'Delivery Note';
 
     $html = '
-        
+
         <!DOCTYPE html>
         <html lang="en">
         <head>
@@ -1166,7 +1194,7 @@ function generateThermalInvoice($order_id, $inName, $bill_type)
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <title>Receive Note</title>
             <style>
-                @page { 
+                @page {
                     margin: 10px;
                     height: auto;
                     width: 80mm;
@@ -1336,8 +1364,40 @@ function generateThermalInvoice($order_id, $inName, $bill_type)
                 </td>
             </tr>
         </table>
-        
-        <table style="width: 100%; border-collapse: collapse;border-top: 1px solid #000; margin-top: 10px;">
+    ';
+
+    if ($bill_type != "newOrder") {
+        $html .= '
+            <p style="font-size: 12px; text-align: left;font-weight: bold; border-bottom: 1px solid #000;">Warranty Disclaimer</p>
+        ';
+
+        if($orders[0]["warranty"] == 0) {
+            $html .= '
+                <table style="width: 100%; border-collapse: collapse;">
+                    <tr>
+                        <td style="font-size: 14px; text-align: left;">
+                            This product has been repaired and is sold as-is with no warranty, express or implied. We assume no responsibility for any defects or issues that may arise after the purchase. All sales are final.
+                        </td>
+                    </tr>
+                </table>
+            ';
+        }
+        elseif ($orders[0]["warranty"] > 0) {
+            $html .= '
+                <table style="width: 100%; border-collapse: collapse;">
+                    <tr>
+                        <td style="font-size: 14px; text-align: left;">
+                            This product includes a warranty valid for '.$orders[0]["warranty"].' months from the date of recived. For detailed terms and conditions, please contact us.
+                        </td>
+                    </tr>
+                </table>
+            ';
+        }
+    }
+
+    $html .= '
+
+            <table style="width: 100%; border-collapse: collapse;border-top: 1px solid #000; margin-top: 10px;">
                 <tr>
                     <td style="text-align: center; width: 50%; font-size: 14px;padding-top: 50px;">-------------------------</td>
                     <td style="text-align: center; width: 50%; font-size: 14px;padding-top: 50px;">' . substr(getUser(Auth::user()->id)->fname, 0, 11) . '</td>
@@ -1354,6 +1414,7 @@ function generateThermalInvoice($order_id, $inName, $bill_type)
 
         </body>
         </html>
+
     ';
 
     $pdf = new Dompdf();
@@ -1405,7 +1466,7 @@ function generateSalesInvoice($order_id, $inName, $products, $cashin)
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <title>Document</title>
             <style>
-                @page { 
+                @page {
                     margin: 10px;
                     height: auto;
                     width: 210mm;
@@ -1470,7 +1531,7 @@ function generateSalesInvoice($order_id, $inName, $products, $cashin)
 
     foreach ($products as $key => $pro) {
         $html .= '
-            
+
             <tr>
                 <td style="padding: 5px; border: 1px solid black;">' . $pro['name'] . '</td>
                 <td style="padding: 5px; border: 1px solid black;">' . currency($pro['unit'], '') . '</td>
@@ -1481,7 +1542,7 @@ function generateSalesInvoice($order_id, $inName, $products, $cashin)
             ';
     }
 
-    $html .= '            
+    $html .= '
                 </table>
             </div>
 
@@ -1503,7 +1564,7 @@ function generateSalesInvoice($order_id, $inName, $products, $cashin)
                 </table>
             </div>
 
-            
+
     ';
 
     $html .= '
@@ -1566,14 +1627,14 @@ function generateThermalSalesInvoice($order_id, $inName, $products, $cashin)
 
 
     $html = '
-    
+
         <html lang="en">
         <head>
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <title>' . $company->company_name . ' Invoice ' . $pros->bill_no . '</title>
             <style>
-                @page { 
+                @page {
                     margin: 10px;
                     height: auto;
                     width: 80mm;
@@ -1591,7 +1652,7 @@ function generateThermalSalesInvoice($order_id, $inName, $products, $cashin)
             <hr style="border-width: 1px; border-color: #000; border-style: dashed;">
 
             ' . $title . '
-             
+
             <div style="width: 100%;margin-top: -10px; font-size: 14px;">
                 <table style="width: 100%;margin-bottom: 3px;">
                     <thead>
@@ -1616,9 +1677,9 @@ function generateThermalSalesInvoice($order_id, $inName, $products, $cashin)
                     </tbody>
                 </table>
             </div>
-             
+
             <hr style="border-width: 3px; border-color: #505050; border-style: dotted; margin: 0 40px; margin-top: 0px;margin-bottom: 5px;">
-             
+
                 <table style="width: 100%;">
                     <thead>
                     <tr>
@@ -1627,8 +1688,8 @@ function generateThermalSalesInvoice($order_id, $inName, $products, $cashin)
                     </tr>
                     </thead>
                     <tbody style="width: 100%;">
-             
-    
+
+
     ';
 
 
@@ -1694,7 +1755,7 @@ function generateThermalSalesInvoice($order_id, $inName, $products, $cashin)
         </div>
         </body>
         </html>
-    
+
     ';
 
     // $connector = new FilePrintConnector("/dev/usb/lp0");
@@ -1760,14 +1821,14 @@ function generateDeliveryInvoice($order_id, $inName)
 
 
     $html = '
-    
+
         <html lang="en">
         <head>
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <title>' . $company->company_name . ' Invoice ' . $order->bill_no . '</title>
             <style>
-                @page { 
+                @page {
                     margin: 10px;
                     height: auto;
                     width: 80mm;
@@ -1785,7 +1846,7 @@ function generateDeliveryInvoice($order_id, $inName)
             <hr style="border-width: 1px; border-color: #000; border-style: dashed;">
 
             ' . $title . '
-             
+
             <div style="width: 100%;margin-top: -10px; font-size: 14px;">
                 <table style="width: 100%;margin-bottom: 3px;">
                     <thead>
@@ -1810,9 +1871,9 @@ function generateDeliveryInvoice($order_id, $inName)
                     </tbody>
                 </table>
             </div>
-             
+
             <hr style="border-width: 3px; border-color: #505050; border-style: dotted; margin: 0 40px; margin-top: 0px;margin-bottom: 5px;">
-             
+
                 <table style="width: 100%;">
                     <thead>
                     <tr>
@@ -1821,8 +1882,8 @@ function generateDeliveryInvoice($order_id, $inName)
                     </tr>
                     </thead>
                     <tbody style="width: 100%;">
-             
-    
+
+
     ';
 
 
@@ -1867,7 +1928,7 @@ function generateDeliveryInvoice($order_id, $inName)
         </div>
         </body>
         </html>
-    
+
     ';
 
     // $connector = new FilePrintConnector("/dev/usb/lp0");
@@ -1916,7 +1977,7 @@ function generateCreditPay($totalDue, $paid, $customer, $datetime, $bill_name)
     }
 
     $html = '
-    
+
     <html lang="en">
 
         <head>
@@ -1924,7 +1985,7 @@ function generateCreditPay($totalDue, $paid, $customer, $datetime, $bill_name)
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <title>' . company()->company_name . ' Credit Payment</title>
             <style>
-            @page { 
+            @page {
                 margin: 10px;
                 height: auto;
                 width: 80mm;
@@ -2026,7 +2087,7 @@ function generateCreditPay($totalDue, $paid, $customer, $datetime, $bill_name)
         </body>
 
     </html>
-    
+
     ';
 
     $pdf = new Dompdf();
@@ -2081,7 +2142,7 @@ function generateQuotation($q_no)
     $html = '
         <!DOCTYPE html>
         <html lang="en">
-        
+
         <head>
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -2092,22 +2153,22 @@ function generateQuotation($q_no)
                     height: auto;
                     width: 210mm;
                 }
-        
+
                 body {
                     margin: 10px;
                 }
             </style>
         </head>
-        
+
         <body style="font-family: Arial, sans-serif; margin: 0; padding: 30px; padding-top: 30px; box-sizing: border-box;">
-        
+
             <header style="text-align: center; margin-bottom: 20px;">
                 <h1 style="margin: 0; font-size: 24px;">Quotation</h1>
                 <p style="margin: 5px 0; font-size: 14px; color: #666;">' . $company->company_name . '</p>
                 <p style="margin: 5px 0; font-size: 14px; color: #666;">' . getUserData($company->admin_id)->address . ' <br> '
                 . formatPhoneNumber(getUserData($company->admin_id)->phone) . ' <br> www.wefix.lk</p>
             </header>
-        
+
             <section style="margin-bottom: 20px;">
                 <table style="width: 100%; border-collapse: collapse;">
                     <tbody>
@@ -2120,7 +2181,7 @@ function generateQuotation($q_no)
                                 <p style="font-size: 13px;"><strong>Address:</strong> ' .
                 getCustomer($repair->customer)->address . '</p>
                             </td>
-        
+
                             <td style="vertical-align: bottom;">
                                 <p style="font-size: 13px; text-align: right;"><strong>Date:</strong> ' . date(
                     'Y-m-d',
@@ -2139,7 +2200,7 @@ function generateQuotation($q_no)
                     </tbody>
                 </table>
             </section>
-                                
+
             <section style="margin-bottom: 20px;">
                 <table style="width: 100%; border-collapse: collapse;">
                     <thead>
@@ -2156,7 +2217,7 @@ function generateQuotation($q_no)
                     </tbody>
                 </table>
             </section>
-                                
+
             <table style="width: 100%; border-collapse: collapse; border-bottom: 1px solid #ddd;margin-bottom: 20px;">
                 <tbody>
                     <tr>
@@ -2174,7 +2235,7 @@ function generateQuotation($q_no)
                     </tr>
                 </tbody>
             </table>
-                                
+
             <table style="border-bottom: 1px solid #ddd;padding-bottom: 20px;width: 100%;">
                 <tr>
                     <td style="width: max-content;">
@@ -2219,11 +2280,11 @@ function generateQuotation($q_no)
                     </td>
                 </tr>
             </table>
-                                
-                                
-                                
+
+
+
             <p style="margin-top: 20px;"><strong>Bank Details:</strong></p>
-                                
+
             <table style="width: 100%; border-collapse: collapse;">
                 <tbody>
                     <tr>
@@ -2258,7 +2319,7 @@ function generateQuotation($q_no)
                             </section>
                         </td>
                     </tr>
-                                
+
                     <tr>
                         <td style="vertical-align: top;">
                             <section style="">
@@ -2273,12 +2334,12 @@ function generateQuotation($q_no)
                     </tr>
                 </tbody>
             </table>
-                                
+
             <footer style="text-align: center; font-size: 12px; color: #777;">
                 <p>Thank you for choosing our services!</p>
             </footer>
         </body>
-                                
+
         </html>
     ';
     // $connector = new FilePrintConnector("/dev/usb/lp0");

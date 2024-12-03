@@ -161,6 +161,9 @@ Route::prefix('dashboard')->group(function () {
     Route::post('/repairs/edit', [RepairsController::class, 'update']);
     Route::delete('/repairs/delete', [RepairsController::class, 'destroy']);
 
+    Route::get('repair-commissions/list', [UserDataController::class, 'listRepairCommisions']);
+    Route::post('repair-commissions/update', [UserDataController::class, 'updateRepairCommisions']);
+
     Route::get('quotations', [DashboardController::class, 'listQuotations']);
     Route::get('quotations/create', [QuotationsController::class, 'create']);
     Route::post('quotations/create', [QuotationsController::class, 'store']);

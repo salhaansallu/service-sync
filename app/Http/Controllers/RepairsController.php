@@ -7,6 +7,7 @@ use App\Models\orders;
 use App\Models\partners;
 use App\Models\posUsers;
 use App\Models\Products;
+use App\Models\repairCommissions;
 use App\Models\Repairs;
 use App\Models\spareSaleHistory;
 use Carbon\Carbon;
@@ -270,6 +271,7 @@ class RepairsController extends Controller
                 $bill_type = sanitize($request->input('bill_type'));
                 $parent_bill_no = sanitize($request->input('parent_bill_no'));
                 $new_order_qty = sanitize($request->input('new_order_qty'));
+                $billData = [];
 
                 if ($bill_type == 'new-order') {
                     $customerData = customers::where('pos_code', company()->pos_code)->where('id', $customer)->get();
@@ -335,6 +337,7 @@ class RepairsController extends Controller
                             }
 
                             $repair->pos_code = company()->pos_code;
+                            $repair->warranty = 0;
 
                             if ($repair->save()) {
 
@@ -370,6 +373,15 @@ class RepairsController extends Controller
 
                     $tempBill = 'temp-muilti-repairs-invoice';
                     $generate_temp_thermal_invoice = generateThermalInvoice($bills, $tempBill, 'newOrder');
+
+                    if ($bill_type != 'new-order') {
+                        $commis = new repairCommissions();
+                        $commis->user = $billData[0]->techie;
+                        $commis->amount = -(0.1*($billData[0]->total - $billData[0]->cost));
+                        $commis->status = "pending";
+                        $commis->note = $billData[0]->bill_no." Return for re-service";
+                        $commis->save();
+                    }
                 }
 
                 return response(json_encode(array("error" => $new_order_qty != $success_count, "msg" => $success_count . " out of " . $new_order_qty . " orders placed", "invoiceURL" => $generate_temp_thermal_invoice->url)));
@@ -426,6 +438,7 @@ class RepairsController extends Controller
             $customer = sanitize($request->input('customer'));
             $partner = sanitize($request->input('partner'));
             $techie = sanitize($request->input('techie'));
+            $warranty = sanitize($request->input('warranty'));
             $spares = [];
             if ($request->has('spares')) {
                 foreach ($request->input('spares') as $key => $val) {
@@ -467,6 +480,7 @@ class RepairsController extends Controller
                 "partner" => $partner,
                 "spares" => json_encode($spares),
                 "status" => $status,
+                "warranty" => $warranty,
                 "updated_at" => date('Y-m-d H:i:s'),
             ]);
 

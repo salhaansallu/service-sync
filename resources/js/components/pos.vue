@@ -153,7 +153,7 @@
                                         href="javascript:void(0)" @click="selectProduct(repair.bill_no)">Checkout
                                         Order</a></li>
 
-                                <li v-if="repair.status == 'Delivered'"><a href="javascript:void(0)" >Re-service</a></li>
+                                <li v-if="repair.status == 'Delivered'"><a href="javascript:void(0)">Re-service</a></li>
                             </ul>
                         </div>
                     </div>
@@ -172,11 +172,25 @@
             <div class="total bg-grey">
                 <div class="row row-cols-2">
                     <div class="col">
+                        Warranty
+                    </div>
+                    <div class="col">
+                        <select name="" ref="order_warranty">
+                            <option value="0">No warranty</option>
+                            <option value="3">3 Months</option>
+                            <option value="6">6 Months</option>
+                            <option value="12">1 Years</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="row row-cols-2">
+                    <div class="col">
                         Delivery
                     </div>
                     <div class="col">
                         <input type="number" ref="order_delivery" value="0"
-                        @keyup="$event.key == 'Enter' ? $refs.cashin.select() : updateOrder()" @focus="$event.target.select();">
+                            @keyup="$event.key == 'Enter' ? $refs.cashin.select() : updateOrder()"
+                            @focus="$event.target.select();">
                     </div>
                 </div>
 
@@ -760,7 +774,7 @@ export default {
                     advance += element["advance"];
                 });
 
-                total += parseFloat(this.$refs.order_delivery.value != ""? this.$refs.order_delivery.value : 0);
+                total += parseFloat(this.$refs.order_delivery.value != "" ? this.$refs.order_delivery.value : 0);
 
                 this.$refs["subtotal"].innerText = currency(total, this.posData.currency);
                 this.$refs["order_advance"].innerText = currency(advance, this.posData.currency);
@@ -866,7 +880,8 @@ export default {
             this.$refs["order_advance"].innerText = "LKR 0.00";
             this.$refs["subtotal"].innerText = "LKR 0.00";
             this.$refs["balance"].innerText = "LKR 0.00";
-            this.$refs["order_delivery"].innerText = "LKR 0.00";
+            this.$refs["order_delivery"].value = "LKR 0.00";
+            this.$refs["order_warranty"].value = "0";
             this.paymentMethod("cash");
         },
         get_total() {
@@ -879,7 +894,7 @@ export default {
                 });
             }
 
-            price += parseFloat(this.$refs.order_delivery.value != ""? this.$refs.order_delivery.value : 0);
+            price += parseFloat(this.$refs.order_delivery.value != "" ? this.$refs.order_delivery.value : 0);
 
             return parseFloat(price);
         },
@@ -900,6 +915,7 @@ export default {
                 var cashin = this.$refs.cashin.value == "" ? 0 : this.$refs.cashin.value;
                 var repair = [];
                 var order_delivery = this.$refs.order_delivery.value == "" ? 0 : this.$refs.order_delivery.value;
+                var order_warranty = this.$refs.order_warranty.value;
 
                 if (parseFloat(cashin) < parseFloat(total) && (payment == "cash")) {
                     if (confirm('Are you sure you want to add remaining as credit?')) {
@@ -923,6 +939,7 @@ export default {
                             bill_no: repair,
                             cashin: cashin,
                             delivery: order_delivery,
+                            warranty: order_warranty,
                         }
                     }).catch(function (error) {
                         if (error.response) {
@@ -1037,13 +1054,13 @@ export default {
         },
         async PlaceOrder() {
             var total = this.$refs.total.value;
-            var model_no = this.new_bill==true? this.$refs.model_no.value : '';
-            var serial_no = this.new_bill==true? this.$refs.serial_no.value : '';
+            var model_no = this.new_bill == true ? this.$refs.model_no.value : '';
+            var serial_no = this.new_bill == true ? this.$refs.serial_no.value : '';
             var fault = this.$refs.fault.value;
             var advance = this.$refs.advance.value;
             var note = this.$refs.note.value;
             var note2 = "";
-            var customer = this.new_bill==true? this.$refs.customer.value : '';
+            var customer = this.new_bill == true ? this.$refs.customer.value : '';
             var partner = this.$refs.partner.value;
             var cashier_no = this.$refs.cashier_no.value;
             var techie = this.$refs.techie.value;

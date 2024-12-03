@@ -172,6 +172,19 @@
             <div class="total bg-grey">
                 <div class="row row-cols-2">
                     <div class="col">
+                        Warranty
+                    </div>
+                    <div class="col">
+                        <select name="" ref="order_warranty">
+                            <option value="0">No warranty</option>
+                            <option value="3">3 Months</option>
+                            <option value="6">6 Months</option>
+                            <option value="12">1 Years</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="row row-cols-2">
+                    <div class="col">
                         Delivery
                     </div>
                     <div class="col">
@@ -866,7 +879,8 @@ export default {
             this.$refs["order_advance"].innerText = "LKR 0.00";
             this.$refs["subtotal"].innerText = "LKR 0.00";
             this.$refs["balance"].innerText = "LKR 0.00";
-            this.$refs["order_delivery"].innerText = "LKR 0.00";
+            this.$refs["order_delivery"].value = "LKR 0.00";
+            this.$refs["order_warranty"].value = "0";
             this.paymentMethod("cash");
         },
         get_total() {
@@ -923,6 +937,7 @@ export default {
                 var cashin = this.$refs.cashin.value == "" ? 0 : this.$refs.cashin.value;
                 var repair = [];
                 var order_delivery = this.$refs.order_delivery.value == "" ? 0 : this.$refs.order_delivery.value;
+                var order_warranty = this.$refs.order_warranty.value;
 
                 if (parseFloat(cashin) < parseFloat(total) && (payment == "cash")) {
                     if (confirm('Are you sure you want to add remaining as credit?')) {
@@ -946,6 +961,7 @@ export default {
                             bill_no: repair,
                             cashin: cashin,
                             delivery: order_delivery,
+                            warranty: order_warranty,
                         }
                     }).catch(function (error) {
                         if (error.response) {

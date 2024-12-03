@@ -45,8 +45,12 @@
                                             <td class="text-start">{{ currency($item->advance) }}</td>
                                             <td class="text-start">{{ currency($item->total - $item->advance) }}</td>
                                             <td class="text-start">{{ currency($item->total) }}</td>
-                                            <td class="text-start">{{ getCustomer($item->customer)->phone }} ({{ getCustomer($item->customer)->name }})</td>
-                                            <td class="text-start">{{ !empty(getPartner($item->partner)->name) ? getPartner($item->partner)->phone." (".getPartner($item->partner)->company.")" : "Wefix" }}</td>
+                                            <td class="text-start">{{ getCustomer($item->customer)->phone }}
+                                                ({{ getCustomer($item->customer)->name }})
+                                            </td>
+                                            <td class="text-start">
+                                                {{ !empty(getPartner($item->partner)->name) ? getPartner($item->partner)->phone . ' (' . getPartner($item->partner)->company . ')' : 'Wefix' }}
+                                            </td>
                                             <td class="text-start">{{ count((array) json_decode($item->spares)) }}</td>
                                             <td class="text-start">{{ date('d-m-Y', strtotime($item->created_at)) }}</td>
                                             <td
@@ -58,11 +62,21 @@
                                                         data-placement="top" title="Edit product" data-original-title="Edit"
                                                         href="/dashboard/repairs/edit/{{ $item->id }}"><i
                                                             class="ri-pencil-line mr-0"></i></a>
+
                                                     <a class="badge bg-secondary mr-2" data-toggle="tooltip"
                                                         data-placement="top" title="View Invoice"
                                                         data-original-title="View Invoice" href="javascript:void(0)"
                                                         onclick="ViewInvoice('{{ printInvoice($item->invoice) }}')"><i
                                                             class="fa-regular fa-eye"></i></a>
+
+                                                    @if ($item->status == 'Delivered')
+                                                        <a class="badge bg-warning mr-2" data-toggle="tooltip"
+                                                            data-placement="top" title="Check Warranty"
+                                                            data-original-title="Check Warranty" href="javascript:void(0)"
+                                                            onclick="checkWarranty('{{ $item->warranty }}', '{{ date('Y-m-d', strtotime('+' . $item->warranty . ' months', strtotime($item->paid_at))) }}')"><i
+                                                                class="fa-solid fa-award"></i></a>
+                                                    @endif
+
                                                     <a class="badge bg-danger mr-2" data-toggle="tooltip"
                                                         data-placement="top" title="Delete product"
                                                         data-original-title="Delete" href="javascript:void(0)"
@@ -107,12 +121,23 @@
 
         function ViewInvoice(invoice) {
             if (invoice !== "") {
-                window.open("/invoice/"+invoice, "_blank");
-            }
-            else {
+                window.open("/invoice/" + invoice, "_blank");
+            } else {
                 toastr.error("Invoice not found", "Error");
             }
             return 0;
+        }
+
+        function checkWarranty(days, paid) {
+            if (days > 0) {
+                if (new Date(paid) >= new Date(paid)) {
+                    alert('Warranty for this product has expired');
+                } else {
+                    alert('This product has warranty for ' + days + ' month(s). and expires on ' + paid);
+                }
+            } else {
+                alert('This product has no warranty');
+            }
         }
     </script>
 @endsection

@@ -9,6 +9,7 @@ use App\Models\orders;
 use App\Models\posData;
 use App\Models\posUsers;
 use App\Models\Products;
+use App\Models\repairCommissions;
 use App\Models\Repairs;
 use App\Models\saveOrders;
 use Carbon\Carbon;
@@ -126,6 +127,7 @@ class PosDataController extends Controller
             $total = 0;
             $advance = 0;
             $delivery = sanitize($request['delivery']);
+            $warranty = sanitize($request['warranty']);
 
             $rand = date('d-m-Y-h-i-s') . '-' . rand(0, 9999999) . '.pdf';
             $inName = str_replace(' ', '-', str_replace('.', '-', $bill_no[0])) . '-Delivery-' . $rand;
@@ -141,7 +143,19 @@ class PosDataController extends Controller
                     "invoice" => "checkout/" . $inName,
                     "paid_at" => Carbon::now(),
                     "delivery" => $delivery,
+                    "warranty" => $warranty,
                 ]);
+
+                $rp = Repairs::where('bill_no', $id)->where('pos_code', $company->pos_code)->get(['techie', 'total', 'cost']);
+                if ($rp->count() > 0) {
+                    $com = new repairCommissions();
+                    $com->user = $rp[0]->techie;
+                    $com->amount = 0.1 * ($rp[0]->total - $rp[0]->cost);
+                    $com->status = "pending";
+                    $com->note = $id;
+                    $com->save();
+                }
+
             }
 
             $repairs = Repairs::where('bill_no', $bill_no[0])->where('pos_code', $company->pos_code)->get('customer')[0];
