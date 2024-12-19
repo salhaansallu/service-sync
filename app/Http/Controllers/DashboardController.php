@@ -181,18 +181,18 @@ class DashboardController extends Controller
         }
     }
 
-    public function listrepairs()
+    public function listrepairs(Request $request)
     {
         login_redirect('/' . request()->path());
 
         if (Auth::check() && $this->check(true)) {
 
-            if (isset($_GET['source']) && sanitize($_GET['source']) == "other") {
-                $categories = Repairs::where('pos_code', company()->pos_code)->where('type', '=', 'other')->get();
+            if ($request->path() == 'dashboard/repairs/other-repairs') {
+                $categories = Repairs::where('pos_code', company()->pos_code)->where('type', '=', 'other')->paginate(10);
                 return view('pos.list-categories')->with(['repairs' => $categories]);
             }
 
-            $categories = Repairs::where('pos_code', company()->pos_code)->where('type', '=', 'repair')->get();
+            $categories = Repairs::where('pos_code', company()->pos_code)->where('type', '=', 'repair')->paginate(10);
             return view('pos.list-categories')->with(['repairs' => $categories]);
         } else {
             return redirect('/signin');
@@ -512,7 +512,7 @@ class DashboardController extends Controller
                 $extension = $request->file('profile_pic')->getClientOriginalExtension();
                 if (in_array($extension, array('png', 'jpeg', 'jpg'))) {
                     $imageName = time() . rand(11111, 99999999) . '.' . $request->profile_pic->extension();
-                    $request->profile_pic->move(env('APP_ENV') == 'production' ? '/var/www/image.nmsware.com/user_profile/' : public_path('assets/images/user_profile'), $imageName);
+                    $request->profile_pic->move(public_path('user_profile'), $imageName);
                 } else {
                     return response(json_encode(array("error" => 1, "msg" => "Please select 'png', 'jpeg', or 'jpg' type image")));
                 }

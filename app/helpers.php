@@ -856,7 +856,7 @@ function generateInvoice($order_id, $inName, $bill_type)
                 $delivery = $temp_order->delivery;
                 $total += $temp_order->total;
                 $advance += $temp_order->advance;
-                $orders[] = array("id" => $id, "total" => $temp_order->total, "advance" => $temp_order->advance, "model" => $temp_order->model_no, 'warranty' => $temp_order->warranty);
+                $orders[] = array("id" => $id, "total" => $temp_order->total, "advance" => $temp_order->advance, "model" => $temp_order->model_no, "serial" => $temp_order->serial_no, 'warranty' => $temp_order->warranty);
             }
         }
 
@@ -869,7 +869,7 @@ function generateInvoice($order_id, $inName, $bill_type)
             $total += $temp_order->total;
             $delivery = $temp_order->delivery;
             $advance += $temp_order->advance;
-            $orders[] = array("id" => $order_id, "total" => $temp_order->total, "advance" => $temp_order->advance, "model" => $temp_order->model_no, 'warranty' => $temp_order->warranty);
+            $orders[] = array("id" => $order_id, "total" => $temp_order->total, "advance" => $temp_order->advance, "model" => $temp_order->model_no, "serial" => $temp_order->serial_no, 'warranty' => $temp_order->warranty);
         }
 
         $repairs = Repairs::where('bill_no', $order_id)->where('pos_code', $company->pos_code)->get()[0];
@@ -949,13 +949,13 @@ function generateInvoice($order_id, $inName, $bill_type)
 
     foreach ($orders as $key => $order) {
         $html .= '
-                    <tr>
-                        <td style="padding: 5px; border: 1px solid black;">' . $order["id"] . ' - ' . $order["model"] . '</td>
-                        <td style="padding: 5px; border: 1px solid black;">' . currency($order["total"], '') . '</td>
-                        <td style="padding: 5px; border: 1px solid black;">' . currency($order["advance"], '') . '</td>
-                        <td style="padding: 5px; border: 1px solid black;">' . currency($order["total"] - $order["advance"], '') . '</td>
-                    </tr>
-                ';
+            <tr>
+                <td style="padding: 5px; border: 1px solid black;">' . $order["id"] . ' - ' . $order["model"] . ' (' . $order["serial"] . ')</td>
+                <td style="padding: 5px; border: 1px solid black;">' . currency($order["total"], '') . '</td>
+                <td style="padding: 5px; border: 1px solid black;">' . currency($order["advance"], '') . '</td>
+                <td style="padding: 5px; border: 1px solid black;">' . currency($order["total"] - $order["advance"], '') . '</td>
+            </tr>
+        ';
     }
 
     if ($bill_type == "newOrder") {
@@ -1159,7 +1159,7 @@ function generateThermalInvoice($order_id, $inName, $bill_type)
                 $total += $temp_order->total;
                 $delivery = $temp_order->delivery;
                 $advance += $temp_order->advance;
-                $orders[] = array("id" => $id, "total" => $temp_order->total, "advance" => $temp_order->advance, "model" => $temp_order->model_no, 'warranty' => $temp_order->warranty);
+                $orders[] = array("id" => $id, "total" => $temp_order->total, "advance" => $temp_order->advance, "model" => $temp_order->model_no, "serial" => $temp_order->serial_no, 'warranty' => $temp_order->warranty);
             }
         }
 
@@ -1172,7 +1172,7 @@ function generateThermalInvoice($order_id, $inName, $bill_type)
             $total += $temp_order->total;
             $delivery = $temp_order->delivery;
             $advance += $temp_order->advance;
-            $orders[] = array("id" => $order_id, "total" => $temp_order->total, "advance" => $temp_order->advance, "model" => $temp_order->model_no, 'warranty' => $temp_order->warranty);
+            $orders[] = array("id" => $order_id, "total" => $temp_order->total, "advance" => $temp_order->advance, "model" => $temp_order->model_no, "serial" => $temp_order->serial_no, 'warranty' => $temp_order->warranty);
         }
 
         $repairs = Repairs::where('bill_no', $order_id)->where('pos_code', $company->pos_code)->get()[0];
@@ -1248,7 +1248,7 @@ function generateThermalInvoice($order_id, $inName, $bill_type)
     foreach ($orders as $key => $order) {
         $html .= '
                     <tr style="width: 100%;">
-                        <td style="font-size: 14px; padding-top: 5px;" colspan="4"><span style="margin-right: 5px;">' . $key + 1 . '. </span> <span style="margin-right: 10px;">' . $order["id"] . ' - ' . $order["model"] . '</span></td>
+                        <td style="font-size: 14px; padding-top: 5px;" colspan="4"><span style="margin-right: 5px;">' . $key + 1 . '. </span> <span style="margin-right: 10px;">' . $order["id"] . ' - ' . $order["model"] . ' (' . $order["serial"] . ')</span></td>
                     </tr>
                     <tr style="width: 100%;">
                         <td style="font-size: 14px; border-bottom: #8d8d8d 2px dotted;"></td>

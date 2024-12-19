@@ -168,8 +168,8 @@
                                         <i class="fa-solid fa-minus"></i><span>List TV Repairs</span>
                                     </a>
                                 </li>
-                                <li class="{{ Request::is('dashboard/repairs?source=other') ? 'active' : '' }}">
-                                    <a href="/dashboard/repairs?source=other">
+                                <li class="{{ Request::is('dashboard/repairs/other-repairs') ? 'active' : '' }}">
+                                    <a href="/dashboard/repairs/other-repairs">
                                         <i class="fa-solid fa-minus"></i><span>List Other Repairs</span>
                                     </a>
                                 </li>

@@ -4,15 +4,17 @@
     <div class="content-page">
         <div class="container-fluid add-form-list">
             @php
-            if (isset($args)) {
-                if (isset($args["error"]) && isset($args["message"])) {
-                    # code...
+                if (isset($args)) {
+                    if (isset($args['error']) && isset($args['message'])) {
+                        # code...
+                    }
                 }
-            }
 
                 if (isset($_GET['error']) && isset($_GET['message'])) {
                     echo '
-                            <div class="alert '.(sanitize($_GET['error']) == 0? 'alert-success' : 'alert-danger').' alert-dismissible fade show" role="alert">
+                            <div class="alert ' .
+                        (sanitize($_GET['error']) == 0 ? 'alert-success' : 'alert-danger') .
+                        ' alert-dismissible fade show" role="alert">
                               ' .
                         str_replace('-', ' ', sanitize($_GET['message'])) .
                         '
@@ -61,8 +63,12 @@
                     <div class="card">
                         <div class="card-header d-flex">
                             <div class="header-title row w-100">
-                                <div class="col-md-7"><h4 class="card-title text-left">Petty Cash Balance</h4></div>
-                                <div class="col-md-5"><a class="d-block text-end" href="/dashboard/petty-cash/{{ isset($id) ? $id : '' }}/list" >See all transactions</a></div>
+                                <div class="col-md-7">
+                                    <h4 class="card-title text-left">Petty Cash Balance</h4>
+                                </div>
+                                <div class="col-md-5"><a class="d-block text-end"
+                                        href="/dashboard/petty-cash/{{ isset($id) ? $id : '' }}/list">See all
+                                        transactions</a></div>
                             </div>
                         </div>
                         <div class="card-body text-center">
@@ -70,34 +76,35 @@
                                 class="fw-bold text-center my-3 {{ isset($balance) && is_numeric($balance) ? ($balance > 0 ? 'text-success' : 'text-danger') : 'text-danger' }}">
                                 {{ isset($balance) ? currency($balance) : 0.0 }}</h1>
 
-                                <form class="pt-4" action="/dashboard/petty-cash/transfer" method="POST" data-toggle="validator">
-                                    @csrf
-                                    <input type="hidden" name="model_id" value="{{ isset($id) ? $id : '' }}">
-                                    <div class="row justify-content-center">
-                                        <div class="col-md-5">
-                                            <div class="form-group">
-                                                <label>Transfer Amount <span class="text-danger">*</span></label>
-                                                <input type="text" class="form-control" placeholder="Enter Amount"
-                                                    name="amount" value="" required>
-                                                <div class="help-block with-errors"></div>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-5">
-                                            <div class="form-group">
-                                                <label>Transfer Department <span class="text-danger">*</span></label>
-                                                    <select id="" class="form-control" name="department" required>
-                                                        <option value="other">-- Select --</option>
-                                                        @foreach (getDepartments() as $item)
-                                                            <option value="{{ $item['slug'] }}">{{ $item['name'] }}
-                                                            </option>
-                                                        @endforeach
-                                                    </select>
-                                                <div class="help-block with-errors"></div>
-                                            </div>
+                            <form class="pt-4" action="/dashboard/petty-cash/transfer" method="POST"
+                                data-toggle="validator">
+                                @csrf
+                                <input type="hidden" name="model_id" value="{{ isset($id) ? $id : '' }}">
+                                <div class="row justify-content-center">
+                                    <div class="col-md-5">
+                                        <div class="form-group">
+                                            <label>Transfer Amount <span class="text-danger">*</span></label>
+                                            <input type="text" class="form-control" placeholder="Enter Amount"
+                                                name="amount" value="" required>
+                                            <div class="help-block with-errors"></div>
                                         </div>
                                     </div>
-                                    <button type="submit" class="btn btn-primary mr-2">Transfer</button>
-                                </form>
+                                    <div class="col-md-5">
+                                        <div class="form-group">
+                                            <label>Transfer Department <span class="text-danger">*</span></label>
+                                            <select id="" class="form-control" name="department" required>
+                                                <option value="other">-- Select --</option>
+                                                @foreach (getDepartments() as $item)
+                                                    <option value="{{ $item['slug'] }}">{{ $item['name'] }}
+                                                    </option>
+                                                @endforeach
+                                            </select>
+                                            <div class="help-block with-errors"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <button type="submit" class="btn btn-primary mr-2">Transfer</button>
+                            </form>
                         </div>
                     </div>
                 </div>
@@ -112,7 +119,8 @@
                                     </div>
                                 </div>
                                 <div class="card-body">
-                                    <form id="addPurchase" action="/dashboard/purchase/create" data-toggle="validator" method="POST" onsubmit="return false;">
+                                    <form id="addPurchase" action="/dashboard/purchase/create" data-toggle="validator"
+                                        method="POST" onsubmit="return false;">
                                         @csrf
                                         <input type="hidden" name="model_id" value="{{ isset($id) ? $id : '' }}">
                                         <input type="hidden" name="ajax" value="false">
@@ -145,8 +153,8 @@
                                             <div class="col-md-6">
                                                 <div class="form-group">
                                                     <label>Discount </label>
-                                                    <input type="text" class="form-control" placeholder="Enter Discount"
-                                                        name="discount" value="">
+                                                    <input type="text" class="form-control"
+                                                        placeholder="Enter Discount" name="discount" value="">
                                                     <div class="help-block with-errors"></div>
                                                 </div>
                                             </div>
@@ -181,7 +189,8 @@
                                                 </div>
                                             </div>
                                         </div>
-                                        <button type="submit" id="save_btn" class="btn btn-primary mr-2">Add purchase</button>
+                                        <button type="submit" id="save_btn" class="btn btn-primary mr-2">Add
+                                            purchase</button>
                                     </form>
                                 </div>
                             </div>
@@ -235,6 +244,52 @@
                         </div>
                     </div>
                 </div>
+
+                <div class="col-12">
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <div class="card">
+                                <div class="card-header d-flex justify-content-between">
+                                    <div class="header-title">
+                                        <h4 class="card-title">Department Credits</h4>
+                                    </div>
+                                </div>
+                                <div class="card-body">
+                                    <div class="table-responsive rounded mb-3">
+                                        <table class="data-table table mb-0 tbl-server-info">
+                                            <thead class="bg-white text-uppercase">
+                                                <tr class="ligth ligth-data">
+                                                    <th class="text-start">Department</th>
+                                                    <th class="text-start">Pending Amount</th>
+                                                    <th class="text-start">Date</th>
+                                                    <th class="text-start w-25">Action</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody class="ligth-body">
+                                                @if (isset($credits) && $credits->count() > 0)
+                                                    @foreach ($credits as $item)
+                                                        <tr>
+                                                            <td class="text-start">{{ getDepartment($item->from_dep) }}
+                                                            </td>
+                                                            <td class="text-start">{{ $item->amount }}</td>
+                                                            <td class="text-start">{{ $item->created_at }}</td>
+                                                            <td class="text-start d-flex align-items-center gap-2"><input
+                                                                    id="payInput_{{ $item->id }}" type="number"
+                                                                    value="0"
+                                                                    class="form-control w-50 d-inline"><button
+                                                                    onclick="payCredit('{{ $item->id }}', '{{ $item->from_dep }}')"
+                                                                    class="btn btn-primary mr-2 btn-sm">Pay</button></td>
+                                                        </tr>
+                                                    @endforeach
+                                                @endif
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
             <!-- Page end  -->
         </div>
@@ -258,7 +313,9 @@
                 success: function(response) {
                     if (response.error == 0) {
                         toastr.success(response.msg, 'Success');
-                        location.href="/dashboard/petty-cash/{{ isset($id) ? $id : '' }}?error=0&message="+response.msg.replaceAll(' ', '-');
+                        location.href =
+                            "/dashboard/petty-cash/{{ isset($id) ? $id : '' }}?error=0&message=" +
+                            response.msg.replaceAll(' ', '-');
                     } else {
                         toastr.error(response.msg, 'Error');
                     }
@@ -266,5 +323,30 @@
             });
             $('#save_btn').prop('disabled', false);
         });
+
+        function payCredit(id, dep) {
+            var amount = $('#payInput_' + id).val();
+            if (amount > 0) {
+                $.ajax({
+                    type: "post",
+                    url: '/dashboard/department-credit/pay',
+                    data: {id: id, amount: amount, from_dep: dep, current_dep: '{{ isset($id)? $id : '' }}', _token: '{{ csrf_token() }}'},
+                    dataType: "json",
+
+                    success: function(response) {
+                        if (response.error == 0) {
+                            toastr.success(response.message, 'Success');
+                            setTimeout(() => {
+                                location.reload();
+                            }, 2000);
+                        } else {
+                            toastr.error(response.message, 'Error');
+                        }
+                    }
+                });
+            } else {
+                toastr.error("Please enter amount grater than 0", 'Error');
+            }
+        }
     </script>
 @endsection

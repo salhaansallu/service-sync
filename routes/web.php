@@ -157,6 +157,7 @@ Route::prefix('dashboard')->group(function () {
     Route::delete('/products/delete', [ProductsController::class, 'destroy']);
 
     Route::get('repairs', [DashboardController::class, 'listrepairs']);
+    Route::get('repairs/other-repairs', [DashboardController::class, 'listrepairs']);
     Route::get('/repairs/edit/{id}', [RepairsController::class, 'edit']);
     Route::post('/repairs/edit', [RepairsController::class, 'update']);
     Route::delete('/repairs/delete', [RepairsController::class, 'destroy']);
@@ -210,6 +211,7 @@ Route::prefix('dashboard')->group(function () {
     Route::post('/petty-cash/reload', [PurchasesController::class, 'addPattyCash']);
     Route::post('/petty-cash/transfer', [PurchasesController::class, 'transferPattyCash']);
     Route::get('/petty-cash/{id}/list', [PurchasesController::class, 'listPettyCash']);
+    Route::post('/department-credit/pay', [PurchasesController::class, 'payDepartmentCredit']);
 
     // Route::get('returns', [DashboardController::class, 'listPurchses']);
     // Route::get('returns/create', [DashboardController::class, 'createPurchse']);
@@ -253,12 +255,12 @@ Route::prefix('dashboard')->group(function () {
     Route::get('credits', [CreditController::class, 'index']);
     Route::post('/credits/get-credits', [CreditController::class, 'getCredits']);
     Route::post('/credits/pay-credit', [CreditController::class, 'payCredit']);
-    
+
     Route::get('invoice-settings', [DashboardController::class, 'InvoiceSettings']);
     Route::post('invoice-settings', [POSSettingsController::class, 'update']);
 
     Route::post('sms/get-balance', [POSSettingsController::class, 'getSMSBalance']);
-    
+
     Route::get('sms', [SMSController::class, 'index']);
     Route::post('sms/send', [SMSController::class, 'send']);
 });

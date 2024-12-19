@@ -401,16 +401,6 @@
                                         </select>
                                     </div>
                                 </div>
-                                <div class="col-12 mt-3">
-                                    <div class="input">
-                                        <label for="" class="mb-1">Technician</label>
-                                        <select ref="techie" name="" class="select2-multiple">
-                                            <option value=""></option>
-                                            <option v-for="cashier in cashiers" :value="cashier.user_id">{{
-                                                cashier.fname }}</option>
-                                        </select>
-                                    </div>
-                                </div>
 
                                 <div class="input mt-3">
                                     <label for="" class="mb-1">Note</label>
@@ -532,6 +522,17 @@
                                 <div class="input">
                                     <label for="" class="mb-1">Note</label>
                                     <textarea ref="finish_note" name="" rows="4" placeholder="Note"></textarea>
+                                </div>
+                            </div>
+
+                            <div class="col-6 mt-3">
+                                <div class="input">
+                                    <label for="" class="mb-1">Technician</label>
+                                    <select ref="techie" name="" class="select2-multiple">
+                                        <option value=""></option>
+                                        <option v-for="cashier in cashiers" :value="cashier.user_id">{{
+                                            cashier.fname }}</option>
+                                    </select>
                                 </div>
                             </div>
 
@@ -979,6 +980,7 @@ export default {
                 var total = this.$refs.finish_total.value;
                 var note = this.$refs.finish_note.value;
                 var status = this.$refs.finish_status.value;
+                var techie = this.$refs.techie.value;
                 var sparePro = [];
                 var service_cost = 0;
 
@@ -989,6 +991,11 @@ export default {
 
                 if (status.trim() == "") {
                     toastr.error("Please select a status", "Error");
+                    return;
+                }
+
+                if (techie.trim() == "") {
+                    toastr.error("Please select technician", "Error");
                     return;
                 }
 
@@ -1027,6 +1034,7 @@ export default {
                     note: note,
                     spares: sparePro,
                     service_cost: service_cost,
+                    techie: techie,
                     status: status,
 
                 }).catch(function (error) {
@@ -1040,6 +1048,7 @@ export default {
                     toastr.success(data.msg, "Success");
                     this.getRepairs();
                     this.reloadPOS();
+                    $(this.$refs.techie).val("").trigger("change");
                 }
                 else {
                     this.loadModal("hide");
@@ -1063,7 +1072,6 @@ export default {
             var customer = this.new_bill == true ? this.$refs.customer.value : '';
             var partner = this.$refs.partner.value;
             var cashier_no = this.$refs.cashier_no.value;
-            var techie = this.$refs.techie.value;
             var bill_type = this.$refs.bill_type.value;
             var parent_bill_no = this.new_bill == false ? this.$refs.parent_bill_no.value : '';
             var new_order_qty = this.$refs.new_order_qty.value;
@@ -1080,11 +1088,6 @@ export default {
                     toastr.error("Invalid cashier code", "Error");
                     return;
                 }
-            }
-
-            if (techie.trim() == "") {
-                toastr.error("Please select technician", "Error");
-                return;
             }
 
             if (this.new_bill) {
@@ -1132,7 +1135,6 @@ export default {
                 customer: customer,
                 partner: partner,
                 cashier_no: cashier_no,
-                techie: techie,
                 bill_type: bill_type,
                 parent_bill_no: parent_bill_no,
                 new_order_qty: new_order_qty
@@ -1160,7 +1162,6 @@ export default {
                 }
                 this.$refs.techie.value = "";
                 this.$refs.partner.value = "";
-                $(this.$refs.techie).val("").trigger("change");
                 $(this.$refs.partner).val("").trigger("change");
                 this.new_bill = true;
                 this.$refs.total.value = "0";

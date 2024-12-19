@@ -14,12 +14,13 @@
                 </div>
                 <div class="col-lg-12">
                     <div class="table-responsive rounded mb-3">
-                        <table class="data-table table mb-0 tbl-server-info">
+                        <table class="data-table table mb-0 tbl-server-info" data-order="[3]">
                             <thead class="bg-white text-uppercase">
                                 <tr class="ligth ligth-data">
                                     <th class="text-start">Amount</th>
                                     <th class="text-start">Note</th>
                                     <th class="text-start">Department</th>
+                                    <th class="text-start">Date</th>
                                 </tr>
                             </thead>
                             <tbody class="ligth-body">
@@ -29,6 +30,7 @@
                                     <td class="text-start">{{ $item->amount }}</td>
                                     <td class="text-start">{{ $item->note }}</td>
                                     <td class="text-start">{{ getDepartment($item->department) }}</td>
+                                    <td class="text-start">{{ $item->created_at }}</td>
                                 </tr>
                                 @endforeach
                                 @endif

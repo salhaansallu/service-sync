@@ -130,6 +130,7 @@ class RepairsController extends Controller
             $spares = $request->input('spares');
             $service_cost = $request->input('service_cost');
             $status = sanitize($request->input('status'));
+            $techie = sanitize($request->input('techie'));
             $parts = [];
             $cost = 0;
 
@@ -191,7 +192,7 @@ class RepairsController extends Controller
 
             $update =  Repairs::where('bill_no', $bill_no)->where('pos_code', company()->pos_code);
 
-            if ($update->update(["note" => $note, "status" => $status, "total" => $total, "cost" => $cost, "spares" => json_encode($parts)])) {
+            if ($update->update(["note" => $note, "techie" => $techie, "status" => $status, "total" => $total, "cost" => $cost, "spares" => json_encode($parts)])) {
 
                 $customerData = customers::where('pos_code', company()->pos_code)->where('id', $update->get()[0]["customer"])->get();
                 $sms = new SMS();
@@ -267,7 +268,6 @@ class RepairsController extends Controller
                 $customer = sanitize($request->input('customer'));
                 $partner = sanitize($request->input('partner'));
                 $cashier_no = sanitize($request->input('cashier_no'));
-                $techie = sanitize($request->input('techie'));
                 $bill_type = sanitize($request->input('bill_type'));
                 $parent_bill_no = sanitize($request->input('parent_bill_no'));
                 $new_order_qty = sanitize($request->input('new_order_qty'));
@@ -326,7 +326,7 @@ class RepairsController extends Controller
                             $repair->customer = $customer;
                             $repair->partner = $partner == "" ? 0 : $partner;
                             $repair->cashier = $cashier_no;
-                            $repair->techie = $techie;
+                            $repair->techie = '';
                             $repair->status = "Pending";
                             $repair->parent = $bill_type == 'new-order' ? NULL : $parent_bill_no;
 

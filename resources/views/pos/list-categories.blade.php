@@ -91,10 +91,16 @@
                         </table>
                     </div>
                 </div>
+                <div class="col-12">
+                    <div class="d-flex justify-content-end py-5">
+                        {{ $repairs->links() }}
+                    </div>
+                </div>
             </div>
             <!-- Page end  -->
         </div>
     </div>
+
     <script>
         function deleteProduct(id) {
             if (confirm('Are you sure you want to delete?')) {
@@ -130,7 +136,7 @@
 
         function checkWarranty(days, paid) {
             if (days > 0) {
-                if (new Date(paid) >= new Date(paid)) {
+                if (new Date() >= new Date(paid)) {
                     alert('Warranty for this product has expired');
                 } else {
                     alert('This product has warranty for ' + days + ' month(s). and expires on ' + paid);

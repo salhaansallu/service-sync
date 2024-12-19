@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\departmentCredits;
 use App\Models\pettyCash;
 use App\Models\Purchases;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class PurchasesController extends Controller
 {
@@ -24,9 +26,10 @@ class PurchasesController extends Controller
 
             if (!empty($id) && verifyDepartment($id)) {
                 $purchases = Purchases::where('pos_code', company()->pos_code)->where('department', $id)->get();
+                $credits = departmentCredits::where('department', $id)->where('amount', '>', '0')->get();
                 $balance = pettyCash::where('pos_code', company()->pos_code)->where('department', $id)->sum('balance');
 
-                return view('pos.add-petty-cash')->with(['purchases' => $purchases, 'balance' => $balance, 'id' => $id, 'args' => $args]);
+                return view('pos.add-petty-cash')->with(['purchases' => $purchases, 'balance' => $balance, 'credits' => $credits, 'id' => $id, 'args' => $args]);
             }
 
             return display404();
@@ -71,6 +74,12 @@ class PurchasesController extends Controller
                     $pettycash->pos_code = company()->pos_code;
                     $pettycash->note = "Transfer fund to " . getDepartment($dep) . " From " . getDepartment($id);
                     $pettycash->save();
+
+                    $credit = new departmentCredits();
+                    $credit->department = $dep;
+                    $credit->from_dep = $id;
+                    $credit->amount = $amount;
+                    $credit->save();
 
                     return redirect('/dashboard/petty-cash/' . $id . '?error=0&message=Fund-transfer-successfull');
                 }
@@ -126,6 +135,45 @@ class PurchasesController extends Controller
             }
 
             return redirect('/dashboard/petty-cash/' . $id . '?error=1&message=Error-while-saving-petty-cash');
+        }
+        return redirect('/signin');
+    }
+
+    public function payDepartmentCredit(Request $request)
+    {
+        if (Auth::check() && DashboardController::check()) {
+            $amount = sanitize($request->input('amount'));
+            $id = sanitize($request->input('id'));
+            $dep = sanitize($request->input('from_dep'));
+            $currentdep = sanitize($request->input('current_dep'));
+
+            $creditTotal = departmentCredits::where('id', $id)->sum('amount');
+            if ($creditTotal > 0) {
+                $minus = $creditTotal - $amount > 0 ? $creditTotal - $amount : 0;
+                $payCredit = departmentCredits::where('id', $id)->update(['amount' => ($minus)]);
+
+                if ($payCredit) {
+                    $payBack = new pettyCash();
+                    $payBack->department = $dep;
+                    $payBack->amount = $creditTotal > $amount ? $amount : $creditTotal;
+                    $payBack->balance = $creditTotal > $amount ? $amount : $creditTotal;
+                    $payBack->pos_code = company()->pos_code;
+                    $payBack->note = "Credit payback";
+                    $payBack->save();
+
+                    $pettycash = new pettyCash();
+                    $pettycash->department = $currentdep;
+                    $pettycash->amount = $creditTotal > $amount ? -$amount : -$creditTotal;
+                    $pettycash->balance = $creditTotal > $amount ? -$amount : -$creditTotal;
+                    $pettycash->pos_code = company()->pos_code;
+                    $pettycash->note = "Credit pay minus";
+                    $pettycash->save();
+
+                    return response(json_encode(["error" => 0, "message" => "Credit paid"]));
+                }
+            }
+
+            return response(json_encode(["error" => 1, "message" => "Error while paying credit"]));
         }
         return redirect('/signin');
     }
