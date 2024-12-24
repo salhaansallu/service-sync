@@ -186,13 +186,35 @@ class DashboardController extends Controller
         login_redirect('/' . request()->path());
 
         if (Auth::check() && $this->check(true)) {
+            $categories = [];
 
             if ($request->path() == 'dashboard/repairs/other-repairs') {
-                $categories = Repairs::where('pos_code', company()->pos_code)->where('type', '=', 'other')->paginate(10);
+                if ($request->has('s')) {
+                    $s = sanitize($request->input('s'));
+                    $categories = Repairs::where('pos_code', company()->pos_code)->where('type', '=', 'other')->when($s, function($qry, $s) {
+                        return $qry->where('bill_no', 'like', "%{$s}%")
+                        ->orWhere('model_no', 'like', "%{$s}%")
+                        ->orWhere('serial_no', 'like', "%{$s}%");
+                    })->paginate(100000);
+                } else {
+                    $categories = Repairs::where('pos_code', company()->pos_code)->where('type', '=', 'other')->paginate(10);
+                }
+
                 return view('pos.list-categories')->with(['repairs' => $categories]);
             }
 
-            $categories = Repairs::where('pos_code', company()->pos_code)->where('type', '=', 'repair')->paginate(10);
+            $categories = [];
+            if ($request->has('s')) {
+                $s = sanitize($request->input('s'));
+                $categories = Repairs::where('pos_code', company()->pos_code)->where('type', '=', 'repair')->when($s, function($qry, $s) {
+                    return $qry->where('bill_no', 'like', "%{$s}%")
+                    ->orWhere('model_no', 'like', "%{$s}%")
+                    ->orWhere('serial_no', 'like', "%{$s}%");
+                })->paginate(100000);
+            } else {
+                $categories = Repairs::where('pos_code', company()->pos_code)->where('type', '=', 'repair')->paginate(10);
+            }
+
             return view('pos.list-categories')->with(['repairs' => $categories]);
         } else {
             return redirect('/signin');
@@ -205,7 +227,7 @@ class DashboardController extends Controller
 
         if (Auth::check() && $this->check(true)) {
             $company = company();
-            $results = DB::select('select quotations.total AS quote_total, quotations.id AS q_id, quotations.*, repairs.* from quotations, repairs WHERE quotations.bill_no = repairs.bill_no AND quotations.pos_code = "'.$company->pos_code.'" AND repairs.pos_code = "'.$company->pos_code.'" ORDER BY quotations.id DESC');
+            $results = DB::select('select quotations.total AS quote_total, quotations.id AS q_id, quotations.*, repairs.* from quotations, repairs WHERE quotations.bill_no = repairs.bill_no AND quotations.pos_code = "' . $company->pos_code . '" AND repairs.pos_code = "' . $company->pos_code . '" ORDER BY quotations.id DESC');
             return view('pos.list-quotations')->with(['quotations' => $results]);
         } else {
             return redirect('/signin');
@@ -270,11 +292,11 @@ class DashboardController extends Controller
         if (Auth::check() && $this->check(true)) {
 
             $result = DB::table('spare_sale_histories')
-            ->select('spare_id', 'spare_code', 'spare_name', DB::raw('SUM(qty) as total_sold'), DB::raw('SUM(qty*cost) as total_revenew'))
-            ->where('pos_code', company()->pos_code) // filter by POS code if necessary
-            ->whereDate('created_at', '=', Carbon::today()) // filter by date range
-            ->groupBy('spare_id', 'spare_name') // group by unique item
-            ->get();
+                ->select('spare_id', 'spare_code', 'spare_name', DB::raw('SUM(qty) as total_sold'), DB::raw('SUM(qty*cost) as total_revenew'))
+                ->where('pos_code', company()->pos_code) // filter by POS code if necessary
+                ->whereDate('created_at', '=', Carbon::today()) // filter by date range
+                ->groupBy('spare_id', 'spare_name') // group by unique item
+                ->get();
 
             return view('pos.spare-report')->with(['reports' => json_encode($result)]);
         } else {

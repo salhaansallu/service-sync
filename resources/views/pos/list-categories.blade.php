@@ -14,9 +14,15 @@
                         {{-- <a href="/dashboard/repaid/create" class="btn btn-primary add-list"><i class="fa-solid fa-plus mr-3"></i>Add Category</a> --}}
                     </div>
                 </div>
+                <div class="col-12 py-4">
+                    <form action="" method="get" class="d-flex gap-2">
+                        <input type="search" name="s" placeholder="Search here..." class="form-control" style="width: 200px;">
+                        <button class="btn btn-primary"><i class="fa-solid fa-search" aria-hidden="true"></i></button>
+                    </form>
+                </div>
                 <div class="col-lg-12">
                     <div class="table-responsive rounded mb-3">
-                        <table class="data-table table mb-0 tbl-server-info">
+                        <table class="table mb-0 tbl-server-info">
                             <thead class="bg-white text-uppercase">
                                 <tr class="ligth ligth-data">
                                     <th class="text-start">Bill No</th>
