@@ -16,30 +16,20 @@
                         <table class="data-table table mb-0 tbl-server-info">
                             <thead class="bg-white text-uppercase">
                                 <tr class="ligth ligth-data">
-                                    <th class="text-start">First Name</th>
-                                    <th class="text-start">Last Name</th>
-                                    <th class="text-start">Commission</th>
-                                    <th class="text-start" style="width: 150px;">Action</th>
+                                    <th class="text-start">Amount</th>
+                                    <th class="text-start">Status</th>
+                                    <th class="text-start">Note</th>
+                                    <th class="text-start">Date</th>
                                 </tr>
                             </thead>
                             <tbody class="ligth-body">
                                 @if ($results && count($results) > 0)
                                     @foreach ($results as $item)
                                         <tr>
-                                            <td class="text-start"><a href="/dashboard/repair-commissions/list/{{ $item->id }}">{{ $item->fname }}</a></td>
-                                            <td class="text-start">{{ $item->lname }}</td>
-                                            <td class="text-start">{{ currency($item->commission) }}</td>
-                                            <td class="text-start">
-                                                <div class="d-flex align-items-center list-action justify-content-start">
-                                                    @if ($item->commission > 0)
-                                                        <a class="badge bg-success mr-2" data-toggle="tooltip"
-                                                            data-placement="top" title="Mark as Paid"
-                                                            onclick="markPaid({{ $item->id }})"
-                                                            data-original-title="Mark as Paid" href="javascript:void(0)"><i
-                                                                class="fa-solid fa-check"></i> Mark as paid</a>
-                                                    @endif
-                                                </div>
-                                            </td>
+                                            <td class="text-start">{{ $item->amount }}</td>
+                                            <td class="text-start text-capitalize">{{ $item->status }}</td>
+                                            <td class="text-start">{{ $item->note }}</td>
+                                            <td class="text-start">{{ $item->created_at }}</td>
                                         </tr>
                                     @endforeach
                                 @endif

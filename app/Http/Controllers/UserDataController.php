@@ -49,6 +49,18 @@ class UserDataController extends Controller
         return redirect('/signin');
     }
 
+    public function listRepairCommision($id)
+    {
+        if (Auth::check() && DashboardController::check(true)) {
+
+            $commision = repairCommissions::where('user', $id)->get();
+
+            return view('pos.list-repair-commission-history')->with(["results" => $commision]);
+        }
+
+        return redirect('/signin');
+    }
+
     public function updateRepairCommisions(Request $request)
     {
         if (Auth::check() && DashboardController::check(true)) {
@@ -93,7 +105,7 @@ class UserDataController extends Controller
 
         if (Auth::check()) {
             $request = $request->input('params');
-            
+
             foreach ($request as $val) {
                 if (empty($val)) {
                     return array("error"=>1, "msg"=>"All fields are required");
@@ -138,7 +150,7 @@ class UserDataController extends Controller
             else {
                 $pos_code = rand(1000000, 9999999999).date('dmYhis').rand(1000, 9999);
                 posData::insert([
-                    "pos_code" => $pos_code,  
+                    "pos_code" => $pos_code,
                     "admin_id" => Auth::user()->id,
                     "company_name" => sanitize($request['cname']),
                     "industry" => sanitize($request['industry']),
@@ -298,7 +310,7 @@ class UserDataController extends Controller
                 $userData->user_id = $user_id[0]->id;
                 $userData->pos_code = company()->pos_code;
                 $userData->cashier_code = $code;
-                
+
                 if ($userData->save()) {
                     return response(json_encode(array("error" => 0, "msg" => "User Created Successfully")));
                 }
@@ -340,5 +352,5 @@ class UserDataController extends Controller
             }
             return response(json_encode(array("error" => 1, "msg" => "Sorry! something went wrong")));
         }
-    }   
+    }
 }

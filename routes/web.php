@@ -162,6 +162,7 @@ Route::prefix('dashboard')->group(function () {
     Route::post('/repairs/edit', [RepairsController::class, 'update']);
     Route::delete('/repairs/delete', [RepairsController::class, 'destroy']);
 
+    Route::get('repair-commissions/list/{id}', [UserDataController::class, 'listRepairCommision']);
     Route::get('repair-commissions/list', [UserDataController::class, 'listRepairCommisions']);
     Route::post('repair-commissions/update', [UserDataController::class, 'updateRepairCommisions']);
 
