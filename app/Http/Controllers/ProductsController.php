@@ -64,6 +64,18 @@ class ProductsController extends Controller
         return response(json_encode(array('error' => 1, 'msg' => 'not_logged_in')));
     }
 
+    public function stockReport(Request $request)
+    {
+        if (DashboardController::check()) {
+            $stock = Products::sum('qty');
+            $items = Products::count();
+            $costs = Products::sum('cost');
+            return view('pos.stock-report', ['stock'=>$stock, 'items'=>$items, 'costs' => $costs]);
+        }
+
+        return redirect('/signin');
+    }
+
     public function removeFavourits(Request $request)
     {
         if (PosDataController::check()) {
