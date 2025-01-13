@@ -135,6 +135,10 @@
                             <div class="col-1 form-text mt-0 d-flex align-items-center control-text-overflow"
                                 style="width: 200px;"><span :class="'badge bg-' + getStatus(repair.status)">{{
                                     repair.status }}</span></div>
+
+                            <div class="col-1 form-text mt-0 d-flex align-items-center control-text-overflow"
+                                style="width: 50px;" v-if="bulkInvoiceList.includes(repair.bill_no)"><i
+                                    class="fa-solid fa-print"></i></div>
                         </div>
                         <div class="context_menu" :id="'order_wrap_' + repair.bill_no" style="display: none;">
                             <ul>
@@ -153,7 +157,12 @@
                                         href="javascript:void(0)" @click="selectProduct(repair.bill_no)">Checkout
                                         Order</a></li>
 
-                                <li v-if="repair.status == 'Delivered'"><a href="javascript:void(0)">Re-service</a></li>
+                                <!-- <li v-if="repair.status == 'Delivered'"><a href="javascript:void(0)">Re-service</a></li> -->
+                                <li v-if="repair.status == 'Pending'"><a href="javascript:void(0)"
+                                        @click="bulkInvoiceSelect(repair.bill_no)">{{ bulkInvoiceList.includes(repair.bill_no)? 'Remove From' : 'Select For' }} Bulk Invoicing</a></li>
+
+                                <li v-if="bulkInvoiceList.length > 0"><a href="javascript:void(0)"
+                                    @click="bulkInvoicePrint()">Print all selected invoice</a></li>
                             </ul>
                         </div>
                     </div>
@@ -666,6 +675,7 @@ export default {
             isDisabled: false,
             cashiers: [],
             new_bill: true,
+            bulkInvoiceList: [],
         }
     },
     methods: {
@@ -907,6 +917,35 @@ export default {
             this.$refs.cash.classList.remove("active");
             this.$refs.credit.classList.remove("active");
             method != "" ? this.$refs[method].classList.add("active") : this.paymentMod = '';
+        },
+        bulkInvoiceSelect(bill_no) {
+            if (this.bulkInvoiceList.includes(bill_no)) {
+                const index = this.bulkInvoiceList.indexOf(bill_no);
+                if (index > -1) {
+                    this.bulkInvoiceList.splice(index, 1);
+                }
+            }
+            else {
+                this.bulkInvoiceList.push(bill_no);
+            }
+        },
+        async bulkInvoicePrint() {
+            if (this.bulkInvoiceList.length <= 0) {
+                toastr.error("Please select invoice to print", "Error");
+                return;
+            }
+
+            const { data } = await axios.post("/pos/bulk-print", {
+                invoice: this.bulkInvoiceList
+            });
+
+            if (data.error == 0) {
+                printJS(data.url);
+                this.bulkInvoiceList = [];
+            }
+            else {
+                toastr.error("Error generating invoice", "Error");
+            }
         },
         async FilterRepairs() {
             var fromDate = this.$refs.ordersFromDate.value;

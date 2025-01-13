@@ -106,6 +106,7 @@ Route::post('/pos/get_partners', [PartnersController::class, 'getPartners']);
 Route::post('/pos/get_cashiers', [PosDataController::class, 'getCashiers']);
 Route::post('/pos/pos_data', [PosDataController::class, 'getPosData']);
 Route::post('/pos/get_spares', [ProductsController::class, 'getSpares']);
+Route::post('/pos/bulk-print', [DashboardController::class, 'generateInvoice']);
 //Route::post('/pos/get_favourits', [ProductsController::class, 'getFavourits']);
 //Route::post('/pos/add-favourits', [ProductsController::class, 'addFavourits']);
 //Route::post('/pos/remove-favourits', [ProductsController::class, 'removeFavourits']);

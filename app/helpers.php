@@ -980,7 +980,7 @@ function generateInvoice($order_id, $inName, $bill_type)
                     </tr>
                 </table>
             </div>
-    ';
+        ';
         $html .= '
             <!-- Checking Charges -->
             <div>
@@ -1247,16 +1247,16 @@ function generateThermalInvoice($order_id, $inName, $bill_type)
 
     foreach ($orders as $key => $order) {
         $html .= '
-                    <tr style="width: 100%;">
-                        <td style="font-size: 14px; padding-top: 5px;" colspan="4"><span style="margin-right: 5px;">' . $key + 1 . '. </span> <span style="margin-right: 10px;">' . $order["id"] . ' - ' . $order["model"] . ' (' . $order["serial"] . ')</span></td>
-                    </tr>
-                    <tr style="width: 100%;">
-                        <td style="font-size: 14px; border-bottom: #8d8d8d 2px dotted;"></td>
-                        <td style="font-size: 14px; border-bottom: #8d8d8d 2px dotted;"><div style="margin-left: 5px;">' . currency($order["total"], '') . '</div></td>
-                        <td style="font-size: 14px; text-align: center;border-bottom: #8d8d8d 2px dotted;">' . currency($order["advance"], '') . '</td>
-                        <td style="font-size: 14px; text-align: right;border-bottom: #8d8d8d 2px dotted;">' . currency($order["total"] - $order["advance"], '') . '</td>
-                    </tr>
-                ';
+            <tr style="width: 100%;">
+                <td style="font-size: 14px; padding-top: 5px;" colspan="4"><span style="margin-right: 5px;">' . $key + 1 . '. </span> <span style="margin-right: 10px;">' . $order["id"] . ' - ' . $order["model"] . ' (' . $order["serial"] . ')</span></td>
+            </tr>
+            <tr style="width: 100%;">
+                <td style="font-size: 14px; border-bottom: #8d8d8d 2px dotted;"></td>
+                <td style="font-size: 14px; border-bottom: #8d8d8d 2px dotted;"><div style="margin-left: 5px;">' . currency($order["total"], '') . '</div></td>
+                <td style="font-size: 14px; text-align: center;border-bottom: #8d8d8d 2px dotted;">' . currency($order["advance"], '') . '</td>
+                <td style="font-size: 14px; text-align: right;border-bottom: #8d8d8d 2px dotted;">' . currency($order["total"] - $order["advance"], '') . '</td>
+            </tr>
+        ';
     }
 
     if ($bill_type == "newOrder" && $repairs->type != "other") {
@@ -1311,18 +1311,6 @@ function generateThermalInvoice($order_id, $inName, $bill_type)
                     <td style="font-size: 14px; text-align: right;">5,000.00</td>
                 </tr>
             </table>
-
-            <div style="border-top: 1px solid #000; margin-top: 10px;">
-                <p style="font-size: 12px; margin: 10px 0; text-align: center;">
-                    By agreeing to these terms, you acknowledge and accept these conditions:
-                </p>
-                <p style="font-size: 12px; margin: 10px 0; text-align: center;">
-                    If you retrieve your item before the repair is completed, you must still pay the repair charges.
-                </p>
-                <p style="font-size: 12px; margin: 10px 0; text-align: center;">
-                    The company is not responsible for items not collected within 14 days after repair.
-                </p>
-            </div>
         ';
     }
     else {
@@ -1350,8 +1338,23 @@ function generateThermalInvoice($order_id, $inName, $bill_type)
         ';
     }
 
-    $html .= '
+    if ($bill_type == "newOrder") {
+        $html .= '
+            <div style="border-top: 1px solid #000; margin-top: 10px;">
+                <p style="font-size: 12px; margin: 10px 0; text-align: center;">
+                    By agreeing to these terms, you acknowledge and accept these conditions:
+                </p>
+                <p style="font-size: 12px; margin: 10px 0; text-align: center;">
+                    If you retrieve your item before the repair is completed, you must still pay the repair charges.
+                </p>
+                <p style="font-size: 12px; margin: 10px 0; text-align: center;">
+                    The company is not responsible for items not collected within 14 days after repair.
+                </p>
+            </div>
+        ';
+    }
 
+    $html .= '
         <p style="font-size: 12px; text-align: left;font-weight: bold; border-bottom: 1px solid #000;">PDF Invoice</p>
 
         <table style="width: 100%; border-collapse: collapse;">

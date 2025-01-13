@@ -613,4 +613,18 @@ class DashboardController extends Controller
             return view('pos.bill-settings')->with(['settings' => POSSettings()]);
         }
     }
+
+    public function generateInvoice(Request $request)
+    {
+        if (Auth::check() && $this->check()) {
+            $tempBill = 'temp-bulk-invoice';
+            $invoice = generateThermalInvoice($request->input('invoice'), $tempBill, 'newOrder');
+
+            if ($invoice->generated == true) {
+                return response(json_encode(array("error" => 0, "msg" => "Invoice generated successfully", "url"=>$invoice->url)));
+            }
+        }
+
+        return response(json_encode(array("error" => 1, "msg" => "Error generating invoice")));
+    }
 }
