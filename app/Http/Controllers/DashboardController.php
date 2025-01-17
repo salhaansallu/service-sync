@@ -227,7 +227,7 @@ class DashboardController extends Controller
 
         if (Auth::check() && $this->check(true)) {
             $company = company();
-            $results = DB::select('select quotations.total AS quote_total, quotations.id AS q_id, quotations.*, repairs.* from quotations, repairs WHERE quotations.bill_no = repairs.bill_no AND quotations.pos_code = "' . $company->pos_code . '" AND repairs.pos_code = "' . $company->pos_code . '" ORDER BY quotations.id DESC');
+            $results = DB::select('select quotations.total AS quote_total, quotations.bill_no AS quote_bill, quotations.id AS q_id, quotations.*, repairs.* from quotations, repairs WHERE (quotations.bill_no = repairs.bill_no OR quotations.bill_no = "custom") AND quotations.pos_code = "' . $company->pos_code . '" AND repairs.pos_code = "' . $company->pos_code . '" GROUP BY quotations.q_no ORDER BY quotations.id DESC');
             return view('pos.list-quotations')->with(['quotations' => $results]);
         } else {
             return redirect('/signin');

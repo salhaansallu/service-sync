@@ -36,6 +36,7 @@
                                             <label>Bill No <span class="text-danger">*</span></label>
                                             <select name="bill_no" class="form-control" required>
                                                 <option value="">-- Select Repair Bill --</option>
+                                                <option value="custom "@if (isset($quotation) && $quotation->bill_no == "custom") selected @endif>Custom Quotation</option>
                                                 @foreach ($bills as $bill)
                                                     <option @if (isset($quotation) && $quotation->bill_no == $bill->bill_no) selected @endif
                                                         value="{{ $bill->bill_no }}">{{ $bill->bill_no }} -

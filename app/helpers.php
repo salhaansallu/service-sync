@@ -2136,7 +2136,14 @@ function generateQuotation($q_no)
         exit;
     }
 
-    $repair = Repairs::where('bill_no', $quotation->bill_no)->where('pos_code', $company->pos_code)->first();
+    $repair = null;
+
+    if($quotation->bill_no != "custom") {
+        $repair = Repairs::where('bill_no', $quotation->bill_no)->where('pos_code', $company->pos_code)->first();
+    }
+    else {
+        $repair = (object)["customer"=>0, "bill_no"=>"New Order", "fault"=>"N/A", "total"=>0, "advance"=>0];
+    }
 
     if ($repair == null) {
         exit;
@@ -2283,8 +2290,6 @@ function generateQuotation($q_no)
                     </td>
                 </tr>
             </table>
-
-
 
             <p style="margin-top: 20px;"><strong>Bank Details:</strong></p>
 
