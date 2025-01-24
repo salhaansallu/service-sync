@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('q_no');
             $table->string('bill_no');
+            $table->text('products')->nullable();
             $table->float('total');
             $table->string('cargo_type');
             $table->timestamp('expiry_date')->nullable();

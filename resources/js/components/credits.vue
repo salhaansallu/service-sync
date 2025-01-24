@@ -245,7 +245,7 @@ export default {
             setTimeout(function () {
                 $("#loadingModal").modal('hide');
             }, 1000);
-            
+
         }
     },
     beforeMount() {

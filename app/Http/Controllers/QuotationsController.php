@@ -35,12 +35,15 @@ class QuotationsController extends Controller
     public function store(Request $request)
     {
         if (Auth::check() && DashboardController::check(true)) {
-            $q_no = sanitize($request->input('q_no'));
+            $q_no = 10001;
             $bill_no = sanitize($request->input('bill_no'));
             $total = sanitize($request->input('total'));
             $cargo_type = sanitize($request->input('cargo_type'));
             $expiry_date = sanitize($request->input('expiry_date'));
             $delivery_date = sanitize($request->input('delivery_date'));
+
+            $getQNo = quotations::orderBy('id', 'DESC')->first();
+            $q_no = $getQNo && $getQNo->count() > 0 ? (int)$getQNo->q_no + 1 : 10001;
 
             if (empty($q_no)) {
                 return response(json_encode(array("error" => 1, "msg" => "Please Fill All Fields")));
@@ -55,9 +58,26 @@ class QuotationsController extends Controller
                 return response(json_encode(array("error" => 1, "msg" => "Please use only numbers for total")));
             }
 
+            $data = [];
+
+            for ($i=1; $i < 11; $i++) {
+                if (!is_numeric(sanitize($request->input('price_'.$i)))) {
+                    return response(json_encode(array("error" => 3, "product" => $i, "msg" => "Please use only numbers for price of product ".$i)));
+                    break;
+                }
+
+                array_push($data, [
+                    "model_no" => sanitize($request->input('model_no_'.$i)),
+                    "serial_no" => sanitize($request->input('serial_no_'.$i)),
+                    "fault" => sanitize($request->input('fault_'.$i)),
+                    "price" => sanitize($request->input('price_'.$i)),
+                ]);
+            }
+
             $partner = new quotations();
             $partner->q_no = $q_no;
             $partner->bill_no = $bill_no;
+            $partner->products = json_encode($data);
             $partner->cargo_type = $cargo_type;
             $partner->total = $total;
             $partner->expiry_date = $expiry_date;
@@ -107,19 +127,13 @@ class QuotationsController extends Controller
     {
         if (Auth::check() && DashboardController::check(true)) {
             $id = sanitize($request->input('modelid'));
-            $q_no = sanitize($request->input('q_no'));
+
             $bill_no = sanitize($request->input('bill_no'));
             $total = sanitize($request->input('total'));
             $cargo_type = sanitize($request->input('cargo_type'));
             $expiry_date = sanitize($request->input('expiry_date'));
             $delivery_date = sanitize($request->input('delivery_date'));
 
-            if (empty($q_no)) {
-                return response(json_encode(array("error" => 1, "msg" => "Please Fill All Fields")));
-            }
-            if (quotations::where('q_no', $q_no)->where('pos_code', company()->pos_code)->where('id', '!=', $id)->count() > 0) {
-                return response(json_encode(array("error" => 1, "msg" => "Quotation number already exists")));
-            }
             if (empty($bill_no)) {
                 return response(json_encode(array("error" => 1, "msg" => "Please fill all fields")));
             }
@@ -127,9 +141,25 @@ class QuotationsController extends Controller
                 return response(json_encode(array("error" => 1, "msg" => "Please use only numbers for total")));
             }
 
+            $data = [];
+
+            for ($i=1; $i < 11; $i++) {
+                if (!is_numeric(sanitize($request->input('price_'.$i)))) {
+                    return response(json_encode(array("error" => 3, "product" => $i, "msg" => "Please use only numbers for price of product ".$i)));
+                    break;
+                }
+
+                array_push($data, [
+                    "model_no" => sanitize($request->input('model_no_'.$i)),
+                    "serial_no" => sanitize($request->input('serial_no_'.$i)),
+                    "fault" => sanitize($request->input('fault_'.$i)),
+                    "price" => sanitize($request->input('price_'.$i)),
+                ]);
+            }
+
             $update = quotations::where('id', $id)->where('pos_code', company()->pos_code)->update([
-                'q_no' => $q_no,
                 'bill_no' => $bill_no,
+                'products' => $data,
                 'cargo_type' => $cargo_type,
                 'total' => $total,
                 'expiry_date' => $expiry_date,
@@ -137,7 +167,7 @@ class QuotationsController extends Controller
             ]);
 
             if ($update) {
-                generateQuotation($q_no);
+                generateQuotation(quotations::where('id', $id)->get()[0]->q_no);
                 return response(json_encode(array("error" => 0, "msg" => "Quotation Updated Successfully")));
             }
 

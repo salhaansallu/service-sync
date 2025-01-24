@@ -2149,6 +2149,8 @@ function generateQuotation($q_no)
         exit;
     }
 
+    $total = 0;
+
     $html = '
         <!DOCTYPE html>
         <html lang="en">
@@ -2190,6 +2192,10 @@ function generateQuotation($q_no)
                 getCustomer($repair->customer)->phone . '</p>
                                 <p style="font-size: 13px;"><strong>Address:</strong> ' .
                 getCustomer($repair->customer)->address . '</p>
+                                <p style="font-size: 13px; text-transform: capitalize"><strong>Bill Number:</strong> ' .
+                                $repair->bill_no . '</p>
+                                <p style="font-size: 13px;"><strong>Quotation Number:</strong> ' .
+                                $q_no . '</p>
                             </td>
 
                             <td style="vertical-align: bottom;">
@@ -2215,15 +2221,42 @@ function generateQuotation($q_no)
                 <table style="width: 100%; border-collapse: collapse;">
                     <thead>
                         <tr style="background-color: #f4f4f4;">
-                            <th style="text-align: left; padding: 8px; border: 1px solid #ddd;">Bill No</th>
+                            <th style="text-align: left; padding: 8px; border: 1px solid #ddd;">Model No</th>
+                            <th style="text-align: left; padding: 8px; border: 1px solid #ddd;">Serial No</th>
                             <th style="text-align: left; padding: 8px; border: 1px solid #ddd;">Fault</th>
+                            <th style="text-align: left; padding: 8px; border: 1px solid #ddd;">Price</th>
                         </tr>
                     </thead>
                     <tbody>
+        ';
+
+        if ($quotation->bill_no == 'custom') {
+            foreach (json_decode($quotation->products) as $key => $product) {
+                if (!empty($product->model_no) || !empty($product->serial_no) || !empty($product->fault)) {
+                    (float)$total += $product->price;
+                    $html .= '
                         <tr>
-                            <td style="padding: 8px; border: 1px solid #ddd;">' . $repair->bill_no . '</td>
-                            <td style="padding: 8px; border: 1px solid #ddd;">' . $repair->fault . '</td>
+                            <td style="padding: 8px; border: 1px solid #ddd;">' . $product->model_no . '</td>
+                            <td style="padding: 8px; border: 1px solid #ddd;">' . $product->serial_no . '</td>
+                            <td style="padding: 8px; border: 1px solid #ddd;">' . $product->fault . '</td>
+                            <td style="padding: 8px; border: 1px solid #ddd;">' . $product->price . '</td>
                         </tr>
+                    ';
+                }
+            }
+        }
+        else {
+            $html .= '
+                    <tr>
+                        <td style="padding: 8px; border: 1px solid #ddd;">' . $repair->model_no . '</td>
+                        <td style="padding: 8px; border: 1px solid #ddd;">' . $repair->serial_no . '</td>
+                        <td style="padding: 8px; border: 1px solid #ddd;">' . $repair->fault . '</td>
+                        <td style="padding: 8px; border: 1px solid #ddd;">' . $repair->total . '</td>
+                    </tr>
+            ';
+        }
+
+        $html .='
                     </tbody>
                 </table>
             </section>
@@ -2233,13 +2266,13 @@ function generateQuotation($q_no)
                     <tr>
                         <td style="vertical-align: top;">
                             <div style="margin-top: 0px; text-align: right; font-size: 18px;">
-                        <p>Sub Total: ' . currency($quotation->total, 'LKR') . '</p>
+                        <p>Sub Total: ' . ($quotation->bill_no == "custom"? currency($total, 'LKR') : currency($quotation->total, 'LKR')) . '</p>
                             </div>
                             <div style="margin-top: -20px; text-align: right; font-size: 18px;">
                                 <p>Paid Advance: ' . currency($repair->advance, 'LKR') . '</p>
                             </div>
                             <div style="margin-top: -20px; text-align: right; font-size: 18px; font-weight: bold;">
-                                <p>Total Due: ' . currency($quotation->total - $repair->advance, 'LKR') . '</p>
+                                <p>Total Due: ' . ( $quotation->bill_no == "custom"? currency($total, 'LKR') : currency($quotation->total - $repair->advance, 'LKR')) . '</p>
                             </div>
                         </td>
                     </tr>
