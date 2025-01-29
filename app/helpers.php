@@ -2149,6 +2149,16 @@ function generateQuotation($q_no)
         exit;
     }
 
+    $customer = getCustomer($repair->customer);
+
+    if ($quotation->bill_no == "custom") {
+        $customer = (object)[
+            'name'=>isset(json_decode($quotation->products)[10])?json_decode($quotation->products)[10]->customer->customer_name : '',
+            'phone'=>isset(json_decode($quotation->products)[10])?json_decode($quotation->products)[10]->customer->customer_phone : '',
+            'address'=>isset(json_decode($quotation->products)[10])?json_decode($quotation->products)[10]->customer->customer_address : '',
+        ];
+    }
+
     $total = 0;
 
     $html = '
@@ -2186,12 +2196,12 @@ function generateQuotation($q_no)
                     <tbody>
                         <tr>
                             <td style="vertical-align: bottom;">
-                                <p style="font-size: 13px;"><strong>Client Name:</strong> ' .
-                getCustomer($repair->customer)->name . '</p>
-                                <p style="font-size: 13px;"><strong>Phone Number:</strong> ' .
-                getCustomer($repair->customer)->phone . '</p>
-                                <p style="font-size: 13px;"><strong>Address:</strong> ' .
-                getCustomer($repair->customer)->address . '</p>
+                                <p style="font-size: 13px;"><strong>Customer Name:</strong> ' .
+                                $customer->name . '</p>
+                                                <p style="font-size: 13px;"><strong>Phone Number:</strong> ' .
+                                $customer->phone . '</p>
+                                                <p style="font-size: 13px;"><strong>Address:</strong> ' .
+                                $customer->address . '</p>
                                 <p style="font-size: 13px; text-transform: capitalize"><strong>Bill Number:</strong> ' .
                                 $repair->bill_no . '</p>
                                 <p style="font-size: 13px;"><strong>Quotation Number:</strong> ' .
@@ -2251,7 +2261,7 @@ function generateQuotation($q_no)
                         <td style="padding: 8px; border: 1px solid #ddd;">' . $repair->model_no . '</td>
                         <td style="padding: 8px; border: 1px solid #ddd;">' . $repair->serial_no . '</td>
                         <td style="padding: 8px; border: 1px solid #ddd;">' . $repair->fault . '</td>
-                        <td style="padding: 8px; border: 1px solid #ddd;">' . $repair->total . '</td>
+                        <td style="padding: 8px; border: 1px solid #ddd;">' . $quotation->total . '</td>
                     </tr>
             ';
         }

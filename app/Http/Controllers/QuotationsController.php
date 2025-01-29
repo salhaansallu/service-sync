@@ -74,6 +74,14 @@ class QuotationsController extends Controller
                 ]);
             }
 
+            array_push($data, [
+                "customer" => [
+                    "customer_name" => sanitize($request->input('customer_name')),
+                    "customer_phone" => sanitize($request->input('customer_phone')),
+                    "customer_address" => sanitize($request->input('customer_address')),
+                ]
+            ]);
+
             $partner = new quotations();
             $partner->q_no = $q_no;
             $partner->bill_no = $bill_no;
@@ -156,6 +164,14 @@ class QuotationsController extends Controller
                     "price" => sanitize($request->input('price_'.$i)),
                 ]);
             }
+
+            array_push($data, [
+                "customer" => [
+                    "customer_name" => sanitize($request->input('customer_name')),
+                    "customer_phone" => sanitize($request->input('customer_phone')),
+                    "customer_address" => sanitize($request->input('customer_address')),
+                ]
+            ]);
 
             $update = quotations::where('id', $id)->where('pos_code', company()->pos_code)->update([
                 'bill_no' => $bill_no,

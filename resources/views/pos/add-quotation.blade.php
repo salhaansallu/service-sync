@@ -38,7 +38,7 @@
                                             <div class="help-block with-errors"></div>
                                         </div>
                                     </div>
-                                    <div class="col-12" id="custom_products" style="{{ isset($quotation) ? (!empty($quotation->bill_no == 'custom'? '' : 'display:none;')) : 'display:none;' }}">
+                                    <div class="col-12" id="custom_products" style="{{ isset($quotation) ? ($quotation->bill_no == 'custom'? '' : 'display:none;') : 'display:none;' }}">
                                         <div class="row">
                                             <div class="col-12"><label>Products <span class="text-danger">*</span></label></div>
                                             <div class="col-12">
@@ -60,6 +60,23 @@
                                                           <td><input type="text" class="w-100 border-0 text-center" name="price_{{ $i }}" value="{{ isset($quotation)? json_decode($quotation->products)[$i-1]->price : '0' }}"></td>
                                                         </tr>
                                                       @endfor
+                                                    </tbody>
+                                                </table>
+
+                                                <table class="table table-success">
+                                                    <thead>
+                                                      <tr>
+                                                        <th scope="col">Customer Name</th>
+                                                        <th scope="col">Phone Number</th>
+                                                        <th scope="col">Address</th>
+                                                      </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        <tr>
+                                                            <td><input type="text" class="w-100 border-0" name="customer_name" value="{{ isset($quotation) && $quotation->bill_no == 'custom' && isset(json_decode($quotation->products)[10]) ? json_decode($quotation->products)[10]->customer->customer_name : '' }}"></td>
+                                                            <td><input type="text" class="w-100 border-0" name="customer_phone" value="{{ isset($quotation) && $quotation->bill_no == 'custom' && isset(json_decode($quotation->products)[10]) ? json_decode($quotation->products)[10]->customer->customer_phone : '' }}"></td>
+                                                            <td><input type="text" class="w-100 border-0" name="customer_address" value="{{ isset($quotation) && $quotation->bill_no == 'custom' && isset(json_decode($quotation->products)[10]) ? json_decode($quotation->products)[10]->customer->customer_address : '' }}"></td>
+                                                        </tr>
                                                     </tbody>
                                                 </table>
                                             </div>
