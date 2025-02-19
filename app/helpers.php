@@ -1167,7 +1167,7 @@ function generateThermalInvoice($order_id, $inName, $bill_type)
                 $total += $temp_order->total;
                 $delivery = $temp_order->delivery;
                 $advance += $temp_order->advance;
-                $orders[] = array("id" => $id, "total" => $temp_order->total, "advance" => $temp_order->advance, "model" => $temp_order->model_no, "serial" => $temp_order->serial_no, 'warranty' => $temp_order->warranty);
+                $orders[] = array("id" => $id, "total" => $temp_order->total, "advance" => $temp_order->advance, "model" => $temp_order->model_no, "serial" => $temp_order->serial_no, 'warranty' => $temp_order->warranty, "fault"=>$temp_order->fault);
             }
         }
 
@@ -1180,7 +1180,7 @@ function generateThermalInvoice($order_id, $inName, $bill_type)
             $total += $temp_order->total;
             $delivery = $temp_order->delivery;
             $advance += $temp_order->advance;
-            $orders[] = array("id" => $order_id, "total" => $temp_order->total, "advance" => $temp_order->advance, "model" => $temp_order->model_no, "serial" => $temp_order->serial_no, 'warranty' => $temp_order->warranty);
+            $orders[] = array("id" => $order_id, "total" => $temp_order->total, "advance" => $temp_order->advance, "model" => $temp_order->model_no, "serial" => $temp_order->serial_no, 'warranty' => $temp_order->warranty, "fault"=>$temp_order->fault);
         }
 
         $repairs = Repairs::where('bill_no', $order_id)->where('pos_code', $company->pos_code)->get()[0];
@@ -1261,6 +1261,9 @@ function generateThermalInvoice($order_id, $inName, $bill_type)
         $html .= '
             <tr style="width: 100%;">
                 <td style="font-size: 14px; padding-top: 5px;" colspan="4"><span style="margin-right: 5px;">' . $key + 1 . '. </span> <span style="margin-right: 10px;">' . $order["id"] . ' - ' . $order["model"] . ' (' . $order["serial"] . ')</span></td>
+            </tr>
+            <tr style="width: 100%;">
+                <td style="font-size: 13px; padding-top: 5px;" colspan="4"><span style="margin-right: 5px;">Fault - </span> <span style="margin-right: 10px;">' . $order["fault"] . '</span></td>
             </tr>
             <tr style="width: 100%;">
                 <td style="font-size: 14px; border-bottom: #8d8d8d 2px dotted;"></td>
