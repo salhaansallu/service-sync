@@ -15,7 +15,7 @@
                             <form id="ProductCreate" action="" data-toggle="validator" onsubmit="return false;">
                                 @csrf
 
-                                @isset($product)  
+                                @isset($product)
                                 <input type="hidden" name="modelid" value="{{ $product->id }}">
                                 @endisset
 
@@ -70,7 +70,7 @@
                                             <label>Price (only if the part is listed for sale)</label>
                                             <input type="text" class="form-control" placeholder="Enter Price"
                                                 name="price"
-                                                value="@isset($product){{ $product->price }} @else{{ '0' }}@endisset">
+                                                value="@isset($product){{ $product->price }}@else{{ '0' }}@endisset">
                                         </div>
                                     </div>
                                     <div class="col-md-6">

@@ -847,6 +847,7 @@ function generateInvoice($order_id, $inName, $bill_type)
     $delivery = 0;
     $orders = [];
     $customer = [];
+    $repairs = [];
 
     if (is_array($order_id)) {
         foreach ($order_id as $key => $id) {
@@ -932,6 +933,12 @@ function generateInvoice($order_id, $inName, $bill_type)
                     </tr>
                     <tr>
                         <td style="padding: 8px;">' . date('d-m-Y H:i:s', strtotime($repairs->created_at)) . '</td>
+                    </tr>
+                    <tr>
+                        <th style="width: 50%; padding: 8px; text-align: left;">Delivery Date:</th>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px;">' . date('d-m-Y H:i:s', strtotime($repairs->paid_at)) . '</td>
                     </tr>
                 </table>
             </div>
@@ -1150,6 +1157,7 @@ function generateThermalInvoice($order_id, $inName, $bill_type)
     $delivery = 0;
     $orders = [];
     $customer = [];
+    $repairs = [];
 
     if (is_array($order_id)) {
         foreach ($order_id as $key => $id) {
@@ -1231,8 +1239,12 @@ function generateThermalInvoice($order_id, $inName, $bill_type)
                 </tr>
 
                 <tr>
-                    <td style="font-size: 12px;">Date:</td>
+                    <td style="font-size: 12px;">Invoice Date:</td>
                     <td style="font-size: 12px; text-align: right;">' . date('d-m-Y H:i:s') . '</td>
+                </tr>
+                <tr>
+                    <td style="font-size: 12px;">Delivery Date:</td>
+                    <td style="font-size: 12px; text-align: right;">' . date('d-m-Y H:i:s', strtotime($repairs->paid_at)) . '</td>
                 </tr>
             </table>
 

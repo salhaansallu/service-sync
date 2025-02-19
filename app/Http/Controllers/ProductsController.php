@@ -211,7 +211,7 @@ class ProductsController extends Controller
             $code = str_replace(' ', '', $code);
             //$category = sanitize($request->input('category'));
             (float)$cost = sanitize($request->input('cost'));
-            //(float)$price = sanitize($request->input('price'));
+            (float)$price = sanitize($request->input('price'));
             (float)$stock = sanitize($request->input('stock'));
             $supplier = sanitize($request->input('supplier'));
             $imageName = "placeholder.svg";
@@ -261,6 +261,7 @@ class ProductsController extends Controller
                     "pro_name" => $name,
                     "sku" => $code,
                     "cost" => $cost,
+                    "price" => $price,
                     "qty" => $stock,
                     "pro_image" => $imageName,
                     "supplier" => $supplier,
@@ -270,6 +271,7 @@ class ProductsController extends Controller
                     "pro_name" => $name,
                     "sku" => $code,
                     "cost" => $cost,
+                    "price" => $price,
                     "qty" => $stock,
                     "supplier" => $supplier,
                 ]);
