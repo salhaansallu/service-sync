@@ -302,4 +302,15 @@ class ProductsController extends Controller
             return response(json_encode(array("error" => 1, "msg" => "Sorry! something went wrong")));
         }
     }
+
+    public function sync(Request $request)
+    {
+        if ($request->key == env('WEBSITE_KEY')) {
+            $products = Products::all(['pro_name', 'price', 'qty', 'sku']);
+            $results = [];
+
+            return response(json_encode(array('error' => 0, 'products' => $products)));
+        }
+        return response(json_encode(array('error' => 1, 'msg' => '')));
+    }
 }

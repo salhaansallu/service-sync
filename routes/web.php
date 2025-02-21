@@ -18,6 +18,7 @@ use App\Http\Controllers\PosDataController;
 use App\Http\Controllers\PosInvitationController;
 use App\Http\Controllers\POSSettingsController;
 use App\Http\Controllers\pricePlan;
+use App\Http\Controllers\ProductPurchasesController;
 use App\Http\Controllers\ProductsController;
 use App\Http\Controllers\PurchasesController;
 use App\Http\Controllers\QuotationsController;
@@ -209,6 +210,16 @@ Route::prefix('dashboard')->group(function () {
     Route::post('purchase/create', [PurchasesController::class, 'store']);
     Route::get('purchase/edit/{id}', [PurchasesController::class, 'edit']);
     Route::post('/purchase/edit', [PurchasesController::class, 'update']);
+
+    Route::get('product-purchases', [DashboardController::class, 'listProductPurchses']);
+    Route::get('product-purchase/create', [DashboardController::class, 'createProductPurchse']);
+    Route::post('product-purchase/create', [ProductPurchasesController::class, 'store']);
+    Route::get('product-purchase/report/{id}', [ProductPurchasesController::class, 'report']);
+    Route::get('product-purchase/edit/{id}', [ProductPurchasesController::class, 'edit']);
+    Route::post('/product-purchase/edit', [ProductPurchasesController::class, 'update']);
+    Route::post('/product-purchase/update-stock', [ProductPurchasesController::class, 'updateStock']);
+    Route::post('/product-purchase/pay', [ProductPurchasesController::class, 'pay']);
+    Route::delete('/product-purchase/delete', [ProductPurchasesController::class, 'destroy']);
 
     Route::get('/petty-cash/{id}', [PurchasesController::class, 'pettyCashes']);
     Route::post('/petty-cash/reload', [PurchasesController::class, 'addPattyCash']);

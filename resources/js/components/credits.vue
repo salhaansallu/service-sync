@@ -251,6 +251,13 @@ export default {
     beforeMount() {
     },
     mounted() {
+        // Initialize select2
+        $(this.$refs.customer).select2();
+
+        // Listen to the select2 change event
+        $(this.$refs.customer).on("change", (event) => {
+            this.search();
+        });
     }
 }
 </script>

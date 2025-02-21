@@ -85,6 +85,11 @@ import ChinaOrderComp from './components/china-orders.vue';
 ChinaOrders.component('china-orders', ChinaOrderComp);
 ChinaOrders.mount('#ChinaOrders');
 
+const purchaseOrder = createApp({});
+import purchaseForm from './components/purchaseOrder.vue';
+purchaseOrder.component('purchase-form', purchaseForm);
+purchaseOrder.mount('#purchaseForm');
+
 
 $('#menu_close').click(function (e) {
   $('.open_menu').removeClass('hide')

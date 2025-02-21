@@ -9,6 +9,7 @@ use App\Models\orders;
 use App\Models\partners;
 use App\Models\posData;
 use App\Models\posUsers;
+use App\Models\ProductPurchases;
 use App\Models\Products;
 use App\Models\Purchases;
 use App\Models\quotations;
@@ -409,6 +410,40 @@ class DashboardController extends Controller
         login_redirect('/' . request()->path());
         if (Auth::check() && $this->check(true)) {
             return view('pos.add-purchase');
+        } else {
+            return redirect('/signin');
+        }
+    }
+
+    public function listProductPurchses()
+    {
+        login_redirect('/' . request()->path());
+
+        if (Auth::check() && isAdmin()) {
+            $purchses = [];
+            if(isset($_GET['q'])){
+                if (sanitize($_GET['q']) != 'all') {
+                    $purchses = ProductPurchases::where('status', sanitize($_GET['q']))->get();
+                    return view('pos.list-productPurchase')->with(['purchses' => $purchses]);
+                }
+                else {
+                    $purchses = ProductPurchases::all();
+                }
+            }
+            else {
+                $purchses = ProductPurchases::where('status', 'pending')->get();
+            }
+            return view('pos.list-productPurchase')->with(['purchses' => $purchses]);
+        } else {
+            return redirect('/signin');
+        }
+    }
+
+    public function createProductPurchse()
+    {
+        login_redirect('/' . request()->path());
+        if (Auth::check() && isAdmin()) {
+            return view('pos.add-productPurchase');
         } else {
             return redirect('/signin');
         }

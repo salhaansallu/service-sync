@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\PartnersController;
 use App\Http\Controllers\PosDataController;
 use App\Http\Controllers\POSSettingsController;
@@ -125,6 +126,21 @@ class SMS
         curl_close($ch);
         return $response;
     }
+}
+
+function isAdmin()
+{
+    return Auth::check() && DashboardController::check();
+}
+
+function isCashier()
+{
+    return Auth::check() && PosDataController::check();
+}
+
+function getAllProducts()
+{
+    return Products::all();
 }
 
 function country($country)
@@ -2625,4 +2641,41 @@ function getRepair($id)
         "created_at" => '',
         "updated_at" => '',
     );
+}
+
+function statusToBootstrap($status)
+{
+    switch ($status) {
+        case 'pending':
+            return 'warning';
+            break;
+        case 'paid':
+            return 'success';
+            break;
+        case 'approved':
+            return 'success';
+            break;
+        case 'returned':
+            return 'danger';
+            break;
+        case 'cancelled':
+            return 'danger';
+            break;
+        case 'blocked':
+            return 'secondary';
+            break;
+        default:
+            # code...
+            break;
+    }
+}
+
+
+function divide($num1, $num2)
+{
+    if ($num1 !=0 && $num2 !=0) {
+        return number_format(($num1/$num2), 1);
+    }
+
+    return 0;
 }
