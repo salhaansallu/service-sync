@@ -192,7 +192,7 @@ class RepairsController extends Controller
 
             $update =  Repairs::where('bill_no', $bill_no)->where('pos_code', company()->pos_code);
 
-            if ($update->update(["note" => $note, "techie" => $techie, "status" => $status, "total" => $total, "cost" => $cost, "spares" => json_encode($parts)])) {
+            if ($update->update(["note" => $note, "techie" => $techie, "status" => $status, "total" => $total, "cost" => $cost, "spares" => json_encode($parts), "repaired_date" => date('Y-m-d H:i:s')])) {
 
                 $customerData = customers::where('pos_code', company()->pos_code)->where('id', $update->get()[0]["customer"])->get();
                 $sms = new SMS();
@@ -341,16 +341,16 @@ class RepairsController extends Controller
 
                             if ($repair->save()) {
 
-                                // $sms = new SMS();
-                                // $sms->contact = array(array(
-                                //     "fname" => $customerData[0]["name"],
-                                //     "lname" => "",
-                                //     "group" => "",
-                                //     "number" => $customerData[0]["phone"],
-                                //     "email" => $customerData[0]["email"],
-                                // ));
-                                // $sms->message = "Dear Customer, your account with " . company()->company_name . " has been successfully created. We have received your product and will notify you via this number once the repair is complete. Thank you for choosing " . company()->company_name . ".";
-                                // $sms->Send();
+                                $sms = new SMS();
+                                $sms->contact = array(array(
+                                    "fname" => $customerData[0]["name"],
+                                    "lname" => "",
+                                    "group" => "",
+                                    "number" => $customerData[0]["phone"],
+                                    "email" => $customerData[0]["email"],
+                                ));
+                                $sms->message = "Dear Customer,\nyour account with " . company()->company_name . " has been successfully created. We have received your product and will notify you via this number once the repair is complete. Visit https://wefixservers.xyz/customer-portal?phone=".$customerData[0]["phone"]." to keep track of your repairs. Thank you for choosing " . company()->company_name . ".";
+                                $sms->Send();
 
                                 $rand = date('d-m-Y-h-i-s') . '-' . rand(0, 9999999) . '.pdf';
                                 $inName = str_replace(' ', '-', str_replace('.', '-', $bill_no)) . '-Invoice-' . $rand;

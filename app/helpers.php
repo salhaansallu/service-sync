@@ -34,6 +34,7 @@ class SMS
 {
     public $contact;
     public $message;
+    public $type;
     public $camp_type;
     public $send_at;
 
@@ -49,6 +50,7 @@ class SMS
             'sender_id' => env('SMS_SENDER_ID'),
             'contact' => json_encode($this->contact),
             'message' => $this->message,
+            'type' => $this->type,
             'camp_type' => $this->camp_type,
             'send_at' => $this->send_at,
         ];

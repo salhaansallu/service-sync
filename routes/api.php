@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\PosDataController;
 use App\Http\Controllers\ProductsController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -20,5 +21,6 @@ use Illuminate\Support\Facades\Route;
 // });
 
 Route::post('website/sync', [ProductsController::class, 'sync']);
+Route::get('run-cron', [PosDataController::class, 'runCron']);
 // Route::post('website/new-order', [ProductsController::class, 'newOrderSync']);
 // Route::post('website/order-sync', [ProductsController::class, 'orderSync']);

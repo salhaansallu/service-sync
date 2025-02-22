@@ -19,7 +19,7 @@
                                     <div class="form-group">
                                         <label>Mobile Number <span class="text-danger">*</span></label>
                                         <input type="text" class="mobile_number form-control"
-                                            placeholder="Enter Mobile Number" name="phone" required>
+                                            placeholder="Enter Mobile Number" value="{{ isset($_GET['phone'])? sanitize($_GET['phone']) : '' }}" name="phone" required>
                                         <div class="help-block with-errors"></div>
                                     </div>
                                 </div>
