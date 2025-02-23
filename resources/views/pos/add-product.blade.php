@@ -60,7 +60,7 @@
                                             <label>Cost <span class="text-danger">*</span></label>
                                             <input type="text" class="form-control" placeholder="Enter Cost"
                                                 name="cost"
-                                                value="@isset($product){{ $product->cost }}@endisset"
+                                                value="{{ isset($_GET['cost'])?sanitize($_GET['cost']): (isset($product)?$product->cost:0) }}"
                                                 data-errors="Please Enter Cost." required>
                                             <div class="help-block with-errors"></div>
                                         </div>
@@ -78,7 +78,7 @@
                                             <label>Stock <span class="text-danger">*</span></label>
                                             <input type="text" class="form-control" placeholder="Enter Stock"
                                                 name="stock"
-                                                value="@isset($product){{ $product->qty }}@endisset"
+                                                value="{{ isset($_GET['qty'])? sanitize($_GET['qty'])+(isset($product)?$product->qty:0) : (isset($product)?$product->qty:0) }}"
                                                 data-errors="Please Enter Stock." required>
                                             <div class="help-block with-errors"></div>
                                         </div>

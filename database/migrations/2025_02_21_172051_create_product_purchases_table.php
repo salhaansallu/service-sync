@@ -23,6 +23,7 @@ return new class extends Migration
             $table->float("shipping_charge", 15, 2)->default('0');
             $table->float("total_in_currency", 15, 2)->default('0');
             $table->integer("supplier_id")->nullable();
+            $table->integer("shipper_id")->nullable();
             $table->text("note");
             $table->string("status")->default('pending');
             $table->timestamps();

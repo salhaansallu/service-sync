@@ -31,12 +31,31 @@
                                         </div>
                                     </div>
                                     <div class="col-md-6">
-                                        <div class="form-group">
-                                            <label>CBM Price <span class="text-danger">*</span></label>
-                                            <input type="text" class="form-control" placeholder="Enter CBM Price"
-                                                name="cbm_price"
-                                                value="@isset($purchase){{ $purchase->cbm_price }}@else{{ '0' }}@endisset" required>
-                                            <div class="help-block with-errors"></div>
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label>CBM Price <span class="text-danger">*</span></label>
+                                                    <input type="text" class="form-control" placeholder="Enter CBM Price"
+                                                        name="cbm_price"
+                                                        value="@isset($purchase){{ $purchase->cbm_price }}@else{{ '0' }}@endisset" required>
+                                                    <div class="help-block with-errors"></div>
+                                                </div>
+                                            </div>
+
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label>Shipper <span class="text-danger">*</span></label>
+                                                    <select id="" class="form-control select2-multiple" name="shipper" required>
+                                                        <option value="other">Other</option>
+                                                        @foreach (getShippers('all') as $item)
+                                                            <option
+                                                                @isset($purchase) {{ $item->id == $purchase->shipper_id ? 'selected' : '' }} @endisset
+                                                                value="{{ $item->id }}">{{ $item->company_name }}</option>
+                                                        @endforeach
+                                                    </select>
+                                                    <div class="help-block with-errors"></div>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                     <div class="col-md-6">
@@ -51,9 +70,9 @@
                                     <div class="col-md-6">
                                         <div class="form-group">
                                             <label>Supplier <span class="text-danger">*</span></label>
-                                            <select id="" class="form-control select2" name="supplier" required>
+                                            <select id="" class="form-control select2-multiple" name="supplier" required>
                                                 <option value="other">Other</option>
-                                                @foreach (getSupplier('all') as $item)
+                                                @foreach (getShippers('all') as $item)
                                                     <option
                                                         @isset($purchase) {{ $item->id == $purchase->supplier_id ? 'selected' : '' }} @endisset
                                                         value="{{ $item->id }}">{{ $item->name }}</option>

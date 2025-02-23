@@ -46,6 +46,7 @@ class ProductPurchasesController extends Controller
             (float)$shipping_charge = $request->has('shipping_charge')? sanitize($request->input('shipping_charge')) : 0;
             (float)$total_in_currency = 0;
             $supplier = $request->has('supplier')? sanitize($request->input('supplier')) : 'other';
+            $shipper = $request->has('shipper')? sanitize($request->input('shipper')) : 'other';
             $note = sanitize($request->input('note'));
             $status = $request->has('status')? sanitize($request->input('status')) : 'pending';
 
@@ -101,6 +102,7 @@ class ProductPurchasesController extends Controller
             $purchase->total_in_currency = $total_in_currency;
             $purchase->shipping_charge = $shipping_charge;
             $purchase->supplier_id = $supplier=='other'? '0' : $supplier;
+            $purchase->shipper_id = $shipper=='other'? '0' : $shipper;
             $purchase->status = $status;
             $purchase->note = $note;
 
@@ -126,10 +128,12 @@ class ProductPurchasesController extends Controller
             return redirect('/signin');
         }
 
-        $purchase = ProductPurchases::where('purshace_no', sanitize($id))->get();
+        $purchase = ProductPurchases::where('purshace_no', sanitize($id))->first();
 
-        if ($purchase && $purchase->count() > 0) {
-            return view('pos.add-productPurchaseReport')->with('purchase', $purchase[0]);
+        if ($purchase != null) {
+            $shipper_balance = purchaseTransactions::where('purchase_id', $purchase->id)->where('note', 'shipper-payment')->sum('amount');
+
+            return view('pos.add-productPurchaseReport')->with(['purchase'=> $purchase, 'shipper_balance'=>$shipper_balance]);
         } else {
             return display404();
         }
@@ -168,6 +172,7 @@ class ProductPurchasesController extends Controller
             (float)$shipping_charge = $request->has('shipping_charge')? sanitize($request->input('shipping_charge')) : 0;
             (float)$total_in_currency = 0;
             $supplier = $request->has('supplier')? sanitize($request->input('supplier')) : 'other';
+            $shipper = $request->has('shipper')? sanitize($request->input('shipper')) : 'other';
             $note = sanitize($request->input('note'));
             $status = $request->has('status')? sanitize($request->input('status')) : 'pending';
 
@@ -222,6 +227,7 @@ class ProductPurchasesController extends Controller
                 "total_in_currency" => $total_in_currency,
                 "shipping_charge" => $shipping_charge,
                 "supplier_id" => $supplier=='other'? '0' : $supplier,
+                "shipper_id" => $shipper=='other'? '0' : $shipper,
                 "note" => $note,
                 "status" => $status,
             ]);
@@ -276,6 +282,7 @@ class ProductPurchasesController extends Controller
         if (Auth::check() && DashboardController::check(true)) {
             $id = sanitize($request->input('id'));
             $amount = sanitize($request->input('amount'));
+            $to = sanitize($request->input('to'));
 
             if (!is_numeric($amount)) {
                 return response(json_encode(array("error" => 1, "msg" => "Please use only numbers on amount")));
@@ -287,14 +294,18 @@ class ProductPurchasesController extends Controller
                 return response(json_encode(array("error" => 1, "msg" => "Purchase not found")));
             }
 
-            $update = ProductPurchases::where('id', $id)->update([
-                "pending" => ($purchase->pending - $amount) > 0? $purchase->pending - $amount : 0 ,
-            ]);
+            $update = true;
+
+            if ($to == 'supplier') {
+                $update = ProductPurchases::where('id', $id)->update([
+                    "pending" => ($purchase->pending - $amount) > 0? $purchase->pending - $amount : 0 ,
+                ]);
+            }
 
             if ($update) {
                 $transaction = new purchaseTransactions();
                 $transaction->amount = ($purchase->pending - $amount) > 0? $amount : $purchase->pending;
-                $transaction->note = 'Paid by admin';
+                $transaction->note = in_array($to, ['supplier', 'shipper']) ? $to.'-payment' : $to;
                 $transaction->purchase_id = $purchase->id;
                 $transaction->save();
 

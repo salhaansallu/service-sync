@@ -622,6 +622,17 @@
                                         <i class="fa-solid fa-minus"></i><span>Add Suppliers</span>
                                     </a>
                                 </li>
+
+                                <li class="{{ Request::is('dashboard/shippers') ? 'active' : '' }}">
+                                    <a href="/dashboard/shippers">
+                                        <i class="fa-solid fa-minus"></i><span>Shippers</span>
+                                    </a>
+                                </li>
+                                <li class="{{ Request::is('dashboard/shipper/create') ? 'active' : '' }}">
+                                    <a href="/dashboard/shipper/create">
+                                        <i class="fa-solid fa-minus"></i><span>Add Shippers</span>
+                                    </a>
+                                </li>
                             </ul>
                         </li>
 

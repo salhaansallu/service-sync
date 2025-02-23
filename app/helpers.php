@@ -18,6 +18,7 @@ use App\Models\posUsers;
 use App\Models\Products;
 use App\Models\quotations;
 use App\Models\Repairs;
+use App\Models\shippers;
 use App\Models\supplier;
 use App\Models\User;
 use App\Models\userData;
@@ -475,8 +476,8 @@ function productImage($path)
         return asset('assets/images/products/placeholder.svg');
     }
 
-    if (file_exists(env('APP_ENV') == 'production' ? '/var/www/image.nmsware.com/products/' . $path : public_path('assets/images/products/' . $path))) {
-        return env('APP_ENV') == 'production' ? 'https://image.nmsware.com/products/' . $path : asset('/assets/images/products/' . $path);
+    if (public_path('assets/images/products/' . $path)) {
+        return asset('/assets/images/products/' . $path);
     } else {
         return asset('assets/images/products/placeholder.svg');
     }
@@ -501,8 +502,8 @@ function categoryImage($path)
         return asset('assets/images/categories/placeholder.svg');
     }
 
-    if (file_exists(env('APP_ENV') == 'production' ? '/var/www/image.nmsware.com/categories/' . $path : public_path('assets/images/categories/' . $path))) {
-        return env('APP_ENV') == 'production' ? 'https://image.nmsware.com/categories/' . $path : asset('/assets/images/categories/' . $path);
+    if (public_path('assets/images/categories/' . $path)) {
+        return asset('/assets/images/categories/' . $path);
     } else {
         return asset('assets/images/categories/placeholder.svg');
     }
@@ -616,6 +617,19 @@ function getSupplier($id)
         }
     } else {
         $supplier = supplier::where('id', $id)->where('pos_code', company()->pos_code)->get();
+        if ($supplier && $supplier->count() > 0) {
+            return (object)$supplier[0];
+        }
+    }
+    return defaultValues();
+}
+
+function getShippers($id)
+{
+    if ($id == 'all') {
+        return shippers::all();
+    } else {
+        $supplier = shippers::where('id', $id)->get();
         if ($supplier && $supplier->count() > 0) {
             return (object)$supplier[0];
         }

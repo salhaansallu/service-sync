@@ -106,6 +106,7 @@ export default {
         $('#currencySelector').change(function () {
             $('#selectedCurrency').text($('#currencySelector').val());
         });
+        $('.select2').select2();
     }
 }
 </script>

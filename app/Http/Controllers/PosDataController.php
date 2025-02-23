@@ -361,10 +361,8 @@ class PosDataController extends Controller
     }
 
     public function runCron() {
-        if (request()->ip() == gethostbyname(gethostname())) {
-            $this->reminder();
-            $this->termination();
-        }
+        $this->reminder();
+        $this->termination();
     }
 
     public function reminder() {
@@ -408,10 +406,11 @@ class PosDataController extends Controller
                     "number" => $customerData->phone,
                     "email" => $customerData->email,
                 ));
-                $sms->type = 'unicode';
 
                 $sms->message = "Dear Customer,\nWe have checked your TV and identified the fault at WeFix.LK. However, you have not confirmed the repair yet. Please collect your TV within 2 days. If not collected within this period, we will not be responsible for its condition and will proceed with disassembly. A service charge will apply for the inspection. IF YOU DO NOT COLLECT THE TV WITHIN 2 DAYS, ALL YOUR INFORMATION WILL BE DELETED FROM OUR SYSTEM. Contact us immediately at 077 330 0905.";
                 $sms->Send();
+
+                $sms->type = 'unicode';
 
                 $sms->message = "அன்புள்ள வாடிக்கையாளர்,\nஉங்கள் TV-ஐ WeFix.LK -ல் check செய்து fault அடையாளம் கண்டுள்ளோம். ஆனால், நீங்கள் இதுவரை repair செய்ய ஒப்புதல் தரவில்லை. தயவுசெய்து 2 நாட்கள் க்குள் உங்கள் TV-ஐ பெற்று செல்லவும். இல்லையெனில், அதன் நிலைமைக்குப் பொறுப்பாக இருக்க முடியாது, மேலும் அதை disassemble செய்வோம். Inspectionக்காக service charge அறவிடப்படும். 2 நாட்களுக்குள் உங்கள் TV ஐ பெறவில்லை என்றால், உங்கள் அனைத்து தகவல்களும் எங்கள் SYSTEM இலிருந்து நீக்கப்படும். உடனடியாக தொடர்பு கொள்ளவும்: 077 330 0905.";
                 $sms->Send();
@@ -432,10 +431,11 @@ class PosDataController extends Controller
                     "number" => $customerData->phone,
                     "email" => $customerData->email,
                 ));
-                $sms->type = 'unicode';
 
                 $sms->message = "Dear Customer,\nWe have checked your TV at WeFix.LK, but unfortunately, we are unable to repair it. Please collect your TV within 2 days. If not collected within this period, we will not be responsible for its condition and will proceed with disassembly. A service charge will be applicable for the inspection. IF YOU DO NOT COLLECT THE TV WITHIN 2 DAYS, ALL YOUR INFORMATION WILL BE DELETED FROM OUR SYSTEM. Contact us immediately at 077 330 0905.";
                 $sms->Send();
+
+                $sms->type = 'unicode';
 
                 $sms->message = "அன்புள்ள வாடிக்கையாளர்,\nஉங்கள் TV WeFix.LK -ல் check செய்யப்பட்டு, ஆனால் அதனை repair செய்ய முடியாது. தயவுசெய்து உங்கள் TV-ஐ 2 நாட்கள் க்குள் வந்து பெற்றுக்கொள்ளவும். அதற்கு பிறகு, அதன் நிலைமைக்குப் பொறுப்பாக இருக்க முடியாது, மேலும் அதை disassemble செய்வோம். Inspectionக்கான service charge விதிக்கப்படும். 2 நாட்களுக்குள் உங்கள் TV ஐ பெறவில்லை என்றால், உங்கள் அனைத்து தகவல்களும் எங்கள் SYSTEM இலிருந்து நீக்கப்படும். உடனடியாக தொடர்பு கொள்ளவும்: 077 330 0905.";
                 $sms->Send();

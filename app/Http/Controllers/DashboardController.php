@@ -14,6 +14,7 @@ use App\Models\Products;
 use App\Models\Purchases;
 use App\Models\quotations;
 use App\Models\Repairs;
+use App\Models\shippers;
 use App\Models\spareSaleHistory;
 use App\Models\supplier;
 use App\Models\User;
@@ -476,6 +477,27 @@ class DashboardController extends Controller
         login_redirect('/' . request()->path());
         if (Auth::check() && $this->check(true)) {
             return view('pos.add-customer');
+        } else {
+            return redirect('/signin');
+        }
+    }
+
+    public function createShipper()
+    {
+        login_redirect('/' . request()->path());
+        if (Auth::check() && $this->check(true)) {
+            return view('pos.add-shipper');
+        } else {
+            return redirect('/signin');
+        }
+    }
+
+    public function listShipper()
+    {
+        login_redirect('/' . request()->path());
+        if (Auth::check() && $this->check(true)) {
+            $shippers = shippers::all();
+            return view('pos.list-shippers')->with(['shippers' => $shippers]);
         } else {
             return redirect('/signin');
         }

@@ -6,16 +6,12 @@
             <div class="row">
                 <div class="col-sm-12">
                     <div class="card">
-                        <div class="card-header d-flex justify-content-between">
+                        <div class="card-header d-lg-flex justify-content-between">
                             <div class="header-title">
                                 <h4 class="card-title">Product Purchase Report</h4>
                             </div>
-                            <div class="d-flex gap-2 align-items-center">
-                                <div class="d-flex border p-2 gap-2 rounded">
-                                    <input type="number" placeholder="Enter amount" id="paymentAmount" class="form-control" style="width: 150px;">
-                                    <button class="btn btn-success" onclick="pay()">Add Payment</button>
-                                </div>
-                                <div class="p-1"><button class="btn btn-primary" onclick="printReport()">Download Report</button></div>
+                            <div class="d-lg-flex gap-2 align-items-center">
+                                <div class="p-1"><button class="btn btn-primary" onclick="printReport()">Download Report</button> <a href="/dashboard/product-purchase/edit/{{ $purchase->purshace_no }}" class="btn btn-primary" onclick="printReport()">Edit</a></div>
                             </div>
                         </div>
                         <div class="card-body">
@@ -23,17 +19,33 @@
                                 @csrf
 
                                 <div class="row">
-                                    <div class="col-md-12">
-                                        <div class="form-group">
-                                            <label class="fs-2">Balance to pay: <span class="text-danger">{{ currency($purchase->pending, '') }}</span></label>
+                                    <div class="col-md-6">
+                                        <div class="form-group gap-3 align-items-center">
+                                            <label class="fs-2">Balance to supplier: <span class="text-danger">{{ currency($purchase->pending, '') }}</span></label>
+                                            <div class="form-group d-flex gap-3 align-items-center">
+                                                <input type="number" placeholder="Enter amount" id="paymentAmount" class="form-control" style="width: 150px;">
+                                                <button class="btn btn-success" onclick="pay('supplier')">Add Payment</button>
+                                            </div>
                                         </div>
                                     </div>
+
                                     <div class="col-md-6">
-                                        <div class="form-group">
+                                        <div class="form-group gap-3 align-items-center">
+                                            <label class="fs-2">Balance to shipper: <span class="text-danger">{{ currency($purchase->cbm_price-$shipper_balance, '') }}</span></label>
+                                            <div class="form-group d-flex gap-3 align-items-center">
+                                                <input type="number" placeholder="Enter amount" id="shipperPaymentAmount" class="form-control" style="width: 150px;">
+                                                <button class="btn btn-success" onclick="pay('shipper')">Add Payment</button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-6 mt-3">
+                                        <div class="form-group d-lg-flex gap-3 align-items-center">
                                             <label>Total in LKR: <span class="">{{ currency($purchase->total, '') }}</span></label>
+
                                         </div>
                                     </div>
-                                    <div class="col-md-6">
+                                    <div class="col-md-6 mt-3">
                                         <div class="form-group">
                                             <label>Total in {{ $purchase->currency }}: <span class="">{{ currency($purchase->total_in_currency, '') }}</span></label>
                                         </div>
@@ -65,6 +77,11 @@
                                     </div>
                                     <div class="col-md-6">
                                         <div class="form-group">
+                                            <label>Shipper: <span class="">{{ getShippers($purchase->shipper_id)->company_name }}</span></label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
                                             <label>Status: <span class="badge text-bg-{{ statusToBootstrap($purchase->status) }} text-capitalize">{{ $purchase->status }}</span></label>
                                         </div>
                                     </div>
@@ -91,12 +108,17 @@
                                                 <tbody class="ligth-body">
                                                     @foreach (json_decode($purchase->products) as $product)
                                                     <tr>
-                                                        <td class="text-start">{{ $product->name }} <div class="form-text">{{ $product->sku }}</div></td>
+                                                        <td class="text-start">
+                                                            <div class="img">
+                                                                <img class="rounded" style="width: 70px;" src="{{ getProductImage($product->sku) }}" alt="">
+                                                            </div>
+                                                            {{ $product->name }} <div class="form-text">{{ $product->sku }}</div>
+                                                        </td>
                                                         <td class="text-start">{{ currency($product->price, '') }}</td>
                                                         <td class="text-start">{{ $product->qty }}</td>
                                                         <td class="text-start">{{ currency(divide(($purchase->total+$purchase->cbm_price+$purchase->shipping_charge), $purchase->total_in_currency) * $product->price, '') }}</td>
                                                         <td class="text-start">
-                                                            <a href="javascript:void(0)" onclick="updateStock('{{ $product->id }}', '{{ $purchase->id }}')" class="btn btn-success btn-sm"><i class="fa-solid fa-arrows-rotate m-0"></i></a>
+                                                            <a href="/dashboard/products/edit/1002?qty={{ $product->qty }}&cost={{ (divide(($purchase->total+$purchase->cbm_price+$purchase->shipping_charge), $purchase->total_in_currency) * $product->price) }}" class="btn btn-success btn-sm"><i class="fa-solid fa-pencil m-0"></i></a>
                                                         </td>
                                                     </tr>
                                                     @endforeach
@@ -143,12 +165,12 @@
             }
         }
 
-        function pay() {
+        function pay(to) {
             if (confirm('Are you sure you want to pay?')) {
                 $.ajax({
                     type: "post",
                     url: "/dashboard/product-purchase/pay",
-                    data: {id: '{{ $purchase->id }}', amount: $('#paymentAmount').val(), _token: '{{ csrf_token() }}'},
+                    data: {id: '{{ $purchase->id }}', amount: (to == 'supplier'? $('#paymentAmount').val() : $('#shipperPaymentAmount').val()), to: to, _token: '{{ csrf_token() }}'},
                     dataType: "json",
                     success: function (response) {
                         if (response.error == 0) {

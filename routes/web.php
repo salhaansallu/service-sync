@@ -23,6 +23,7 @@ use App\Http\Controllers\ProductsController;
 use App\Http\Controllers\PurchasesController;
 use App\Http\Controllers\QuotationsController;
 use App\Http\Controllers\RepairsController;
+use App\Http\Controllers\ShippersController;
 use App\Http\Controllers\SMSController;
 use App\Http\Controllers\SpareSaleHistoryController;
 use App\Http\Controllers\SupplierController;
@@ -239,6 +240,13 @@ Route::prefix('dashboard')->group(function () {
     Route::get('customer/edit/{id}', [CustomersController::class, 'edit']);
     Route::post('/customer/edit', [CustomersController::class, 'update']);
     Route::delete('/customers/delete', [CustomersController::class, 'destroy']);
+
+    Route::get('shippers', [DashboardController::class, 'listShipper']);
+    Route::get('shipper/create', [DashboardController::class, 'createShipper']);
+    Route::post('shipper/create', [ShippersController::class, 'store']);
+    Route::get('shipper/edit/{id}', [ShippersController::class, 'edit']);
+    Route::post('/shipper/edit', [ShippersController::class, 'update']);
+    Route::delete('/shippers/delete', [ShippersController::class, 'destroy']);
 
     Route::get('partners', [DashboardController::class, 'listPartners']);
     Route::get('partner/create', [DashboardController::class, 'createPartner']);
