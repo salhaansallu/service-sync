@@ -22,6 +22,14 @@
                                 <div class="row">
                                     <div class="col-md-6">
                                         <div class="form-group">
+                                            <label>Partner Brand Logo </label>
+                                            <input type="file" class="form-control" name="logo">
+                                            <div class="help-block with-errors"></div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <div class="form-group">
                                             <label>Partner Name <span class="text-danger">*</span></label>
                                             <input type="text" class="form-control" placeholder="Enter Partner Name"
                                                 name="name"

@@ -171,6 +171,7 @@ class PartnersController extends Controller
     public function store(Request $request)
     {
         if (Auth::check() && DashboardController::check(true)) {
+            $logo = sanitize($request->input('logo'));
             $name = sanitize($request->input('name'));
             $company = sanitize($request->input('company'));
             $phone = sanitize($request->input('phone'));
@@ -178,6 +179,7 @@ class PartnersController extends Controller
             $email = sanitize($request->input('email'));
             $username = sanitize($request->input('username'));
             $password = sanitize($request->input('password'));
+            $imageName = null;
 
             if (empty($name)) {
                 return response(json_encode(array("error" => 1, "msg" => "Please Fill All Required Fields Marked In '*'")));
@@ -198,6 +200,16 @@ class PartnersController extends Controller
                 return response(json_encode(array("error" => 1, "msg" => "Phone number already in use")));
             }
 
+            if ($request->hasFile('logo')) {
+                $extension = $request->file('logo')->getClientOriginalExtension();
+                if (in_array($extension, array('png', 'jpeg', 'jpg'))) {
+                    $imageName = time() . rand(11111, 99999999) . '.' . $request->logo->extension();
+                    $request->logo->move(public_path('user_profile'), $imageName);
+                } else {
+                    return response(json_encode(array("error" => 1, "msg" => "Please select 'png', 'jpeg', or 'jpg' type image")));
+                }
+            }
+
             $partner = new partners();
             $partner->name = $name;
             $partner->company = $company;
@@ -205,6 +217,7 @@ class PartnersController extends Controller
             $partner->address = $address;
             $partner->email = $email;
             $partner->username = $username;
+            $partner->logo = $logo;
             if (!empty($password)) {
                 $partner->password = Hash::make($password);
             }
@@ -251,6 +264,7 @@ class PartnersController extends Controller
     {
         if (Auth::check() && DashboardController::check(true)) {
             $id = sanitize($request->input('modelid'));
+            $logo = sanitize($request->input('logo'));
             $name = sanitize($request->input('name'));
             $company = sanitize($request->input('company'));
             $phone = sanitize($request->input('phone'));
@@ -258,6 +272,7 @@ class PartnersController extends Controller
             $email = sanitize($request->input('email'));
             $username = sanitize($request->input('username'));
             $password = sanitize($request->input('password'));
+            $imageName = null;
 
             if (empty($name)) {
                 return response(json_encode(array("error" => 1, "msg" => "Please Fill All Required Fields Marked In '*'")));
@@ -287,6 +302,16 @@ class PartnersController extends Controller
                 return response(json_encode(array("error" => 1, "msg" => "Phone number already in use")));
             }
 
+            if ($request->hasFile('logo')) {
+                $extension = $request->file('logo')->getClientOriginalExtension();
+                if (in_array($extension, array('png', 'jpeg', 'jpg'))) {
+                    $imageName = time() . rand(11111, 99999999) . '.' . $request->logo->extension();
+                    $request->logo->move(public_path('user_profile'), $imageName);
+                } else {
+                    return response(json_encode(array("error" => 1, "msg" => "Please select 'png', 'jpeg', or 'jpg' type image")));
+                }
+            }
+
             $update_arr = [
                 "name" => $name,
                 "company" => $company,
@@ -298,6 +323,10 @@ class PartnersController extends Controller
 
             if (!empty($password)) {
                 $update_arr["password"] = Hash::make($password);
+            }
+
+            if ($request->hasFile('logo')) {
+                $update_arr["logo"] = $imageName;
             }
 
             $customer = partners::where('id', $id)->update($update_arr);

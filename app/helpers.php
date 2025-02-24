@@ -23,6 +23,7 @@ use App\Models\supplier;
 use App\Models\User;
 use App\Models\userData;
 use Dompdf\Dompdf;
+use Dompdf\Options;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\Crypt;
@@ -489,8 +490,8 @@ function profileImage($path)
         return asset('user_profile/placeholder.png');
     }
 
-    if (file_exists(public_path('assets/images/user_profile/' . $path))) {
-        return asset('/assets/images/user_profile/' . $path);
+    if (file_exists(public_path('user_profile/' . $path))) {
+        return asset('user_profile/' . $path);
     } else {
         return asset('user_profile/placeholder.png');
     }
@@ -640,12 +641,12 @@ function getShippers($id)
 function getPartner($id)
 {
     if ($id == 'all') {
-        $partners = partners::where('pos_code', company()->pos_code)->get();
+        $partners = partners::all();
         if ($partners->count() > 0) {
             return (object)$partners;
         }
     } else {
-        $partners = partners::where('id', $id)->where('pos_code', company()->pos_code)->get();
+        $partners = partners::where('id', $id)->get();
         if ($partners && $partners->count() > 0) {
             return (object)$partners[0];
         }
@@ -1223,7 +1224,31 @@ function generateThermalInvoice($order_id, $inName, $bill_type)
     //$POSSettings = POSSettings();
 
     $note = $bill_type == 'newOrder' ? 'Received' : 'Delivered';
-    $note2 = $bill_type == 'newOrder' ? 'Receive Note' : 'Delivery Note';
+    $note2 = $bill_type == 'newOrder' ? 'Receive Note' : 'Invoice';
+
+    $company_name = '';
+    $company_address = '';
+    $company_phone = '';
+    $hasPartnerLogo = false;
+    $logo = '';
+
+    if ($repairs->partner != 0) {
+        $partner = getPartner($repairs->partner);
+        $company_name = $partner->company;
+        $company_address = $partner->address;
+        $company_phone = formatPhoneNumber($partner->phone);
+
+        $path = public_path('user_profile/'.$partner->logo);
+        $type = pathinfo($path, PATHINFO_EXTENSION);
+        $data = file_get_contents($path);
+        $logo = 'data:image/' . $type . ';base64,' . base64_encode($data);
+        $hasPartnerLogo = $partner->logo;
+    }
+    else {
+        $company_name = $company->company_name;
+        $company_address = getUserData($company->admin_id)->address;
+        $company_phone = formatPhoneNumber(getUserData($company->admin_id)->phone);
+    }
 
     $html = '
 
@@ -1245,10 +1270,12 @@ function generateThermalInvoice($order_id, $inName, $bill_type)
         <body style="font-family: Arial, sans-serif;">
 
             <div style="text-align: center;">
-                <h2 style="margin: 0;">' . $company->company_name . '</h2>
-                <p style="margin: 2px 0; font-size: 13px;">' . getUserData($company->admin_id)->address . '</p>
-                <p style="margin: 2px 0; font-size: 13px;">Tel: ' . formatPhoneNumber(getUserData($company->admin_id)->phone) . '</p>
-                <p style="margin: 2px 0; font-size: 13px;">www.wefix.lk</p>
+            '. ($hasPartnerLogo && !empty($logo) ? '<img height="70px" src="'.$logo.'">' : '') .'
+
+                <h2 style="margin: 0; margin-top: 10px;">' . $company_name . '</h2>
+                <p style="margin: 2px 0; font-size: 13px;">' . $company_address . '</p>
+                <p style="margin: 2px 0; font-size: 13px;">Tel: ' . $company_phone . '</p>
+                <p style="margin: 2px 0; font-size: 13px;">'. ($repairs->partner == 0? 'www.wefix.lk' : '') .'</p>
             </div>
 
             <h3 style="text-align: center; margin: 10px 0;">' . $note2 . '</h3>
@@ -1276,12 +1303,12 @@ function generateThermalInvoice($order_id, $inName, $bill_type)
                 </tr>
                 <tr>
                     <td style="font-size: 12px;">Delivery Date:</td>
-                    <td style="font-size: 12px; text-align: right;">' . date('d-m-Y H:i:s', strtotime($repairs->paid_at)) . '</td>
+                    <td style="font-size: 12px; text-align: right;">' . ($repairs->paid_at? date('d-m-Y H:i:s', strtotime($repairs->paid_at)) : 'N/A') . '</td>
                 </tr>
             </table>
 
             <table style="width: 100%; border-collapse: collapse; margin-bottom: 10px; margin-top: 5px; border-top: 1px solid #000;">
-                <tr>
+                <tr style="'.($repairs->partner != 0? 'display:none;' : '').'">
                     <th style="color: #000;padding: 5px; text-align: left;">Order</th>
                     <th style="color: #000;padding: 5px; text-align: left;">Total</th>
                     <th style="color: #000;padding: 5px; text-align: left;">Advance</th>
@@ -1298,94 +1325,96 @@ function generateThermalInvoice($order_id, $inName, $bill_type)
                 <td style="font-size: 13px; padding-top: 5px;" colspan="4"><span style="margin-right: 5px;">Fault - </span> <span style="margin-right: 10px;">' . $order["fault"] . '</span></td>
             </tr>
             <tr style="width: 100%;">
-                <td style="font-size: 14px; border-bottom: #8d8d8d 2px dotted;"></td>
-                <td style="font-size: 14px; border-bottom: #8d8d8d 2px dotted;"><div style="margin-left: 5px;">' . currency($order["total"], '') . '</div></td>
-                <td style="font-size: 14px; text-align: center;border-bottom: #8d8d8d 2px dotted;">' . currency($order["advance"], '') . '</td>
-                <td style="font-size: 14px; text-align: right;border-bottom: #8d8d8d 2px dotted;">' . currency($order["total"] - $order["advance"], '') . '</td>
+                <td style="'.($repairs->partner != 0? 'display:none;' : '').'font-size: 14px; border-bottom: #8d8d8d 2px dotted;"></td>
+                <td style="'.($repairs->partner != 0? 'display:none;' : '').'font-size: 14px; border-bottom: #8d8d8d 2px dotted;"><div style="margin-left: 5px;">' . currency($order["total"], '') . '</div></td>
+                <td style="'.($repairs->partner != 0? 'display:none;' : '').'font-size: 14px; text-align: center;border-bottom: #8d8d8d 2px dotted;">' . currency($order["advance"], '') . '</td>
+                <td style="'.($repairs->partner != 0? 'display:none;' : '').'font-size: 14px; text-align: right;border-bottom: #8d8d8d 2px dotted;">' . currency($order["total"] - $order["advance"], '') . '</td>
             </tr>
         ';
     }
 
-    if ($bill_type == "newOrder" && $repairs->type != "other") {
-        $html .= '
-            </table>
+    $html .= '</table>';
 
-            <table style="width: 100%; border-collapse: collapse; border-top: 1px solid #000; margin-top: 10px;">
-                <tr>
-                    <td style="width: 50%; font-size: 14px;padding-top: 10px; font-weight: bold; text-align: right;">Total: </td>
-                    <td style="width: 50%; font-size: 14px;padding-top: 10px;  text-align: right;">' . currency($total, 'LKR') . '</td>
-                </tr>
-                <tr>
-                    <td style="width: 50%; font-size: 14px;padding-top: 10px; font-weight: bold; text-align: right;">Advance: </td>
-                    <td style="width: 50%; font-size: 14px;padding-top: 10px;  text-align: right;">' . currency($advance, 'LKR') . '</td>
-                </tr>
-                <tr>
-                    <td style="width: 50%; font-size: 14px;padding-top: 10px; font-weight: bold; text-align: right;">Balance: </td>
-                    <td style="width: 50%; font-size: 14px;padding-top: 10px;  text-align: right;">' . currency(((float)$total - (float)$advance), 'LKR') . '</td>
-                </tr>
-            </table>
-        ';
-        $html .= '
-            <h4 style="margin-bottom: 10px;">Product Information</h4>
+    if ($repairs->partner == 0) {
+        if ($bill_type == "newOrder" && $repairs->type != "other") {
+            $html .= '
+                <table style="width: 100%; border-collapse: collapse; border-top: 1px solid #000; margin-top: 10px;">
+                    <tr>
+                        <td style="width: 50%; font-size: 14px;padding-top: 10px; font-weight: bold; text-align: right;">Total: </td>
+                        <td style="width: 50%; font-size: 14px;padding-top: 10px;  text-align: right;">' . currency($total, 'LKR') . '</td>
+                    </tr>
+                    <tr>
+                        <td style="width: 50%; font-size: 14px;padding-top: 10px; font-weight: bold; text-align: right;">Advance: </td>
+                        <td style="width: 50%; font-size: 14px;padding-top: 10px;  text-align: right;">' . currency($advance, 'LKR') . '</td>
+                    </tr>
+                    <tr>
+                        <td style="width: 50%; font-size: 14px;padding-top: 10px; font-weight: bold; text-align: right;">Balance: </td>
+                        <td style="width: 50%; font-size: 14px;padding-top: 10px;  text-align: right;">' . currency(((float)$total - (float)$advance), 'LKR') . '</td>
+                    </tr>
+                </table>
+            ';
+            $html .= '
+                <h4 style="margin-bottom: 10px;">Product Information</h4>
 
-            <p style="font-size: 12px; text-align: left;font-weight: bold; border-bottom: 1px solid #000;">Additional Info</p>
+                <p style="font-size: 12px; text-align: left;font-weight: bold; border-bottom: 1px solid #000;">Additional Info</p>
 
-            <p style="font-size: 12px; text-align: left;">' . nl2br(htmlspecialchars($repairs->note)) . '</p>
+                <p style="font-size: 12px; text-align: left;">' . nl2br(htmlspecialchars($repairs->note)) . '</p>
 
-            <table style="width: 100%; border-collapse: collapse;">
-                <tr style="border-bottom: 1px solid #000;">
-                    <th style="font-size: 12px; text-align: left;">Checking Charges</th>
-                    <th style="font-size: 12px; text-align: right;">Rs.</th>
-                </tr>
-                <tr>
-                    <td style="font-size: 14px; padding-top: 10px;">24" INCH LCD LED</td>
-                    <td style="font-size: 14px; text-align: right; padding-top: 10px;">1,000.00</td>
-                </tr>
-                <tr>
-                    <td style="font-size: 14px;">32" INCH LCD LED</td>
-                    <td style="font-size: 14px; text-align: right;">1,500.00</td>
-                </tr>
-                <tr>
-                    <td style="font-size: 14px;">40" TO 50" INCH LCD LED</td>
-                    <td style="font-size: 14px; text-align: right;">2,000.00</td>
-                </tr>
-                <tr>
-                    <td style="font-size: 14px;">55" INCH LCD LED</td>
-                    <td style="font-size: 14px; text-align: right;">3,000.00</td>
-                </tr>
-                <tr>
-                    <td style="font-size: 14px;">55" TO 100" INCH LCD LED</td>
-                    <td style="font-size: 14px; text-align: right;">5,000.00</td>
-                </tr>
-            </table>
-        ';
+                <table style="width: 100%; border-collapse: collapse;">
+                    <tr style="border-bottom: 1px solid #000;">
+                        <th style="font-size: 12px; text-align: left;">Checking Charges</th>
+                        <th style="font-size: 12px; text-align: right;">Rs.</th>
+                    </tr>
+                    <tr>
+                        <td style="font-size: 14px; padding-top: 10px;">24" INCH LCD LED</td>
+                        <td style="font-size: 14px; text-align: right; padding-top: 10px;">1,000.00</td>
+                    </tr>
+                    <tr>
+                        <td style="font-size: 14px;">32" INCH LCD LED</td>
+                        <td style="font-size: 14px; text-align: right;">1,500.00</td>
+                    </tr>
+                    <tr>
+                        <td style="font-size: 14px;">40" TO 50" INCH LCD LED</td>
+                        <td style="font-size: 14px; text-align: right;">2,000.00</td>
+                    </tr>
+                    <tr>
+                        <td style="font-size: 14px;">55" INCH LCD LED</td>
+                        <td style="font-size: 14px; text-align: right;">3,000.00</td>
+                    </tr>
+                    <tr>
+                        <td style="font-size: 14px;">55" TO 100" INCH LCD LED</td>
+                        <td style="font-size: 14px; text-align: right;">5,000.00</td>
+                    </tr>
+                </table>
+            ';
+        }
+        else {
+            $html .= '
+                </table>
+
+                <table style="width: 100%; border-collapse: collapse; border-top: 1px solid #000; margin-top: 10px;">
+                    <tr>
+                        <td style="width: 50%; font-size: 14px;padding-top: 10px; font-weight: bold; text-align: right;">Subtotal: </td>
+                        <td style="width: 50%; font-size: 14px;padding-top: 10px;  text-align: right;">' . currency($total, 'LKR') . '</td>
+                    </tr>
+                    <tr>
+                        <td style="width: 50%; font-size: 14px;padding-top: 10px; font-weight: bold; text-align: right;">Advance: </td>
+                        <td style="width: 50%; font-size: 14px;padding-top: 10px;  text-align: right;">' . currency($advance, 'LKR') . '</td>
+                    </tr>
+                    <tr>
+                        <td style="width: 50%; font-size: 14px;padding-top: 10px; font-weight: bold; text-align: right;">Delivery: </td>
+                        <td style="width: 50%; font-size: 14px;padding-top: 10px;  text-align: right;">' . currency($delivery, 'LKR') . '</td>
+                    </tr>
+                    <tr>
+                        <td style="width: 50%; font-size: 14px;padding-top: 10px; font-weight: bold; text-align: right;">Total: </td>
+                        <td style="width: 50%; font-size: 14px;padding-top: 10px;  text-align: right;">' . currency(((float)$total - (float)$advance)+$delivery, 'LKR') . '</td>
+                    </tr>
+                </table>
+            ';
+        }
     }
-    else {
-        $html .= '
-            </table>
 
-            <table style="width: 100%; border-collapse: collapse; border-top: 1px solid #000; margin-top: 10px;">
-                <tr>
-                    <td style="width: 50%; font-size: 14px;padding-top: 10px; font-weight: bold; text-align: right;">Subtotal: </td>
-                    <td style="width: 50%; font-size: 14px;padding-top: 10px;  text-align: right;">' . currency($total, 'LKR') . '</td>
-                </tr>
-                <tr>
-                    <td style="width: 50%; font-size: 14px;padding-top: 10px; font-weight: bold; text-align: right;">Advance: </td>
-                    <td style="width: 50%; font-size: 14px;padding-top: 10px;  text-align: right;">' . currency($advance, 'LKR') . '</td>
-                </tr>
-                <tr>
-                    <td style="width: 50%; font-size: 14px;padding-top: 10px; font-weight: bold; text-align: right;">Delivery: </td>
-                    <td style="width: 50%; font-size: 14px;padding-top: 10px;  text-align: right;">' . currency($delivery, 'LKR') . '</td>
-                </tr>
-                <tr>
-                    <td style="width: 50%; font-size: 14px;padding-top: 10px; font-weight: bold; text-align: right;">Total: </td>
-                    <td style="width: 50%; font-size: 14px;padding-top: 10px;  text-align: right;">' . currency(((float)$total - (float)$advance)+$delivery, 'LKR') . '</td>
-                </tr>
-            </table>
-        ';
-    }
-
-    if ($bill_type == "newOrder") {
+    if ($repairs->partner == 0 && $bill_type == "newOrder") {
         $html .= '
             <div style="border-top: 1px solid #000; margin-top: 10px;">
                 <p style="font-size: 12px; margin: 10px 0; text-align: center;">
@@ -1401,7 +1430,8 @@ function generateThermalInvoice($order_id, $inName, $bill_type)
         ';
     }
 
-    $html .= '
+    if ($repairs->partner == 0) {
+        $html .= '
         <p style="font-size: 12px; text-align: left;font-weight: bold; border-bottom: 1px solid #000;">PDF Invoice</p>
 
         <table style="width: 100%; border-collapse: collapse;">
@@ -1414,7 +1444,8 @@ function generateThermalInvoice($order_id, $inName, $bill_type)
                 </td>
             </tr>
         </table>
-    ';
+        ';
+    }
 
     if ($bill_type != "newOrder") {
         $html .= '
@@ -1509,6 +1540,22 @@ function generateSalesInvoice($order_id, $inName, $products, $cashin)
     //$qr_code_image = generateQR("https://nmsware.com/customer-copy/" . $company->pos_code . "/" . $order_id);
     //$POSSettings = POSSettings();
 
+    $company_name = '';
+    $company_address = '';
+    $company_phone = '';
+
+    if ($repairs->partner != 0) {
+        $partner = getPartner($repairs->partner);
+        $company_name = $partner->company;
+        $company_address = $partner->address;
+        $company_phone = formatPhoneNumber($partner->phone);
+    }
+    else {
+        $company_name = $company->company_name;
+        $company_address = getUserData($company->admin_id)->address;
+        $company_phone = formatPhoneNumber(getUserData($company->admin_id)->phone);
+    }
+
     $html = '
         <html lang="en">
         <head>
@@ -1528,10 +1575,10 @@ function generateSalesInvoice($order_id, $inName, $products, $cashin)
 
             <!-- Header -->
             <div style="text-align: center; margin-bottom: 20px; margin-top: 30px;">
-                <h1 style="margin: 0;">' . $company->company_name . '</h1>
-                <p style="margin: 0;">' . getUserData($company->admin_id)->address . '</p>
-                <p style="margin: 0;">Tel: ' . formatPhoneNumber(getUserData($company->admin_id)->phone) . '</p>
-                <p style="margin: 0;">www.wefix.lk</p>
+                <h1 style="margin: 0;">' . $company_name . '</h1>
+                <p style="margin: 0;">' . $company_address . '</p>
+                <p style="margin: 0;">Tel: ' . $company_phone . '</p>
+                <p style="margin: 0;">'. ($repairs->partner == 0? 'www.wefix.lk' : '') .'</p>
                 <h2 style="margin: 20px 0;">Sales Note</h2>
             </div>
 
