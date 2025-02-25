@@ -690,3 +690,20 @@ $theme-darkblue: #06468e;
         }
     }
 }
+
+.pending-orders {
+    background-color: #fff;
+
+    .technician {
+        font-weight: bold;
+        font-size: 18px;
+    }
+
+    ul {
+        padding: 0;
+        margin-top: 20px;
+        li {
+            list-style: none;
+        }
+    }
+}

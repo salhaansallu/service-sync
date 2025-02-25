@@ -643,6 +643,16 @@
             </div>
         </div>
     </div>
+
+    <div class="row m-0 p-3 pending-orders row-gap-5 text-center">
+        <div class="col-12 fw-bold fs-3 mt-3">Pending Orders</div>
+        <div class="col-2" v-for="order in pendingOrders">
+            <div class="technician">{{ order['name'] }}</div>
+            <ul>
+                <li v-for="invoice in order['repairs']"><a href="javascript:void(0)" @click="printInvoice(invoice['invoice'])">{{ invoice['bill_no'] }}</a> - <div :class="'badge text-bg-'+(invoice['status']=='Pending'? 'danger' : 'warning')">{{ invoice['status'] }}</div></li>
+            </ul>
+        </div>
+    </div>
 </template>
 
 <script>
@@ -677,6 +687,7 @@ export default {
             cashiers: [],
             new_bill: true,
             bulkInvoiceList: [],
+            pendingOrders: [],
         }
     },
     methods: {
@@ -777,7 +788,14 @@ export default {
                 this.getRepairs();
                 this.getSpares();
                 this.getCashiers();
+                this.getPendingRepairs();
             }
+        },
+        async getPendingRepairs() {
+            const { data } = await axios.post("/pos/get_all_pending_repairs");
+            console.log(data);
+
+            this.pendingOrders = data;
         },
         async getRepairs() {
             this.FilterRepairs()

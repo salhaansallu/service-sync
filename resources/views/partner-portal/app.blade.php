@@ -333,18 +333,18 @@
                                 <li class="nav-item nav-icon dropdown caption-content">
                                     <a href="#" class="search-toggle dropdown-toggle" id="dropdownMenuButton4"
                                         data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                        <img src="{{ profileImage(userData()->profile) }}" class="img-fluid rounded"
+                                        <img src="{{ profileImage(partner()->logo) }}" class="img-fluid rounded"
                                             alt="user">
                                     </a>
                                     <div class="iq-sub-dropdown dropdown-menu" aria-labelledby="dropdownMenuButton">
                                         <div class="card shadow-none m-0">
                                             <div class="card-body p-0 text-center">
+                                                <form action="" class="d-none" enctype="multipart/form-data" id="partnerLogo" method="post">
+                                                    <input type="file" name="logo" id="ParterLogoImage">
+                                                </form>
                                                 <div class="media-body profile-detail text-center">
-                                                    <img src="{{ asset('assets/assets/images/page-img/profile-bg.jpg') }}"
-                                                        alt="profile-bg" class="rounded-top img-fluid mb-4">
-                                                    <img src="{{ profileImage(userData()->profile) }}"
-                                                        alt="profile-img"
-                                                        class="rounded profile-img img-fluid avatar-70">
+                                                    <img src="{{ asset('assets/assets/images/page-img/profile-bg.jpg') }}" alt="profile-bg" class="rounded-top img-fluid mb-4">
+                                                    <label for="ParterLogoImage" style="cursor: pointer;"><img src="{{ profileImage(partner()->logo) }}" alt="profile-img" class="rounded profile-img img-fluid avatar-70"></label>
                                                 </div>
                                                 <div class="p-3">
                                                     <h5 class="mb-1">{{ partner()->email }}</h5>
@@ -411,6 +411,41 @@
             </div>
         </div>
     </footer>
+
+    <script>
+        $("#ParterLogoImage").change(function(e) {
+            e.preventDefault();
+
+            // if (document.getElementById("product_image").value != "" && !['png', 'jpeg', 'jpg'].includes(checkFileExtension('product_image'))) {
+            //     return toastr.error("Please select 'png', 'jpeg', or 'jpg' image", 'Error');
+            // }
+
+            var formData = new FormData();
+            var inputValue = $('#ParterLogoImage')[0].files[0]; // Get input field value
+            formData.append('logo', inputValue);
+            formData.append('_token', '{{ csrf_token() }}');
+
+            $.ajax({
+                type: "post",
+                url: '/partner-portal/logo-update',
+                data: formData,
+                dataType: "json",
+                contentType: false,
+                processData: false,
+
+                success: function(response) {
+                    if (response.error == 0) {
+                        toastr.success(response.msg, 'Success');
+                        setInterval(() => {
+                            location.reload();
+                        }, 1500);
+                    } else {
+                        toastr.error(response.msg, 'Error');
+                    }
+                }
+            });
+        });
+    </script>
 
 </body>
 

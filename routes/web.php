@@ -104,6 +104,7 @@ Route::post('/pos/get_repairs', [RepairsController::class, 'getRepairs']);
 Route::post('/pos/update', [RepairsController::class, 'orderUpdate']);
 Route::post('/pos/new_order', [RepairsController::class, 'store']);
 Route::post('/pos/get_customers', [CustomersController::class, 'getCustomers']);
+Route::post('/pos/get_all_pending_repairs', [RepairsController::class, 'getAllPendingRepairs']);
 Route::post('/pos/get_partners', [PartnersController::class, 'getPartners']);
 Route::post('/pos/get_cashiers', [PosDataController::class, 'getCashiers']);
 Route::post('/pos/pos_data', [PosDataController::class, 'getPosData']);
@@ -294,6 +295,7 @@ Route::prefix('partner-portal')->group(function () {
     Route::post('login', [PartnersController::class, 'login'])->name('partnerSignin');
     Route::get('/repairs', [PartnersController::class, 'listRepairs']);
     Route::get('/repair/{id}', [PartnersController::class, 'displayRepair']);
+    Route::post('logo-update', [PartnersController::class, 'logoUpdate']);
 });
 
 

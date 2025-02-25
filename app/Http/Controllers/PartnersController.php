@@ -79,6 +79,7 @@ class PartnersController extends Controller
                                     "email" => $verify[0]->email,
                                     "username" => $verify[0]->username,
                                     "pos_code" => $verify[0]->pos_code,
+                                    "logo" => $verify[0]->logo,
                                     "created_at" => $verify[0]->created_at,
                                     "updated_at" => $verify[0]->updated_at,
                                 );
@@ -354,6 +355,34 @@ class PartnersController extends Controller
                 return response(json_encode(array("error" => 1, "msg" => "Partner not found")));
             }
             return response(json_encode(array("error" => 1, "msg" => "Sorry! something went wrong")));
+        }
+    }
+
+    public function logoUpdate(Request $request)
+    {
+        if (self::is_partner()) {
+            if ($request->hasFile('logo')) {
+                $extension = $request->file('logo')->getClientOriginalExtension();
+                if (in_array($extension, array('png', 'jpeg', 'jpg'))) {
+                    $imageName = time() . rand(11111, 99999999) . '.' . $request->logo->extension();
+                    $request->logo->move(public_path('user_profile'), $imageName);
+
+                    $update_arr = [
+                        "logo" => $imageName,
+                    ];
+
+                    $customer = partners::where('id', partner()->id)->update($update_arr);
+
+                    if ($customer) {
+                        return response(json_encode(array("error" => 0, "msg" => "Logo Updated Successfully")));
+                    }
+
+                } else {
+                    return response(json_encode(array("error" => 1, "msg" => "Please select 'png', 'jpeg', or 'jpg' type image")));
+                }
+            }
+
+            return response(json_encode(array("error" => 1, "msg" => "Please select an image")));
         }
     }
 }

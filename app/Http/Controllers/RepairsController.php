@@ -10,6 +10,7 @@ use App\Models\Products;
 use App\Models\repairCommissions;
 use App\Models\Repairs;
 use App\Models\spareSaleHistory;
+use App\Models\User;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
@@ -341,16 +342,18 @@ class RepairsController extends Controller
 
                             if ($repair->save()) {
 
-                                $sms = new SMS();
-                                $sms->contact = array(array(
-                                    "fname" => $customerData[0]["name"],
-                                    "lname" => "",
-                                    "group" => "",
-                                    "number" => $customerData[0]["phone"],
-                                    "email" => $customerData[0]["email"],
-                                ));
-                                $sms->message = "Dear Customer,\nyour account with " . company()->company_name . " has been successfully created. We have received your product and will notify you via this number once the repair is complete. Visit https://wefixservers.xyz/customer-portal?phone=".$customerData[0]["phone"]." to keep track of your repairs. Thank you for choosing " . company()->company_name . ".";
-                                $sms->Send();
+                                if ($partner == "" || $partner == 0) {
+                                    $sms = new SMS();
+                                    $sms->contact = array(array(
+                                        "fname" => $customerData[0]["name"],
+                                        "lname" => "",
+                                        "group" => "",
+                                        "number" => $customerData[0]["phone"],
+                                        "email" => $customerData[0]["email"],
+                                    ));
+                                    $sms->message = "Dear Customer,\nyour account with " . company()->company_name . " has been successfully created. We have received your product and will notify you via this number once the repair is complete. Visit https://wefixservers.xyz/customer-portal?phone=".$customerData[0]["phone"]." to keep track of your repairs. Thank you for choosing " . company()->company_name . ".";
+                                    $sms->Send();
+                                }
 
                                 $rand = date('d-m-Y-h-i-s') . '-' . rand(0, 9999999) . '.pdf';
                                 $inName = str_replace(' ', '-', str_replace('.', '-', $bill_no)) . '-Invoice-' . $rand;
@@ -581,6 +584,25 @@ class RepairsController extends Controller
                 return response(json_encode(array("error" => 1, "msg" => "Order not found")));
             }
             return response(json_encode(array("error" => 1, "msg" => "Sorry! something went wrong")));
+        }
+    }
+
+    public function getAllPendingRepairs(Request $request)
+    {
+        if (Auth::check() && PosDataController::check()) {
+            $result = [];
+            $techs = User::all();
+            foreach ($techs as $key => $tech) {
+                $data = DB::select('SELECT * FROM repairs WHERE (status = "Pending" OR status = "Return" OR status = "Awaiting Parts" OR status = "Customer Pending") AND techie = "'.$tech->id.'"');
+
+                if (count($data) > 0) {
+                    $result[] = [
+                        "name" => $tech->fname . ' '.$tech->lname,
+                        "repairs" => $data
+                    ];
+                }
+            }
+            return response(json_encode($result));
         }
     }
 }

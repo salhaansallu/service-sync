@@ -73,27 +73,27 @@ class CustomersController extends Controller
     public function OTPVerify(Request $request) {
         if ($request->has('code') && preg_match('/^\d{4}$/', sanitize($request->input('code')))) {
             $code = sanitize($request->input('code'));
-            
+
             if (!isset($_SESSION[self::$otpSessionName])) {
                 return response(json_encode(array("error" => 1, "msg" => "Invalid OTP")));
             }
 
-            $sessionData = json_decode(Crypt::decrypt($_SESSION[self::$otpSessionName])); 
+            $sessionData = json_decode(Crypt::decrypt($_SESSION[self::$otpSessionName]));
 
             if ($sessionData) {
                 if (Carbon::parse($sessionData->time)->diffInMinutes(Carbon::now()) >= 5) {
                     return response(json_encode(array("error" => 1, "msg" => "OTP code expired. Please Resend")));
                 }
-    
+
                 if (Hash::check($code, $sessionData->otp)) {
                     unset($_SESSION[self::$otpSessionName]);
                     $data = customers::where("phone", $sessionData->phone)->get(['phone', 'id']);
-    
+
                     if ($data->count() > 0) {
                         $repairs = Repairs::where('customer', $data[0]->id)->orderBy('id', 'DESC')->get(['bill_no', 'model_no', 'serial_no', 'fault', 'advance', 'total', 'delivery', 'status', 'invoice', 'created_at']);
                         return response(json_encode(array("error" => 0, "msg" => "OTP verification successful", "repairs"=>$repairs)));
                     }
-    
+
                     return response(json_encode(array("error" => 1, "msg" => "Customer not found")));
                 }
             }
@@ -123,11 +123,11 @@ class CustomersController extends Controller
             if (empty($name)) {
                 return response(json_encode(array("error" => 1, "msg" => "Please Fill All Required Fields Marked In '*'")));
             }
-            if (!empty($phone) && !is_numeric($phone)) {
+            if ($phone !=0 && !empty($phone) && !is_numeric($phone)) {
                 return response(json_encode(array("error" => 1, "msg" => "Please use only numbers for phone number")));
             }
 
-            if (customers::where('phone', $phone)->where('pos_code', company()->pos_code)->count() > 0) {
+            if ($phone !=0 && customers::where('phone', $phone)->where('pos_code', company()->pos_code)->count() > 0) {
                 return response(json_encode(array("error" => 1, "msg" => "Phone number already in use")));
             }
 
@@ -186,7 +186,7 @@ class CustomersController extends Controller
                 return response(json_encode(array("error" => 1, "msg" => "Please Fill All Required Fields Marked In '*'")));
             }
 
-            if (!empty($phone) && !is_numeric($phone)) {
+            if ($phone !=0 && !empty($phone) && !is_numeric($phone)) {
                 return response(json_encode(array("error" => 1, "msg" => "Please use only numbers for phone number")));
             }
 
