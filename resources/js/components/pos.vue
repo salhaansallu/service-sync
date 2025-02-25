@@ -644,12 +644,12 @@
         </div>
     </div>
 
-    <div class="row m-0 p-3 pending-orders row-gap-5 text-center">
-        <div class="col-12 fw-bold fs-3 mt-3">Pending Orders</div>
+    <div class="row m-0 p-3 pending-orders row-gap-5">
+        <div class="col-12 fw-bold fs-3 mt-3 text-center">Pending Orders</div>
         <div class="col-2" v-for="order in pendingOrders">
             <div class="technician">{{ order['name'] }}</div>
             <ul>
-                <li v-for="invoice in order['repairs']"><a href="javascript:void(0)" @click="printInvoice(invoice['invoice'])">{{ invoice['bill_no'] }}</a> - <div :class="'badge text-bg-'+(invoice['status']=='Pending'? 'danger' : 'warning')">{{ invoice['status'] }}</div></li>
+                <li style="margin: 5px 0;" v-for="invoice in order['repairs']"><a href="javascript:void(0)" @click="printInvoice(invoice['invoice'])">{{ invoice['bill_no'] }}</a> - <div :class="'badge text-bg-'+(invoice['status']=='Pending'? 'danger' : 'warning')">{{ invoice['status'] }}</div></li>
             </ul>
         </div>
     </div>
