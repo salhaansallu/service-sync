@@ -6,6 +6,7 @@ use App\Models\Credit;
 use App\Models\customers;
 use App\Models\orderProducts;
 use App\Models\orders;
+use App\Models\personalCredits;
 use App\Models\posData;
 use App\Models\posUsers;
 use App\Models\Products;
@@ -138,7 +139,7 @@ class PosDataController extends Controller
                 $total += Repairs::where('bill_no', $id)->where('pos_code', $company->pos_code)->sum('total');
                 $advance += Repairs::where('bill_no', $id)->where('pos_code', $company->pos_code)->sum('advance');
 
-                Repairs::where('bill_no', $id)->where('pos_code', $company->pos_code)->update([
+                Repairs::where('bill_no', $id)->update([
                     "status" => "Delivered",
                     "updated_at" => date('d-m-Y H:i:s'),
                     "invoice" => "checkout/" . $inName,
@@ -147,7 +148,7 @@ class PosDataController extends Controller
                     "warranty" => $warranty,
                 ]);
 
-                $rp = Repairs::where('bill_no', $id)->where('pos_code', $company->pos_code)->get(['techie', 'total', 'cost']);
+                $rp = Repairs::where('bill_no', $id)->get(['techie', 'total', 'cost']);
                 if ($rp->count() > 0) {
                     $com = new repairCommissions();
                     $com->user = $rp[0]->techie;
@@ -156,6 +157,10 @@ class PosDataController extends Controller
                     $com->note = $id;
                     $com->save();
                 }
+
+                personalCredits::where('bill_no', $id)->update([
+                    'status' => 'Delivered',
+                ]);
 
             }
 
@@ -372,7 +377,7 @@ class PosDataController extends Controller
 
         foreach ($repairedData as $key => $value) {
             $customerData = customers::where('id', $value->customer)->first();
-            if ($customerData != null) {
+            if ($customerData != null && $value->partner == 0) {
                 $sms = new SMS();
                 $sms->contact = array(array(
                     "fname" => $customerData->name,
@@ -387,17 +392,17 @@ class PosDataController extends Controller
 
                 $sms->type = 'unicode';
 
-                $sms->message = "அன்புள்ள வாடிக்கையாளர்,\nஉங்கள் TV WeFix.LK -ல் பழுது நீக்கப்பட்டு தயாராக உள்ளது. பல முறை நினைவூட்டல்களுக்குப் பிறகும், நீங்கள் அதை பெறவில்லை. தயவுசெய்து 2 நாட்கள் க்குள் வந்து பெற்றுக்கொள்ளவும்; இல்லையெனில் legal action எடுக்கப்படும். குறிப்பிட்ட நேரத்திற்குள் பெறப்படாவிட்டால், அதன் நிலைமைக்குப் பொறுப்பாக இருக்க முடியாது, மேலும் அதை disassemble செய்வோம். உடனடியாக தொடர்பு கொள்ளவும்: 077 330 0905. 2 நாட்களுக்குள் உங்கள் TV ஐ பெற்றுக்கொள்ளாவிட்டால், உங்கள் அனைத்து தகவல்களும் எங்கள் SYSTEM இலிருந்து நீக்கப்படும்.";
-                $sms->Send();
+                // $sms->message = "அன்புள்ள வாடிக்கையாளர்,\nஉங்கள் TV WeFix.LK -ல் பழுது நீக்கப்பட்டு தயாராக உள்ளது. பல முறை நினைவூட்டல்களுக்குப் பிறகும், நீங்கள் அதை பெறவில்லை. தயவுசெய்து 2 நாட்கள் க்குள் வந்து பெற்றுக்கொள்ளவும்; இல்லையெனில் legal action எடுக்கப்படும். குறிப்பிட்ட நேரத்திற்குள் பெறப்படாவிட்டால், அதன் நிலைமைக்குப் பொறுப்பாக இருக்க முடியாது, மேலும் அதை disassemble செய்வோம். உடனடியாக தொடர்பு கொள்ளவும்: 077 330 0905. 2 நாட்களுக்குள் உங்கள் TV ஐ பெற்றுக்கொள்ளாவிட்டால், உங்கள் அனைத்து தகவல்களும் எங்கள் SYSTEM இலிருந்து நீக்கப்படும்.";
+                // $sms->Send();
 
-                $sms->message = "හිතවත් පාරිභෝගිකයා,\nඔබගේ TV WeFix.LK මඟින් අලුත්වැඩියා කර සාදා ඇති අතර එය ලබාගැනීමට සූදානම්ය. බොහෝ මතක් කිරීම් සිදු කළද, ඔබ එය ලබාගෙන නොමැත. කරුණාකර 2 දිනන් ඇතුළත එය ලබාගන්න. නැතිනම් නීතිමය ක්‍රියාවලිය ක්‍රියාත්මක විය හැක. නියමිත කාලය තුළ ලබාගන්නා නොහැකි නම්, අපි එය disassemble කරනු ඇත. වහාම අපව සම්බන්ධ කර ගන්න: 077 330 0905. ඔබේ TV 2 දිනක් ඇතුළත ලබාගත් නොහොත්, ඔබේ සියලුම තොරතුරු අපගේ SYSTEM වෙතින් මකා දැමෙනු ඇත.";
+                $sms->message = "හිතවත් පාරිභෝගිකයා,\nඔබගේ TV අලුත්වැඩියා අවසන්, ලබාගන්න. දින 2ක් ඇතුළත ලබාගන්න, නැතිනම් නීතිමය ක්‍රියාවලිය ක්‍රියාත්මක විය හැක. විමසීම්: 077 330 0905.";
                 $sms->Send();
             }
         }
 
         foreach ($customerPendingData as $key => $value) {
             $customerData = customers::where('id', $value->customer)->first();
-            if ($customerData != null) {
+            if ($customerData != null && $value->partner == 0) {
                 $sms = new SMS();
                 $sms->contact = array(array(
                     "fname" => $customerData->name,
@@ -412,17 +417,17 @@ class PosDataController extends Controller
 
                 $sms->type = 'unicode';
 
-                $sms->message = "அன்புள்ள வாடிக்கையாளர்,\nஉங்கள் TV-ஐ WeFix.LK -ல் check செய்து fault அடையாளம் கண்டுள்ளோம். ஆனால், நீங்கள் இதுவரை repair செய்ய ஒப்புதல் தரவில்லை. தயவுசெய்து 2 நாட்கள் க்குள் உங்கள் TV-ஐ பெற்று செல்லவும். இல்லையெனில், அதன் நிலைமைக்குப் பொறுப்பாக இருக்க முடியாது, மேலும் அதை disassemble செய்வோம். Inspectionக்காக service charge அறவிடப்படும். 2 நாட்களுக்குள் உங்கள் TV ஐ பெறவில்லை என்றால், உங்கள் அனைத்து தகவல்களும் எங்கள் SYSTEM இலிருந்து நீக்கப்படும். உடனடியாக தொடர்பு கொள்ளவும்: 077 330 0905.";
-                $sms->Send();
+                // $sms->message = "அன்புள்ள வாடிக்கையாளர்,\nஉங்கள் TV-ஐ WeFix.LK -ல் check செய்து fault அடையாளம் கண்டுள்ளோம். ஆனால், நீங்கள் இதுவரை repair செய்ய ஒப்புதல் தரவில்லை. தயவுசெய்து 2 நாட்கள் க்குள் உங்கள் TV-ஐ பெற்று செல்லவும். இல்லையெனில், அதன் நிலைமைக்குப் பொறுப்பாக இருக்க முடியாது, மேலும் அதை disassemble செய்வோம். Inspectionக்காக service charge அறவிடப்படும். 2 நாட்களுக்குள் உங்கள் TV ஐ பெறவில்லை என்றால், உங்கள் அனைத்து தகவல்களும் எங்கள் SYSTEM இலிருந்து நீக்கப்படும். உடனடியாக தொடர்பு கொள்ளவும்: 077 330 0905.";
+                // $sms->Send();
 
-                $sms->message = "හිතවත් පාරිභෝගිකයා,\nඅපි ඔබගේ TV check කර fault හඳුනාගෙන ඇත WeFix.LK මඟින්. කෙසේ වෙතත්, ඔබ මෙතෙක් repair කිරීම සඳහා අනුමත කර නැත. කරුණාකර 2 දිනන් ඇතුළත ඔබගේ TV ලබා ගන්න. නැතිනම්, එහි තත්වය පිළිබඳව අපට වගකීමක් නැත, සහ අපි disassemble කිරීමට ක්‍රියා කරනවා. Inspection සඳහා service charge අයකරනු ලැබේ. ඔබේ TV 2 දිනක් ඇතුළත ලබාගත් නොහොත්, ඔබේ සියලුම තොරතුරු අපගේ SYSTEM වෙතින් මකා දැමෙනු ඇත. වහාම අපව සම්බන්ධ කරන්න: 077 330 0905.";
+                $sms->message = "හිතවත් පාරිභෝගිකයා,\nඔබගේ TV fault හඳුනාගෙන ඇත, repair කිරීම සඳහා ඔබේ අනුමැතිය නොමැත. කරුණාකර දින 2ක් ඇතුළත ලබාගන්න, නැතිනම් අපි disassemble කිරීමට ක්‍රියාකරනවා. Inspection සඳහා service charge අයකරනු ලැබේ. විමසීම්: 077 330 0905.";
                 $sms->Send();
             }
         }
 
         foreach ($returnData as $key => $value) {
             $customerData = customers::where('id', $value->customer)->first();
-            if ($customerData != null) {
+            if ($customerData != null && $value->partner == 0) {
                 $sms = new SMS();
                 $sms->contact = array(array(
                     "fname" => $customerData->name,
@@ -437,10 +442,10 @@ class PosDataController extends Controller
 
                 $sms->type = 'unicode';
 
-                $sms->message = "அன்புள்ள வாடிக்கையாளர்,\nஉங்கள் TV WeFix.LK -ல் check செய்யப்பட்டு, ஆனால் அதனை repair செய்ய முடியாது. தயவுசெய்து உங்கள் TV-ஐ 2 நாட்கள் க்குள் வந்து பெற்றுக்கொள்ளவும். அதற்கு பிறகு, அதன் நிலைமைக்குப் பொறுப்பாக இருக்க முடியாது, மேலும் அதை disassemble செய்வோம். Inspectionக்கான service charge விதிக்கப்படும். 2 நாட்களுக்குள் உங்கள் TV ஐ பெறவில்லை என்றால், உங்கள் அனைத்து தகவல்களும் எங்கள் SYSTEM இலிருந்து நீக்கப்படும். உடனடியாக தொடர்பு கொள்ளவும்: 077 330 0905.";
-                $sms->Send();
+                // $sms->message = "அன்புள்ள வாடிக்கையாளர்,\nஉங்கள் TV WeFix.LK -ல் check செய்யப்பட்டு, ஆனால் அதனை repair செய்ய முடியாது. தயவுசெய்து உங்கள் TV-ஐ 2 நாட்கள் க்குள் வந்து பெற்றுக்கொள்ளவும். அதற்கு பிறகு, அதன் நிலைமைக்குப் பொறுப்பாக இருக்க முடியாது, மேலும் அதை disassemble செய்வோம். Inspectionக்கான service charge விதிக்கப்படும். 2 நாட்களுக்குள் உங்கள் TV ஐ பெறவில்லை என்றால், உங்கள் அனைத்து தகவல்களும் எங்கள் SYSTEM இலிருந்து நீக்கப்படும். உடனடியாக தொடர்பு கொள்ளவும்: 077 330 0905.";
+                // $sms->Send();
 
-                $sms->message = "හිතවත් පාරිභෝගිකයා,\nඔබගේ TV WeFix.LK හි check කර ඇත, නමුත් repair කළ නොහැක. කරුණාකර 2 දිනන් ඇතුළත ඔබගේ TV ලබාගන්න. එවිටත් නොගත්හොත්, එය disassemble කිරීමට අපේක්ෂා කරමු, සහ එහි තත්ත්වය පිළිබඳව අපගේ වගකීමක් නොමැත. Inspection සඳහා service charge අය කෙරේ. ඔබේ TV 2 දිනක් ඇතුළත ලබාගත් නොහොත්, ඔබේ සියලුම තොරතුරු අපගේ SYSTEM වෙතින් මකා දැමෙනු ඇත. කරුණාකර වහාම අපව සම්බන්ධ කර ගන්න: 077 330 0905.";
+                $sms->message = "හිතවත් පාරිභෝගිකයා,\nඔබගේ TV check කර ඇති නමුත් repair කළ නොහැක. කරුණාකර දින 2ක් ඇතුළත ලබාගන්න, නැතිනම් disassemble කිරීමට ක්‍රියාකරනවා. Inspection සඳහා service charge අයකරනු ලැබේ. විමසීම්: 077 330 0905.";
                 $sms->Send();
 
             }

@@ -14,6 +14,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\NewsletterController;
 use App\Http\Controllers\OrdersController;
 use App\Http\Controllers\PartnersController;
+use App\Http\Controllers\PersonalCreditsController;
 use App\Http\Controllers\PosDataController;
 use App\Http\Controllers\PosInvitationController;
 use App\Http\Controllers\POSSettingsController;
@@ -105,6 +106,7 @@ Route::post('/pos/update', [RepairsController::class, 'orderUpdate']);
 Route::post('/pos/new_order', [RepairsController::class, 'store']);
 Route::post('/pos/get_customers', [CustomersController::class, 'getCustomers']);
 Route::post('/pos/get_all_pending_repairs', [RepairsController::class, 'getAllPendingRepairs']);
+Route::post('/pos/get_pending_report', [RepairsController::class, 'getAllPendingReport']);
 Route::post('/pos/get_partners', [PartnersController::class, 'getPartners']);
 Route::post('/pos/get_cashiers', [PosDataController::class, 'getCashiers']);
 Route::post('/pos/pos_data', [PosDataController::class, 'getPosData']);
@@ -222,6 +224,12 @@ Route::prefix('dashboard')->group(function () {
     Route::post('/product-purchase/update-stock', [ProductPurchasesController::class, 'updateStock']);
     Route::post('/product-purchase/pay', [ProductPurchasesController::class, 'pay']);
     Route::delete('/product-purchase/delete', [ProductPurchasesController::class, 'destroy']);
+
+    Route::get('personal-credits', [DashboardController::class, 'listPersonalCredit']);
+    Route::get('personal-credits/create', [DashboardController::class, 'createPersonalCredit']);
+    Route::post('personal-credits/create', [PersonalCreditsController::class, 'store']);
+    Route::get('personal-credits/edit/{id}', [PersonalCreditsController::class, 'edit']);
+    Route::post('/personal-credits/edit', [PersonalCreditsController::class, 'update']);
 
     Route::get('/petty-cash/{id}', [PurchasesController::class, 'pettyCashes']);
     Route::post('/petty-cash/reload', [PurchasesController::class, 'addPattyCash']);

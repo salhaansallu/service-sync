@@ -647,7 +647,7 @@
     <div class="row m-0 p-3 pending-orders row-gap-5">
         <div class="col-12 fw-bold fs-3 mt-3 text-center">Pending Orders</div>
         <div class="col-2" v-for="order in pendingOrders">
-            <div class="technician">{{ order['name'] }}</div>
+            <div class="technician d-flex gap-3">{{ order['name'] }} <span style="cursor: pointer;" @click="generateInvoice(order['id'])"><i class="fa-solid fa-print"></i></span></div>
             <ul>
                 <li style="margin: 5px 0;" v-for="invoice in order['repairs']"><a href="javascript:void(0)" @click="printInvoice(invoice['invoice'])">{{ invoice['bill_no'] }}</a> - <div :class="'badge text-bg-'+(invoice['status']=='Pending'? 'danger' : 'warning')">{{ invoice['status'] }}</div></li>
             </ul>
@@ -1447,6 +1447,18 @@ export default {
             $(menu).css('opacity', '1');
             //document.addEventListener("click", this.closeContextMenu('#order_wrap_' + bill));
         },
+        async generateInvoice(id) {
+            const { data } = await axios.post('/pos/get_pending_report', {
+                id:id
+            });
+
+            if (data.error == 0) {
+                printJS(data.report);
+            }
+            else {
+                toastr.error(data.message, 'Error');
+            }
+        }
     },
     beforeMount() {
         this.getPosData();

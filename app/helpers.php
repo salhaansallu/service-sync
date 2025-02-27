@@ -2065,6 +2065,75 @@ function generateDeliveryInvoice($order_id, $inName)
     return (object)array('generated' => true, 'url' => '/invoice/delivery/' . $inName);
 }
 
+function generatePendingInvoice($orders, $inName, $cashier)
+{
+    $html = '
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Document</title>
+            <style>
+                @page {
+                    margin: 10px;
+                    height: auto;
+                    width: 210mm;
+                 }
+                body { margin: 10px; }
+            </style>
+        </head>
+        <body style="font-family: Arial, sans-serif;">
+
+            <div style="text-align: center; margin-bottom: 20px; margin-top: 30px;">
+                <h1 style="margin: 0;">' . getUser($cashier)->fname . '</h1>
+            </div>
+            <!-- Item Details -->
+            <div style="margin-bottom: 20px;">
+                <table style="width: 100%; border-collapse: collapse;">
+                    <tr>
+                        <th style="color: #000;padding: 5px; border: 1px solid black; text-align: left;">Bill No</th>
+                        <th style="color: #000;padding: 5px; border: 1px solid black; text-align: left;">Model</th>
+                        <th style="color: #000;padding: 5px; border: 1px solid black; text-align: left;">Serial</th>
+                        <th style="color: #000;padding: 5px; border: 1px solid black; text-align: left;">Fault</th>
+                        <th style="color: #000;padding: 5px; border: 1px solid black; text-align: left;">Status</th>
+                    </tr>
+            ';
+
+    foreach ($orders as $key => $order) {
+        $html .= '
+            <tr>
+                <td style="padding: 5px; border: 1px solid black;">' . $order->bill_no .'</td>
+                <td style="padding: 5px; border: 1px solid black;">' . $order->model_no . '</td>
+                <td style="padding: 5px; border: 1px solid black;">' . $order->serial_no . '</td>
+                <td style="padding: 5px; border: 1px solid black;">' . $order->fault . '</td>
+                <td style="padding: 5px; border: 1px solid black;">' . $order->status . '</td>
+            </tr>
+        ';
+    }
+
+    $html .= '
+            </table>
+        </div>
+        <div style="margin-top: 20px;">
+            <p>Role Today: </p>
+            <div style="border: 1px solid #000; width: 50%; height: 30px;"></div>
+        </div>
+        </body>
+        </html>
+    ';
+    // $connector = new FilePrintConnector("/dev/usb/lp0");
+    // $printer = new Printer($connector);
+
+    $pdf = new Dompdf();
+    $pdf->setPaper("A4", "portrait");
+    $pdf->loadHtml($html, 'UTF-8');
+    $pdf->render();
+    $path = public_path('invoice/' . $inName);
+    file_put_contents($path, $pdf->output());
+
+    return (object)array('generated' => true, 'url' => '/invoice/' . $inName);
+}
+
 function generateCreditPay($totalDue, $paid, $customer, $datetime, $bill_name)
 {
 

@@ -502,6 +502,45 @@
                                 @endif
                             </a>
                         </li>
+                        <li class="{{ Request::is('dashboard/personal-credit*') ? 'active' : '' }}">
+                            <a href="#personalCredit" class="collapsed {{ company()->plan == 1 ? 'no-collapsable' : '' }}"
+                                data-toggle="collapse" aria-expanded="false">
+                                <svg class="svg-icon" id="p-dash5" width="20" height="20"
+                                    xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                                    stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                    stroke-linejoin="round">
+                                    <rect x="1" y="4" width="22" height="16" rx="2" ry="2">
+                                    </rect>
+                                    <line x1="1" y1="10" x2="23" y2="10"></line>
+                                </svg>
+                                <span class="ml-4">Personal Credits</span>
+                                @if (company()->plan == 1)
+                                    <span class="badge"><i class="fa-solid fa-crown text-warning"></i></span>
+                                @else
+                                    <svg class="svg-icon iq-arrow-right arrow-active" width="20" height="20"
+                                        xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                                        stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                        stroke-linejoin="round">
+                                        <polyline points="10 15 15 20 20 15"></polyline>
+                                        <path d="M4 4h7a4 4 0 0 1 4 4v12"></path>
+                                    </svg>
+                                @endif
+                            </a>
+                            <ul id="personalCredit"
+                                class="iq-submenu collapse {{ Request::is('dashboard/personal-credit*') ? 'show' : '' }}"
+                                data-parent="#iq-sidebar-toggle">
+                                <li class="{{ Request::is('dashboard/personal-credits') ? 'active' : '' }}">
+                                    <a href="/dashboard/personal-credits">
+                                        <i class="fa-solid fa-minus"></i><span>List Credits</span>
+                                    </a>
+                                </li>
+                                <li class="{{ Request::is('dashboard/personal-credits/create') ? 'active' : '' }}">
+                                    <a href="/dashboard/personal-credits/create">
+                                        <i class="fa-solid fa-minus"></i><span>Add Credit</span>
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
                         <li class="{{ Request::is('dashboard/invoice-settings') ? 'active' : '' }}">
                             <a href="{{ company()->plan == 1 ? '#' : '/dashboard/invoice-settings' }}"
                                 class="">

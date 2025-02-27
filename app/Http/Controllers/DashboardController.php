@@ -7,6 +7,7 @@ use App\Models\customers;
 use App\Models\orderProducts;
 use App\Models\orders;
 use App\Models\partners;
+use App\Models\personalCredits;
 use App\Models\posData;
 use App\Models\posUsers;
 use App\Models\ProductPurchases;
@@ -411,6 +412,34 @@ class DashboardController extends Controller
         login_redirect('/' . request()->path());
         if (Auth::check() && $this->check(true)) {
             return view('pos.add-purchase');
+        } else {
+            return redirect('/signin');
+        }
+    }
+
+    public function listPersonalCredit()
+    {
+        login_redirect('/' . request()->path());
+
+        if (Auth::check() && $this->check(true)) {
+            $purchses = [];
+            if (isset($_GET['status']) && sanitize($_GET['status']) == 'all') {
+                $purchses = personalCredits::all();
+            }
+            else {
+                $purchses = personalCredits::where('status', 'Delivered')->get();
+            }
+            return view('pos.list-personalCredits')->with(['purchses' => $purchses]);
+        } else {
+            return redirect('/signin');
+        }
+    }
+
+    public function createPersonalCredit()
+    {
+        login_redirect('/' . request()->path());
+        if (Auth::check() && $this->check(true)) {
+            return view('pos.add-personalCredit')->with(['bills'=>Repairs::where('status', 'Delivered')->get()]);
         } else {
             return redirect('/signin');
         }

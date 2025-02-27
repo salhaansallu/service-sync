@@ -593,16 +593,28 @@ class RepairsController extends Controller
             $result = [];
             $techs = User::all();
             foreach ($techs as $key => $tech) {
-                $data = DB::select('SELECT * FROM repairs WHERE (status = "Pending" OR status = "Return" OR status = "Awaiting Parts" OR status = "Customer Pending") AND techie = "'.$tech->id.'"');
+                $data = DB::select('SELECT * FROM repairs WHERE (status = "Pending" AND cashier= "'.$tech->id.'") OR ((status = "Return" OR status = "Awaiting Parts" OR status = "Customer Pending") AND techie = "'.$tech->id.'")');
 
                 if (count($data) > 0) {
                     $result[] = [
                         "name" => $tech->fname . ' '.$tech->lname,
+                        "id" => $tech->id,
                         "repairs" => $data
                     ];
                 }
             }
             return response(json_encode($result));
+        }
+    }
+
+    public function getAllPendingReport(Request $request)
+    {
+        if (Auth::check() && PosDataController::check()) {
+            $id = $request->input('id');
+            $data = DB::select('SELECT * FROM repairs WHERE (status = "Pending" AND cashier= "'.$id.'") OR ((status = "Return" OR status = "Awaiting Parts" OR status = "Customer Pending") AND techie = "'.$id.' LIMIT 10")');
+            $generate = generatePendingInvoice($data, 'panding-repair-report.pdf', $id);
+
+            return response(json_encode(['error'=>0, 'report'=>asset($generate->url)]));
         }
     }
 }

@@ -67,7 +67,7 @@ export default {
         productCountUpdate(op) {
             if (op === '+') {
                 this.productCount++;
-                this.formData.push({ name: "", id: "", price: "", qty: "" });
+                this.formData.push({ name: "", id: "", price: 0, qty: "" });
             } else if (op === '-' && this.productCount > 1) {
                 this.productCount--;
                 this.formData.pop();
@@ -84,14 +84,14 @@ export default {
             } catch (error) { }
 
             if (!this.orderitems || this.orderitems.length == 0) {
-                this.formData = [{ name: "", id: "", price: "", qty: "" }];
+                this.formData = [{ name: "", id: "", price: 0, qty: "" }];
                 return;
             }
 
             this.formData = this.orderitems.map(item => ({
                 name: item.name || "",
                 id: item.id || "",
-                price: item.price || "",
+                price: item.price || 0,
                 qty: item.qty || ""
             }));
         }
