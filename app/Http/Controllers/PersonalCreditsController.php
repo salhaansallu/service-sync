@@ -80,7 +80,7 @@ class PersonalCreditsController extends Controller
         $purchase = personalCredits::where('id', sanitize($id))->first();
 
         if ($purchase != null) {
-            return view('pos.add-personalCredit')->with(['credit'=> $purchase, 'bills'=>Repairs::where('status', 'Delivered')->get()]);
+            return view('pos.add-personalCredit')->with(['credit'=> $purchase, 'bills'=>Repairs::all()]);
         } else {
             return display404();
         }

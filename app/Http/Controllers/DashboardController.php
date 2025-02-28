@@ -439,7 +439,7 @@ class DashboardController extends Controller
     {
         login_redirect('/' . request()->path());
         if (Auth::check() && $this->check(true)) {
-            return view('pos.add-personalCredit')->with(['bills'=>Repairs::where('status', 'Delivered')->get()]);
+            return view('pos.add-personalCredit')->with(['bills'=>Repairs::all()]);
         } else {
             return redirect('/signin');
         }
