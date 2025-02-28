@@ -133,7 +133,7 @@ class ProductsController extends Controller
                 return response(json_encode(array("error" => 1, "msg" => "Please Use Only Numbers For Stock")));
             }elseif (!is_numeric($price)) {
                 return response(json_encode(array("error" => 1, "msg" => "Please Use Only Numbers For Price")));
-            } elseif (empty($name) || empty($code) || empty($cost) || empty($stock) || empty($supplier)) {
+            } elseif (empty($name) || empty($code) || empty($supplier)) {
                 return response(json_encode(array("error" => 1, "msg" => "Please Fill All Required Fields Marked In '*'")));
             }
 
@@ -232,7 +232,7 @@ class ProductsController extends Controller
                 return response(json_encode(array("error" => 1, "msg" => "Please Use Only Numbers For Cost")));
             } elseif (!is_numeric($stock)) {
                 return response(json_encode(array("error" => 1, "msg" => "Please Use Only Numbers For Stock")));
-            } elseif (empty($name) || empty($code) || empty($cost) || empty($stock) || empty($supplier)) {
+            } elseif (empty($name) || empty($code) || empty($supplier)) {
                 return response(json_encode(array("error" => 1, "msg" => "Please Fill All Required Fields Marked As '*'")));
             }
 
