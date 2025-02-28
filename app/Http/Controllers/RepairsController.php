@@ -611,7 +611,7 @@ class RepairsController extends Controller
     {
         if (Auth::check() && PosDataController::check()) {
             $id = $request->input('id');
-            $data = DB::select('SELECT * FROM repairs WHERE (status = "Pending" AND cashier= "'.$id.'") OR ((status = "Return" OR status = "Awaiting Parts" OR status = "Customer Pending") AND techie = "'.$id.' LIMIT 10")');
+            $data = DB::select('SELECT * FROM repairs WHERE (status = "Pending" AND cashier = ?) OR (status IN ("Return", "Awaiting Parts", "Customer Pending") AND techie = ?) LIMIT 10', [$id, $id]);
             $generate = generatePendingInvoice($data, 'panding-repair-report.pdf', $id);
 
             return response(json_encode(['error'=>0, 'report'=>asset($generate->url)]));
