@@ -32,7 +32,7 @@
                             <tbody class="ligth-body">
                                 @if ($purchses && $purchses->count() > 0)
                                 @foreach ($purchses as $item)
-                                <tr>
+                                <tr id="category{{ $item->id }}">
                                     <td class="text-start">{{ $item->bill_no }}</td>
                                     <td class="text-start">{{ $item->amount }}</td>
                                     <td class="text-start">{{ $item->status }}</td>
@@ -41,6 +41,11 @@
                                         <div class="d-flex align-items-center list-action justify-content-start">
                                             <a class="badge bg-primary mr-2" data-toggle="tooltip" data-placement="top" title="Edit product"
                                                 data-original-title="Edit" href="/dashboard/personal-credits/edit/{{ $item->id }}"><i class="ri-pencil-line mr-0"></i></a>
+                                        </div>
+
+                                        <div class="d-flex align-items-center list-action justify-content-start">
+                                            <a class="badge bg-primary mr-2" onclick="deleteProduct('{{ $item->id }}')" data-toggle="tooltip" data-placement="top" title="Delete credit"
+                                                data-original-title="Edit" href="javascript:void(0)"><i class="ri-delete-bin-line mr-0"></i></a>
                                         </div>
                                     </td>
                                 </tr>
@@ -54,4 +59,27 @@
             <!-- Page end  -->
         </div>
     </div>
+
+    <script>
+        function deleteProduct(id) {
+            if (confirm('Are you sure you want to delete?')) {
+                $.ajax({
+                    type: "delete",
+                    url: "/personal-credits/delete",
+                    data: {id: id, _token: '{{ csrf_token() }}'},
+                    dataType: "json",
+                    success: function (response) {
+                        if (response.error == 0) {
+                            toastr.success(response.msg, "Success");
+                            $("#category"+id).remove();
+                        }
+                        else {
+                            toastr.error(response.msg, "Error");
+                        }
+                    }
+                });
+            }
+            return 0;
+        }
+    </script>
 @endsection

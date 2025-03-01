@@ -126,8 +126,15 @@ class PersonalCreditsController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(personalCredits $personalCredits)
+    public function destroy(Request $request)
     {
-        //
+        if (Auth::check() && DashboardController::check(true)) {
+            $delete = personalCredits::where('id', sanitize($request->input('id')))->delete();
+            if ($delete) {
+                return response(json_encode(array("error" => 0, "msg" => "Credit deleted successfully")));
+            }
+        }
+
+        return response(json_encode(array("error" => 1, "msg" => "Something went wrong please, try again later")));
     }
 }

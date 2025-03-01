@@ -230,6 +230,7 @@ Route::prefix('dashboard')->group(function () {
     Route::post('personal-credits/create', [PersonalCreditsController::class, 'store']);
     Route::get('personal-credits/edit/{id}', [PersonalCreditsController::class, 'edit']);
     Route::post('/personal-credits/edit', [PersonalCreditsController::class, 'update']);
+    Route::delete('/personal-credits/delete', [PersonalCreditsController::class, 'destroy']);
 
     Route::get('/petty-cash/{id}', [PurchasesController::class, 'pettyCashes']);
     Route::post('/petty-cash/reload', [PurchasesController::class, 'addPattyCash']);
