@@ -37,14 +37,14 @@
                                     <td class="text-start">{{ $item->amount }}</td>
                                     <td class="text-start">{{ $item->status }}</td>
                                     <td class="text-start">{{ $item->created_at }}</td>
-                                    <td class="text-start">
+                                    <td class="text-start d-flex gap-2">
                                         <div class="d-flex align-items-center list-action justify-content-start">
                                             <a class="badge bg-primary mr-2" data-toggle="tooltip" data-placement="top" title="Edit product"
                                                 data-original-title="Edit" href="/dashboard/personal-credits/edit/{{ $item->id }}"><i class="ri-pencil-line mr-0"></i></a>
                                         </div>
 
                                         <div class="d-flex align-items-center list-action justify-content-start">
-                                            <a class="badge bg-primary mr-2" onclick="deleteProduct('{{ $item->id }}')" data-toggle="tooltip" data-placement="top" title="Delete credit"
+                                            <a class="badge bg-danger mr-2" onclick="deleteProduct('{{ $item->id }}')" data-toggle="tooltip" data-placement="top" title="Delete credit"
                                                 data-original-title="Edit" href="javascript:void(0)"><i class="ri-delete-bin-line mr-0"></i></a>
                                         </div>
                                     </td>
@@ -65,7 +65,7 @@
             if (confirm('Are you sure you want to delete?')) {
                 $.ajax({
                     type: "delete",
-                    url: "/personal-credits/delete",
+                    url: "/dashboard/personal-credits/delete",
                     data: {id: id, _token: '{{ csrf_token() }}'},
                     dataType: "json",
                     success: function (response) {
