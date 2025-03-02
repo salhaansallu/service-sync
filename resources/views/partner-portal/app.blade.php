@@ -403,8 +403,7 @@
                                 <script>
                                     document.write(new Date().getFullYear())
                                 </script> &copy;
-                            </span> We Fix TV Panel Repair PVT LTD. Developed by <a href="https://nmsware.com">NMSware
-                                Technologies</a>
+                            </span> We Fix TV Panel Repair PVT LTD. Developed by <a href="https://wefix.lk">We Fix LK</a>
                         </div>
                     </div>
                 </div>
