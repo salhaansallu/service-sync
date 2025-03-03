@@ -441,6 +441,7 @@ class RepairsController extends Controller
             $customer = sanitize($request->input('customer'));
             $partner = sanitize($request->input('partner'));
             $techie = sanitize($request->input('techie'));
+            $cashier = sanitize($request->input('cashier'));
             $warranty = sanitize($request->input('warranty'));
             $spares = [];
             if ($request->has('spares')) {
@@ -480,6 +481,7 @@ class RepairsController extends Controller
                 "delivery" => $delivery,
                 "customer" => $customer,
                 "techie" => $techie,
+                "cashier" => $cashier,
                 "partner" => $partner,
                 "spares" => json_encode($spares),
                 "status" => $status,
@@ -611,7 +613,12 @@ class RepairsController extends Controller
     {
         if (Auth::check() && PosDataController::check()) {
             $id = $request->input('id');
-            $data = DB::select('SELECT * FROM repairs WHERE (status = "Pending" AND cashier = ?) OR (status IN ("Return", "Awaiting Parts", "Customer Pending") AND techie = ?) LIMIT 10', [$id, $id]);
+            $data = is_array($id)? json_decode(json_encode($id)) : $id;
+
+            if (!is_array($id)) {
+                $data = DB::select('SELECT * FROM repairs WHERE (status = "Pending" AND cashier = ?) OR (status IN ("Return", "Awaiting Parts", "Customer Pending") AND techie = ?) LIMIT 10', [$id, $id]);
+            }
+
             $generate = generatePendingInvoice($data, 'panding-repair-report.pdf', $id);
 
             return response(json_encode(['error'=>0, 'report'=>asset($generate->url)]));

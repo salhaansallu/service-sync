@@ -649,7 +649,7 @@
         <div class="col-2" v-for="order in pendingOrders">
             <div class="technician d-flex gap-3">{{ order['name'] }} <span style="cursor: pointer;" @click="generateInvoice(order['id'])"><i class="fa-solid fa-print"></i></span></div>
             <ul>
-                <li style="margin: 5px 0;" v-for="invoice in order['repairs']"><a href="javascript:void(0)" @click="printInvoice(invoice['invoice'])">{{ invoice['bill_no'] }}</a> - <div :class="'badge text-bg-'+(invoice['status']=='Pending'? 'danger' : 'warning')">{{ invoice['status'] }}</div></li>
+                <li style="margin: 5px 0;" v-for="invoice in order['repairs']" @click="selectPendingOrder(invoice['id'])" :class="(checkPechdingSelected(invoice['id'])? 'border' : '') +' border-success p-1 rounded cursor-pointer'"><a href="javascript:void(0)" @click="printInvoice(invoice['invoice'])">{{ invoice['bill_no'] }}</a> - <div :class="'badge text-bg-'+(invoice['status']=='Pending'? 'danger' : 'warning')">{{ invoice['status'] }}</div></li>
             </ul>
         </div>
     </div>
@@ -688,6 +688,7 @@ export default {
             new_bill: true,
             bulkInvoiceList: [],
             pendingOrders: [],
+            SelectedPendingOrders: [],
         }
     },
     methods: {
@@ -793,8 +794,6 @@ export default {
         },
         async getPendingRepairs() {
             const { data } = await axios.post("/pos/get_all_pending_repairs");
-            console.log(data);
-
             this.pendingOrders = data;
         },
         async getRepairs() {
@@ -1448,17 +1447,50 @@ export default {
             //document.addEventListener("click", this.closeContextMenu('#order_wrap_' + bill));
         },
         async generateInvoice(id) {
+            var postData = this.SelectedPendingOrders.length>0? this.SelectedPendingOrders : id;
+
             const { data } = await axios.post('/pos/get_pending_report', {
-                id:id
+                id:postData
             });
 
             if (data.error == 0) {
                 printJS(data.report);
+                this.SelectedPendingOrders = [];
             }
             else {
                 toastr.error(data.message, 'Error');
             }
-        }
+        },
+        checkPechdingSelected(id) {
+            var data;
+            data = this.SelectedPendingOrders.filter(item => item['id'] == id);
+            if (data.length > 0) {
+                return true;
+            }
+
+            return false;
+        },
+        selectPendingOrder(pro) {
+            var has = this.SelectedPendingOrders.filter(item => item['id'] == pro).length > 0;
+            if (has) {
+                this.removePendingOrder(pro);
+            }
+            else {
+                this.pendingOrders.forEach(element => {
+                    element['repairs'].forEach(element2 => {
+                        if (element2['id'] == pro) {
+                            this.SelectedPendingOrders.push(element2);
+                            return false;
+                        }
+                    });
+                });
+            }
+        },
+        removePendingOrder(pro) {
+            this.SelectedPendingOrders = this.SelectedPendingOrders.filter(function (obj) {
+                return obj.id !== pro;
+            });
+        },
     },
     beforeMount() {
         this.getPosData();

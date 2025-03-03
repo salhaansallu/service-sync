@@ -23,22 +23,7 @@
                                             <input type="text" class="form-control" disabled value="{{ $repairs->bill_no }}">
                                         </div>
                                     </div>
-                                    <div class="col-md-6">
-                                        <div class="row">
-                                            <div class="col-md-6">
-                                                <div class="form-group">
-                                                    <label>Cashier </label>
-                                                    <input type="text" class="form-control" disabled value="{{ getUser($repairs->cashier)->fname }}">
-                                                </div>
-                                            </div>
-                                            <div class="col-md-6">
-                                                <div class="form-group">
-                                                    <label>Cashier Code </label>
-                                                    <input type="text" name="" readonly class="form-control" value="{{ getCashierCode($repairs->cashier)->cashier_code }}">
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
+
                                     <div class="col-md-6">
                                         <div class="form-group">
                                             <label>Model No <span class="text-danger">*</span></label>
@@ -46,17 +31,8 @@
                                             <div class="help-block with-errors"></div>
                                         </div>
                                     </div>
-                                    <div class="col-md-3">
-                                        <div class="form-group">
-                                            <label>Technician</label>
-                                            <select name="techie" class="form-control" required>
-                                                @foreach ($users as $user)
-                                                    <option @if($user->user_id == $repairs->techie) selected @endif value="{{ $user->user_id }}">{{ $user->fname }}</option>
-                                                @endforeach
-                                            </select>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-3">
+
+                                    <div class="col-md-6">
                                         <div class="form-group">
                                             <label>Serial No</label>
                                             <input type="text" name="serial_no" class="form-control" value="{{ $repairs->serial_no }}">
@@ -87,6 +63,40 @@
                                         <div class="form-group">
                                             <label>Total</label>
                                             <input type="text" name="total" class="form-control" value="{{ $repairs->total }}">
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label>Technician</label>
+                                            <select name="techie" class="form-control">
+                                                <option value="">-- Select Technician --</option>
+                                                @foreach ($users as $user)
+                                                    <option @if($user->user_id == $repairs->techie) selected @endif value="{{ $user->user_id }}">{{ $user->fname }}</option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label>Cashier </label>
+                                                    <select name="cashier" class="form-control" required>
+                                                        <option value="">-- Select Cashier --</option>
+                                                        @foreach ($users as $user)
+                                                            <option @if($user->user_id == $repairs->cashier) selected @endif value="{{ $user->user_id }}">{{ $user->fname }}</option>
+                                                        @endforeach
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label>Cashier Code </label>
+                                                    <input type="text" name="" readonly class="form-control" value="{{ getCashierCode($repairs->cashier)->cashier_code }}">
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
 
