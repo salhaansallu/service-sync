@@ -3,16 +3,18 @@
         <div class="container-fluid">
             <div class="sales-filter">
                 <div class="filter_from table-responsive pb-3">
-                    <div class="row row-cols-md-6" style="flex-wrap: nowrap;">
+                    <div class="row row-cols-md-6 align-items-center justify-content-between" style="flex-wrap: nowrap;">
                         <div class="col">
                             <div class="input">
                                 <div class="label">Select Customer</div>
                                 <select name="" id="" ref="customer" @change="search()" value="Today's Credits">
                                     <option value="all">All Customers</option>
-                                    <option :value="customer['id']" v-for="customer in customers">{{ customer['name'] }}
-                                    </option>
+                                    <option :value="customer['id']" v-for="customer in customers">{{ customer['name'] }}</option>
                                 </select>
                             </div>
+                        </div>
+                        <div class="col">
+                            <button class="btn btn-primary" @click="payCredit()">Pay Credit</button>
                         </div>
                     </div>
                 </div>
@@ -44,8 +46,6 @@
                                 <td class="text-start">{{ new Date(item['updated_at']).toLocaleString('nl-NL') }}</td>
                                 <td class="text-start">
                                     <div class="d-flex align-items-center list-action justify-content-start">
-                                        <a class="badge bg-info mr-2" href="javascript:void(0)"
-                                            @click="payCredit(item['id'])" title="Pay">Pay</a>
                                         <a class="badge bg-success mr-2" href="javascript:void(0)" title="View"
                                             @click="getHistory(item['id'])"><i class="fa-regular fa-eye"></i></a>
                                     </div>
@@ -55,12 +55,34 @@
                     </table>
                 </div>
             </div>
-
-            <div class="head mt-5">
-                <h4>Credit Payment History</h4>
-            </div>
             <div class="row">
                 <div class="col-lg-4">
+                    <div class="head mt-5">
+                        <h4>Total</h4>
+                    </div>
+                    <div class="order_table mt-4">
+                        <div class="table-responsive rounded mb-3">
+                            <table class="history-table table mb-0 tbl-server-info" style="width: 98%;">
+                                <thead class="bg-white text-uppercase">
+                                    <tr class="ligth ligth-data">
+                                        <th class="text-start w-50">Total Bills</th>
+                                        <th class="text-start w-50">Total Amount</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="ligth-body">
+                                    <tr>
+                                        <td class="text-start">{{ total_bills }}</td>
+                                        <td class="text-start">{{ currency(total_amount, '') }}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4">
+                    <div class="head mt-5">
+                        <h4>Credit Payment History</h4>
+                    </div>
                     <div class="order_table mt-4">
                         <div class="table-responsive rounded mb-3">
                             <table class="history-table table mb-0 tbl-server-info" style="width: 98%;">
@@ -133,6 +155,8 @@ export default {
             credit: this.credits,
             histories: [],
             payID: 0,
+            total_bills: 0,
+            total_amount: 0,
         }
     },
 
@@ -162,6 +186,17 @@ export default {
 
             this.credit = data;
 
+            this.histories = [];
+
+            this.total_amount = 0;
+            this.total_bills = 0;
+
+            this.credit.forEach(element => {
+                this.total_amount += element['ammount']
+            });
+
+            this.total_bills = this.credit.length;
+
             setTimeout(function () {
                 $(".data-table").DataTable().order([3, 'desc']).draw();
             }, 500);
@@ -180,20 +215,24 @@ export default {
                 $(".history-table").DataTable().order([0, 'desc']).draw();
             }, 500);
         },
-        payCredit($id) {
-            this.payID = $id;
+        payCredit() {
+            if (this.$refs.customer.value == '' || this.$refs.customer.value == 0 || this.$refs.customer.value == 'all') {
+                toastr.error('Please select a customer', 'Error');
+                return;
+            }
+
             $("#PaymentModal").modal('show');
         },
         async payNow() {
-            var credit = this.credit.filter(item => item['id'] == this.payID);
+            var credit = this.$refs.customer.value;
             var amount = this.$refs.amount.value;
-            if (this.payID == 0 || credit.length == 0) {
-                toastr.error('Invalid Credit Invoice', "Error");
+            if (credit == '' || credit == 0 || credit == 'all') {
+                toastr.error('Invalid customer', "Error");
                 return false;
             }
 
-            if (!isNumber(amount) || credit['ammount'] < amount) {
-                toastr.error('Invalid amount or amount greater than credit balance', "Error");
+            if (!isNumber(amount)) {
+                toastr.error('Please enter amount in number only', "Error");
                 return false;
             }
 
@@ -202,7 +241,7 @@ export default {
 
             const { data } = await axios.post("/dashboard/credits/pay-credit", {
                 params: {
-                    credit: this.payID,
+                    credit: credit,
                     amount: amount,
                 }
             });
@@ -213,23 +252,10 @@ export default {
                 $("#loadingModal").modal('hide');
 
                 toastr.success('Credit paid', 'Success');
-                $(".data-table").DataTable().destroy();
-                this.credit.forEach(element => {
-                    if (element['id'] == this.payID) {
-                        var temp = element['history'];
-                        temp.unshift({ 'created_at': new Date(), 'ammount': amount });
-                        element['history'] = temp;
-                        element['ammount'] = parseFloat(element['ammount'] - amount).toFixed(0);
-                        return false;
-                    }
-                });
 
-                this.getHistory(this.payID);
-                setTimeout(function () {
-                    $(".data-table").DataTable().order([3, 'desc']).draw();;
-                }, 500);
+                this.search();
+
                 this.$refs.amount.value = '0';
-                this.payID = 0;
 
                 let objFra = document.createElement('iframe');
                 objFra.style.visibility = 'hidden';

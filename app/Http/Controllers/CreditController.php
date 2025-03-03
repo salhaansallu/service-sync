@@ -8,6 +8,7 @@ use App\Models\customers;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class CreditController extends Controller
 {
@@ -35,43 +36,73 @@ class CreditController extends Controller
 
     public function payCredit(Request $request) {
         if (Auth::check() && DashboardController::check(true)) {
-            
-            $credits = Credit::where('id', sanitize($request->input('params')['credit']))->where('pos_code', company()->pos_code)->where('ammount', '>', 0);
-            if (!$credits->get() || $credits->count() == 0) {
-                return response(json_encode(array('error'=> 1, 'msg'=>'Invalid Attempt')));
-            }
 
-            $credit_dtl = $credits->get();
+            $customerId = sanitize($request->input('params')['credit']);
+            $paymentAmount = sanitize($request->input('params')['amount']);
+            $paid = $paymentAmount;
 
-            if (!is_numeric(sanitize($request->input('params')['amount'])) || $credit_dtl[0]->ammount < sanitize($request->input('params')['amount'])) {
-                return response(json_encode(array('error'=> 1, 'msg'=>'Pay amount greater than due balance')));
-            }
+            $total_due = DB::table('credits')
+            ->where('customer_id', $customerId)
+            ->where('ammount', '>', 0) // Select bills with balance remaining
+            ->sum('ammount');
 
-            $bill_name = time().rand(1111, 9999999).rand(111, 9999).'.pdf';
-            
-            $credit = new CreditHistory();
-            $credit->credit_id = $credit_dtl[0]->id;
-            $credit->customer_id = $credit_dtl[0]->customer_id;
-            $credit->ammount = sanitize($request->input('params')['amount']);
-            $credit->bill = $bill_name;
-            if ($credit->save()) {
-                $credit_update = $credits->update([
-                    'ammount' => $credit_dtl[0]->ammount - (float)sanitize($request->input('params')['amount']),
-                ]);
 
-                if ($credit_update) {
-                    $payment = generateCreditPay($credit_dtl[0]->ammount, sanitize($request->input('params')['amount']), $credit_dtl[0]->customer_id, Carbon::now(), $bill_name);
-                    if ($payment) {
-                        return response(json_encode(array('error'=> 0, 'bill'=>$bill_name)));
+            $bills = DB::table('credits')
+                ->where('customer_id', $customerId)
+                ->where('ammount', '>', 0) // Select bills with balance remaining
+                ->orderBy('created_at', 'asc') // FIFO order
+                ->get();
+
+            foreach ($bills as $bill) {
+                    if ($paymentAmount <= 0) {
+                        break; // Stop if no more money left
                     }
-                    return response(json_encode(array('error'=> 1, 'msg'=>'Due paid successfully, error while generating invoice')));
-                }
-                return response(json_encode(array('error'=> 1, 'msg'=>'Error while paying due')));
+
+                    if ($paymentAmount >= $bill->ammount) {
+                        // Fully pay the bill
+                        DB::table('credits')
+                            ->where('id', $bill->id)
+                            ->update([
+                                'ammount' => 0, // Balance cleared
+                                'status' => 'paid',
+                                'updated_at' => now()
+                            ]);
+
+                        $this->recordPayment($bill, $bill->ammount);
+                        $paymentAmount -= $bill->ammount; // Deduct used amount
+                    } else {
+                        // Partially pay the bill
+                        DB::table('credits')
+                            ->where('id', $bill->id)
+                            ->update([
+                                'ammount' => $bill->ammount - $paymentAmount, // Reduce balance
+                                'status' => 'partially paid',
+                                'updated_at' => now()
+                            ]);
+
+                        $this->recordPayment($bill, $paymentAmount);
+                        $paymentAmount = 0; // Entire payment used
+                    }
             }
 
-            return response(json_encode(array('error'=> 1, 'msg'=>'Error while paying due')));
+            $bill_name = time() . rand(1111, 9999999) . rand(111, 9999) . '.pdf';
+            $payment = generateCreditPay($total_due, $paid, $customerId, Carbon::now(), $bill_name);
+
+            return response(json_encode(array('error' => 0, 'msg' => 'Payment recorded successfully', 'bill'=>$bill_name)));
         }
         return response(json_encode(array('error'=> 1, 'msg'=>'Not logged In')));
+    }
+
+    private function recordPayment($bill, $amount)
+    {
+        $bill_name = time() . rand(1111, 9999999) . rand(111, 9999) . '.pdf';
+        $payment = generateCreditPay($bill->ammount, $amount, $bill->customer_id, Carbon::now(), $bill_name);
+        $credit = new CreditHistory();
+        $credit->credit_id = $bill->id;
+        $credit->customer_id = $bill->customer_id;
+        $credit->ammount = $amount;
+        $credit->bill = $bill_name;
+        $credit->save();
     }
 
     public function getCredits(Request $request) {
