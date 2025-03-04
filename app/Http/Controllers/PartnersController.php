@@ -31,7 +31,7 @@ class PartnersController extends Controller
                 $billNumbers[] = $value->bill_no;
             }
 
-            $payments["pending"] =  DB::table('credits')
+            $payments["pending"] = DB::table('credits')
                 ->whereExists(function ($query) use ($billNumbers) {
                     $query->select(DB::raw(1))
                         ->from('repairs')

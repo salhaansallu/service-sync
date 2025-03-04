@@ -109,6 +109,7 @@
                             <div class="col-2 form-text">Fault</div>
                             <div class="col-2 form-text">Customer</div>
                             <div class="col-1 form-text" style="width: 200px;">Status</div>
+                            <div class="col-2 form-text">Technician</div>
                         </div>
                     </div>
                 </div>
@@ -139,6 +140,8 @@
                             <div class="col-1 form-text mt-0 d-flex align-items-center control-text-overflow"
                                 style="width: 50px;" v-if="bulkInvoiceList.includes(repair.bill_no)"><i
                                     class="fa-solid fa-print"></i></div>
+                        <div class="col-2 form-text mt-0 d-flex align-items-center control-text-overflow">
+                            {{ searchTechnician(repair.techie)["fname"] }}</div>
                         </div>
                         <div class="context_menu" :id="'order_wrap_' + repair.bill_no" style="display: none;">
                             <ul>
@@ -870,6 +873,14 @@ export default {
         },
         searchCustomer(id) {
             var data = this.users.filter(item => item['id'] == id);
+            if (data.length > 0) {
+                return data[0];
+            }
+
+            return { "name": "N/A", "phone": "N/A", "email": "N/A" }
+        },
+        searchTechnician(id) {
+            var data = this.cashiers.filter(item => item['id'] == id);
             if (data.length > 0) {
                 return data[0];
             }

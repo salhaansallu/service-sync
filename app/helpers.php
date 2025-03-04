@@ -2085,7 +2085,7 @@ function generatePendingInvoice($orders, $inName, $cashier)
         <body style="font-family: Arial, sans-serif;">
 
             <div style="text-align: center; margin-bottom: 20px; margin-top: 30px;">
-                <h1 style="margin: 0;">' . (is_array($cashier)? "Repair Report" : getUser($cashier)->fname) . '</h1>
+                <h1 style="margin: 0;">' . (is_array($cashier)? ($orders->count() > 0?  getUser($orders[0]->techie)->fname : 'Repair Report') : getUser($cashier)->fname) . '</h1>
             </div>
             <!-- Item Details -->
             <div style="margin-bottom: 20px;">

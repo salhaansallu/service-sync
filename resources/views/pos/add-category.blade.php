@@ -115,7 +115,7 @@
                                         <div class="form-group">
                                             <label>Partner </label>
                                             <select name="partner" class="form-control">
-                                                <option value="">None</option>
+                                                <option value="0">None</option>
                                                 @foreach ($partners as $partner)
                                                     <option @if($partner->id == $repairs->partner) selected @endif value="{{ $partner->id }}">{{ $partner->company }}</option>
                                                 @endforeach

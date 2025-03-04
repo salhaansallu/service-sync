@@ -342,7 +342,7 @@ class RepairsController extends Controller
 
                             if ($repair->save()) {
 
-                                if ($partner == "" || $partner == 0) {
+                                if (($partner == "" || $partner == 0) && $repair->type == 'repair') {
                                     $sms = new SMS();
                                     $sms->contact = array(array(
                                         "fname" => $customerData[0]["name"],
@@ -351,7 +351,7 @@ class RepairsController extends Controller
                                         "number" => $customerData[0]["phone"],
                                         "email" => $customerData[0]["email"],
                                     ));
-                                    $sms->message = "Dear Customer,\nyour account with " . company()->company_name . " has been successfully created. We have received your product and will notify you via this number once the repair is complete. Visit https://wefixservers.xyz/customer-portal?phone=".$customerData[0]["phone"]." to keep track of your repairs. Thank you for choosing " . company()->company_name . ".";
+                                    $sms->message = "Dear Customer, your  " . company()->company_name . " account is created. We've received your product and will notify you when the repair is done. Track it at https://wefixservers.xyz/customer-portal?phone=".$customerData[0]["phone"].". Thank you!";
                                     $sms->Send();
                                 }
 
