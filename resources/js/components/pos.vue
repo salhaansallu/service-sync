@@ -650,7 +650,7 @@
     <div class="row m-0 p-3 pending-orders row-gap-5">
         <div class="col-12 fw-bold fs-3 mt-3 text-center">Pending Orders</div>
         <div class="col-2" v-for="order in pendingOrders">
-            <div class="technician d-flex gap-3">{{ order['name'] }} <span style="cursor: pointer;" @click="generateInvoice(order['id'])"><i class="fa-solid fa-print"></i></span></div>
+            <div class="technician d-flex gap-3">{{ order['name'] }} <span style="cursor: pointer;" @click="generateInvoice(order['id'], order['name'])"><i class="fa-solid fa-print"></i></span></div>
             <ul>
                 <li style="margin: 5px 0;" v-for="invoice in order['repairs']" @click="selectPendingOrder(invoice['id'])" :class="(checkPechdingSelected(invoice['id'])? 'border' : '') +' border-success p-1 rounded cursor-pointer'"><a href="javascript:void(0)" @click="printInvoice(invoice['invoice'])">{{ invoice['bill_no'] }}</a> - <div :class="'badge text-bg-'+(invoice['status']=='Pending'? 'danger' : 'warning')">{{ invoice['status'] }}</div></li>
             </ul>
@@ -1457,11 +1457,12 @@ export default {
             $(menu).css('opacity', '1');
             //document.addEventListener("click", this.closeContextMenu('#order_wrap_' + bill));
         },
-        async generateInvoice(id) {
+        async generateInvoice(id, name = null) {
             var postData = this.SelectedPendingOrders.length>0? this.SelectedPendingOrders : id;
 
             const { data } = await axios.post('/pos/get_pending_report', {
-                id:postData
+                id:postData,
+                name: name
             });
 
             if (data.error == 0) {

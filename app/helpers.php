@@ -2065,7 +2065,7 @@ function generateDeliveryInvoice($order_id, $inName)
     return (object)array('generated' => true, 'url' => '/invoice/delivery/' . $inName);
 }
 
-function generatePendingInvoice($orders, $inName, $cashier)
+function generatePendingInvoice($orders, $inName, $cashier, $name = null)
 {
     $html = '
         <html lang="en">
@@ -2085,7 +2085,7 @@ function generatePendingInvoice($orders, $inName, $cashier)
         <body style="font-family: Arial, sans-serif;">
 
             <div style="text-align: center; margin-bottom: 20px; margin-top: 30px;">
-                <h1 style="margin: 0;">' . (is_array($cashier)? (count($orders) > 0? getUser($orders[0]->techie)->fname : 'Repair Report') : getUser($cashier)->fname) . '</h1>
+                <h1 style="margin: 0;">' . (is_array($cashier)? ($name != null? $name : 'Repair Report') : getUser($cashier)->fname) . '</h1>
             </div>
             <!-- Item Details -->
             <div style="margin-bottom: 20px;">
