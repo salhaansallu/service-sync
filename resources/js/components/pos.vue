@@ -105,7 +105,7 @@
                         <div class="row">
                             <div class="col-1 form-text">Bill No</div>
                             <div class="col-2 form-text">Model No</div>
-                            <div class="col-2 form-text">Serial No</div>
+                            <div class="col-2 form-text" style="width: 100px;">Serial No</div>
                             <div class="col-2 form-text">Fault</div>
                             <div class="col-2 form-text">Customer</div>
                             <div class="col-1 form-text" style="width: 200px;">Status</div>
