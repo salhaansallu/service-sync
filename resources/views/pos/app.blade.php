@@ -496,7 +496,25 @@
                                     <line x1="16" y1="17" x2="8" y2="17"></line>
                                     <polyline points="10 9 9 9 8 9"></polyline>
                                 </svg>
-                                <span class="ml-4">Manage Credit</span>
+                                <span class="ml-4">Customer Credits</span>
+                                @if (company()->plan == 1)
+                                    <span class="badge"><i class="fa-solid fa-crown text-warning"></i></span>
+                                @endif
+                            </a>
+                        </li>
+                        <li class="{{ Request::is('dashboard/partner-credits') ? 'active' : '' }}">
+                            <a href="{{ company()->plan == 1 ? '#' : '/dashboard/partner-credits' }}" class="">
+                                <svg class="svg-icon" id="p-dash7" width="20" height="20"
+                                    xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                                    stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                    stroke-linejoin="round">
+                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                    <polyline points="14 2 14 8 20 8"></polyline>
+                                    <line x1="16" y1="13" x2="8" y2="13"></line>
+                                    <line x1="16" y1="17" x2="8" y2="17"></line>
+                                    <polyline points="10 9 9 9 8 9"></polyline>
+                                </svg>
+                                <span class="ml-4">Partner Credits</span>
                                 @if (company()->plan == 1)
                                     <span class="badge"><i class="fa-solid fa-crown text-warning"></i></span>
                                 @endif
@@ -707,23 +725,6 @@
                             </a>
                         </li> --}}
                     </ul>
-
-                    @if (company()->plan == 1)
-                        <div id="sidebar-bottom" class=" sidebar-bottom">
-                            <div class="card border-none">
-                                <div class="card-body p-0">
-                                    <div class="sidebarbottom-content">
-                                        <div class="image"><img
-                                                src="{{ asset('assets/assets/images/layouts/side-bkg.png') }}"
-                                                class="img-fluid" alt="side-bkg"></div>
-                                        <h6 class="mt-4 px-4 body-title">Get More Feature by Upgrading</h6>
-                                        <a href="/pricing" class="btn sidebar-bottom-btn mt-4"><i
-                                                class="fa-solid fa-crown"></i> Go Premium</a>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    @endif
                     <div class="p-3"></div>
                 </nav>
             </div>

@@ -2290,6 +2290,162 @@ function generateCreditPay($totalDue, $paid, $customer, $datetime, $bill_name)
     return true;
 }
 
+function generateParterCreditPay($totalDue, $paid, $partner, $datetime, $bill_name)
+{
+
+    $watermark = '<div style="text-align: center;margin: 0 25px; margin-top: 10px; font-size: 15px; border-top: #000 1px solid;border-bottom: #000 1px solid;padding: 5px 0;">POS by NMSware Technoloigies <br> +94 74 195 9701</div>';
+    if (company()->plan == 3) {
+        $watermark = '';
+    }
+
+    $html = '
+
+    <html lang="en">
+
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>' . company()->company_name . ' Credit Payment</title>
+            <style>
+            @page {
+                margin: 10px;
+                height: auto;
+                width: 80mm;
+            }
+            body { margin: 10px; }
+            </style>
+        </head>
+
+        <body style="font-family: sans-serif;margin: 0;padding: 0;">
+            <div class="invoice_wrap"
+            style="width: 99%;padding: 20px 0px;box-sizing: border-box;">
+                <div>
+                    <h2 style="text-align: center; margin: 0;">' . company()->company_name . '</h2>
+                </div>
+                <div style="text-align: center;margin-top: 5px; margin-bottom: 5px; font-size: 14px;">' . company()->company_name . '</div>
+                <hr style="border-width: 2px; border-color: #000;">
+                <div style="text-align: center; font-size: 12px; margin-top: 5px;">' . getUserData(company()->admin_id)->address . '</div>
+                <div style="text-align: center; font-size: 12px; margin-bottom: 5px;">' . formatPhoneNumber(getUserData(company()->admin_id)->phone) . '</div>
+                <hr style="border-width: 1px; border-color: #000; border-style: dashed;">
+                <div
+                    style="text-align: center;margin-top: 10px; font-size: 20px; font-weight: bold;text-transform: uppercase;margin-bottom: 3px;">
+                    Credit Payment</div>
+                <hr style="border-width: 3px; border-color: #505050; border-style: dotted; margin: 0 40px;">
+                <div style="width: 100%;margin-top: 0px; font-size: 14px;">
+                    <table style="width: 100%;margin-bottom: 3px;">
+                        <thead>
+                            <tr>
+                                <th></th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody style="width: 100%;">
+                            <tr style="width: 100%;">
+                                <td style="font-size: 14px; width: 50%; text-align: left;">
+                                    <div>Date: ' . date('d/m/Y', strtotime($datetime)) . '</div>
+                                </td>
+                                <td style="font-size: 14px; width: 50%; text-align: right;">
+                                    <div>Time: ' . date('H:i:s', strtotime($datetime)) . '</div>
+                                </td>
+                            </tr>
+
+                            <tr style="width: 100%;">
+                                <td style="font-size: 14px; width: 50%;">
+                                    <div>Partner: ' . substr(getPartner($partner)->name, 0, 11) . '</div>
+                                </td>
+                                <td style="font-size: 14px; width: 50%; text-align: right;">
+                                    <div></div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <hr style="border-width: 3px; border-color: #505050; border-style: dotted; margin: 0 40px; margin-top: 0px;margin-bottom: 5px;">
+
+
+                <table style="width: 90%;float: right; border-bottom: #000 2px solid;">
+                    <thead>
+                        <tr>
+                            <th></th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody style="width: 100%;">
+
+                        <tr style="width: 100%;">
+                            <td style="font-size: 14px; width: 50%;text-align: right;">
+                                <div>Total Due</div>
+                            </td>
+                            <td style="font-size: 14px; width: 50%; text-align: right;">
+                                <div>' . currency($totalDue, '') . '</div>
+                            </td>
+                        </tr>
+
+                        <tr style="width: 100%;">
+                            <td style="width: 50%;text-align: right;font-size: 20px;font-weight: bold;">
+                                <div>Cash Paid</div>
+                            </td>
+                            <td style="font-size: 20px;font-weight: bold; width: 50%; text-align: right;">
+                                <div>' . currency($paid, '') . '</div>
+                            </td>
+                        </tr>
+
+                        <tr style="width: 100%;">
+                            <td style="font-size: 14px; width: 50%;text-align: right;">
+                                <div>Due Balance</div>
+                            </td>
+                            <td style="font-size: 14px; width: 50%; text-align: right;">
+                                <div>' . currency((float)$totalDue - (float)$paid, '') . '</div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div style="font-weight: bold;text-align: center;margin-top: 15px;">Thank You!</div>
+                <div style="text-align: center;">Please come again</div>
+                ' . $watermark . '
+            </div>
+        </body>
+
+    </html>
+
+    ';
+
+    $pdf = new Dompdf();
+    $pdf->setPaper([0, 0, 227, 800]);
+    $pdf->loadHtml($html, 'UTF-8');
+
+    $GLOBALS['bodyHeight'] = 0;
+
+    $pdf->setCallbacks([
+        'myCallbacks' => [
+            'event' => 'end_frame',
+            'f' => function ($frame) {
+                $node = $frame->get_node();
+                if (strtolower($node->nodeName) === "body") {
+                    $padding_box = $frame->get_padding_box();
+                    $GLOBALS['bodyHeight'] += $padding_box['h'];
+                }
+            }
+        ]
+    ]);
+
+    $pdf->render();
+    unset($pdf);
+
+    $docHeight = $GLOBALS['bodyHeight'] + 30;
+
+    $pdf = new Dompdf();
+    $pdf->setPaper([0, 0, 230, $docHeight]);
+    $pdf->loadHtml($html, 'UTF-8');
+    $pdf->render();
+    $path = public_path('credit-invoice/' . $bill_name);
+    file_put_contents($path, $pdf->output());
+
+    return true;
+}
+
 function generateQuotation($q_no)
 {
     $company = PosDataController::company();

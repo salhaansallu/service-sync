@@ -70,6 +70,11 @@ import dashboardCredits from './components/credits.vue';
 DashboardCreditApp.component('dashboard-credits', dashboardCredits);
 DashboardCreditApp.mount('#dashboardCredits');
 
+const DashboardPartnerCredits = createApp({});
+import dashboardPartnerCreditsEle from './components/partnerCredits.vue';
+DashboardPartnerCredits.component('dashboard-partner-credits', dashboardPartnerCreditsEle);
+DashboardPartnerCredits.mount('#dashboardPartnerCredits');
+
 const DashboardSMS = createApp({});
 import dashboardSMS from './components/sendSMS.vue';
 DashboardSMS.component('send-sms', dashboardSMS);

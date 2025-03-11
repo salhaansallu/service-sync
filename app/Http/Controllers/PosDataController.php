@@ -367,13 +367,13 @@ class PosDataController extends Controller
 
     public function runCron() {
         $this->reminder();
-        $this->termination();
+        //$this->termination();
     }
 
     public function reminder() {
         $repairedData = Repairs::where('status', 'Repaired')->whereDate('repaired_date', Carbon::now()->subDays(14))->get();
-        $customerPendingData = Repairs::where('status', 'Customer Pending')->whereDate('repaired_date', Carbon::now()->subDays(14))->get();
-        $returnData = Repairs::where('status', 'Return')->whereDate('repaired_date', Carbon::now()->subDays(14))->get();
+        $customerPendingData = Repairs::where('status', 'Customer Pending')->where('type', 'repair')->whereDate('repaired_date', Carbon::now()->subDays(14))->get();
+        $returnData = Repairs::where('status', 'Return')->where('type', 'repair')->whereDate('repaired_date', Carbon::now()->subDays(14))->get();
 
         foreach ($repairedData as $key => $value) {
             $customerData = customers::where('id', $value->customer)->first();
