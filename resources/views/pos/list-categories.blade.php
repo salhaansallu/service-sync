@@ -16,7 +16,7 @@
                 </div>
                 <div class="col-12 py-4">
                     <form action="" method="get" class="d-flex gap-2">
-                        <input type="search" name="s" placeholder="Search here..." class="form-control" style="width: 200px;">
+                        <input type="search" name="s" placeholder="Search here..." class="form-control" style="width: 200px;" value="{{ isset($_GET['s']) ? sanitize($_GET['s']) : '' }}">
                         <button class="btn btn-primary"><i class="fa-solid fa-search" aria-hidden="true"></i></button>
                     </form>
                 </div>
@@ -41,7 +41,7 @@
                                 </tr>
                             </thead>
                             <tbody class="ligth-body">
-                                @if ($repairs && $repairs->count() > 0)
+                                @if (isset($repairs))
                                     @foreach ($repairs as $item)
                                         <tr id="category{{ $item->id }}">
                                             <td class="text-start">{{ $item->bill_no }}</td>
@@ -99,7 +99,7 @@
                 </div>
                 <div class="col-12">
                     <div class="d-flex justify-content-end py-5">
-                        {{ $repairs->links() }}
+                        {{ $repairs->appends(['s' => request()->s])->links() }}
                     </div>
                 </div>
             </div>

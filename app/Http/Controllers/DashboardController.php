@@ -194,11 +194,22 @@ class DashboardController extends Controller
             if ($request->path() == 'dashboard/repairs/other-repairs') {
                 if ($request->has('s')) {
                     $s = sanitize($request->input('s'));
-                    $categories = Repairs::where('pos_code', company()->pos_code)->where('type', '=', 'other')->when($s, function($qry, $s) {
-                        return $qry->where('bill_no', 'like', "%{$s}%")
-                        ->orWhere('model_no', 'like', "%{$s}%")
-                        ->orWhere('serial_no', 'like', "%{$s}%");
-                    })->paginate(100000);
+                    $categories = DB::table('repairs')
+                    ->leftJoin('partners', 'repairs.partner', '=', 'partners.id') // Use LEFT JOIN
+                    ->leftJoin('customers', 'repairs.customer', '=', 'customers.id') // Use LEFT JOIN
+                    ->where(function ($query) use ($s) {
+                        $query->where('partners.name', 'LIKE', "%$s%")
+                            ->orWhere('partners.company', 'LIKE', "%$s%")
+                            ->orWhere('customers.name', 'LIKE', "%$s%")
+                            ->orWhere('customers.phone', 'LIKE', "%$s%")
+                            ->orWhere('repairs.bill_no', 'LIKE', "%$s%")
+                            ->orWhere('repairs.model_no', 'LIKE', "%$s%")
+                            ->orWhere('repairs.serial_no', 'LIKE', "%$s%");
+                    })
+                    ->where('repairs.type', 'other') // Ensure `type="other"`
+                    ->select('repairs.*', 'partners.name as partner_name', 'customers.name as customer_name')
+                    ->paginate(10);
+
                 } else {
                     $categories = Repairs::where('pos_code', company()->pos_code)->where('type', '=', 'other')->paginate(10);
                 }
@@ -209,11 +220,27 @@ class DashboardController extends Controller
             $categories = [];
             if ($request->has('s')) {
                 $s = sanitize($request->input('s'));
-                $categories = Repairs::where('pos_code', company()->pos_code)->where('type', '=', 'repair')->when($s, function($qry, $s) {
-                    return $qry->where('bill_no', 'like', "%{$s}%")
-                    ->orWhere('model_no', 'like', "%{$s}%")
-                    ->orWhere('serial_no', 'like', "%{$s}%");
-                })->paginate(100000);
+                $categories = DB::table('repairs')
+                ->leftJoin('partners', 'repairs.partner', '=', 'partners.id') // Use LEFT JOIN
+                ->leftJoin('customers', 'repairs.customer', '=', 'customers.id') // Use LEFT JOIN
+                ->where(function ($query) use ($s) {
+                    $query->where('partners.name', 'LIKE', "%$s%")
+                        ->orWhere('partners.company', 'LIKE', "%$s%")
+                        ->orWhere('customers.name', 'LIKE', "%$s%")
+                        ->orWhere('customers.phone', 'LIKE', "%$s%")
+                        ->orWhere('repairs.bill_no', 'LIKE', "%$s%")
+                        ->orWhere('repairs.model_no', 'LIKE', "%$s%")
+                        ->orWhere('repairs.serial_no', 'LIKE', "%$s%");
+                })
+                ->where('repairs.type', 'repair') // Ensure `type="repair"`
+                ->select('repairs.*', 'partners.name as partner_name', 'customers.name as customer_name')
+                ->paginate(10);
+
+                // $categories = Repairs::where('pos_code', company()->pos_code)->where('type', '=', 'repair')->when($s, function($qry, $s) {
+                //     return $qry->where('bill_no', 'like', "%{$s}%")
+                //     ->orWhere('model_no', 'like', "%{$s}%")
+                //     ->orWhere('serial_no', 'like', "%{$s}%");
+                // })->paginate(100000);
             } else {
                 $categories = Repairs::where('pos_code', company()->pos_code)->where('type', '=', 'repair')->paginate(10);
             }

@@ -1239,10 +1239,12 @@ function generateThermalInvoice($order_id, $inName, $bill_type)
         $company_phone = formatPhoneNumber($partner->phone);
 
         $path = public_path('user_profile/'.$partner->logo);
-        $type = pathinfo($path, PATHINFO_EXTENSION);
-        $data = file_get_contents($path);
-        $logo = 'data:image/' . $type . ';base64,' . base64_encode($data);
-        $hasPartnerLogo = $partner->logo;
+        if (!empty($partner->logo) && file_exists($path)) {
+            $type = pathinfo($path, PATHINFO_EXTENSION);
+            $data = file_get_contents($path);
+            $logo = 'data:image/' . $type . ';base64,' . base64_encode($data);
+            $hasPartnerLogo = $partner->logo;
+        }
     }
     else {
         $company_name = $company->company_name;
