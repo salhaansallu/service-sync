@@ -1,6 +1,9 @@
 <template>
+    <div id="leftMenuToggle" class="action_icons left" @click="openMenu('leftMenu')"><i class="fa-solid fa-bars"></i></div>
+    <div id="rightMenuToggle" class="action_icons right" @click="openMenu('rightMenu')"><i class="fa-solid fa-cash-register"></i></div>
+
     <div class="pos-wrap">
-        <div class="category">
+        <div id="leftMenu" class="category">
             <div v-if="posData.plan == 1" class="disabled">
                 <div class="ctnt">
                     <b>To use this feature</b><br><br>
@@ -172,7 +175,7 @@
             </div>
         </div>
 
-        <div class="order">
+        <div id="rightMenu" class="order">
             <div class="head">
                 <h2>New Order</h2> <button @click="reloadPOS()"
                     class="primary-btn border-only submit-btn">Clear</button>
@@ -682,6 +685,9 @@ export default {
         currency,
         printJS,
         reformatPhoneNumbers,
+        openMenu(menuID) {
+            $('#' + menuID).toggle();
+        },
         loadModal(action) {
             $("#loadingModal").modal(action);
         },
@@ -1439,6 +1445,14 @@ export default {
         document.addEventListener('click', (e) => {
             const menus = document.querySelectorAll('.context_menu');
             menus.forEach(menu => menu.style.display = 'none');
+
+            if (!$("#leftMenu, #leftMenuToggle").is(e.target) && !$("#leftMenu, #leftMenuToggle").has(e.target).length) {
+                $("#leftMenu").hide();
+            }
+
+            if (!$("#rightMenu, #rightMenuToggle").is(e.target) && !$("#rightMenu, #rightMenuToggle").has(e.target).length) {
+                $("#rightMenu").hide();
+            }
         });
     }
 }

@@ -1,6 +1,9 @@
 <template>
+    <div id="leftMenuToggle" class="action_icons left" @click="openMenu('leftMenu')"><i class="fa-solid fa-bars"></i></div>
+    <div id="rightMenuToggle" class="action_icons right" @click="openMenu('rightMenu')"><i class="fa-solid fa-cash-register"></i></div>
+
     <div class="pos-wrap">
-        <div class="category">
+        <div id="leftMenu" class="category">
             <div v-if="posData.plan == 1" class="disabled">
                 <div class="ctnt">
                     <b>To use this feature</b><br><br>
@@ -99,7 +102,7 @@
                 </div>
             </div>
 
-            <div class="row">
+            <div class="row row-wrap">
                 <div class="col-12 mt-4 mb-2">
                     <div class="order-display">
                         <div class="row">
@@ -126,8 +129,9 @@
                             </div>
                             <div class="col-2 form-text mt-0 d-flex align-items-center control-text-overflow">{{
                                 repair.model_no }}</div>
-                            <div style="width: 100px;" class="col-2 form-text mt-0 d-flex align-items-center control-text-overflow">{{
-                                repair.serial_no }}</div>
+                            <div style="width: 100px;"
+                                class="col-2 form-text mt-0 d-flex align-items-center control-text-overflow">{{
+                                    repair.serial_no }}</div>
                             <div class="col-2 form-text mt-0 d-flex align-items-center control-text-overflow">{{
                                 repair.fault }}</div>
                             <div class="col-2 form-text mt-0 d-flex align-items-center control-text-overflow">{{
@@ -137,11 +141,13 @@
                                 style="width: 200px;"><span :class="'badge bg-' + getStatus(repair.status)">{{
                                     repair.status }}</span></div>
 
+                            <div style="width: 100px;"
+                                class="col-2 form-text mt-0 d-flex align-items-center control-text-overflow">
+                                {{ searchTechnician(repair.techie)["fname"] }}</div>
+
                             <div class="col-1 form-text mt-0 d-flex align-items-center control-text-overflow"
                                 style="width: 50px;" v-if="bulkInvoiceList.includes(repair.bill_no)"><i
                                     class="fa-solid fa-print"></i></div>
-                        <div style="width: 100px;" class="col-2 form-text mt-0 d-flex align-items-center control-text-overflow">
-                            {{ searchTechnician(repair.techie)["fname"] }}</div>
                         </div>
                         <div class="context_menu" :id="'order_wrap_' + repair.bill_no" style="display: none;">
                             <ul>
@@ -162,10 +168,12 @@
 
                                 <!-- <li v-if="repair.status == 'Delivered'"><a href="javascript:void(0)">Re-service</a></li> -->
                                 <li v-if="repair.status == 'Pending'"><a href="javascript:void(0)"
-                                        @click="bulkInvoiceSelect(repair.bill_no)">{{ bulkInvoiceList.includes(repair.bill_no)? 'Remove From' : 'Select For' }} Bulk Invoicing</a></li>
+                                        @click="bulkInvoiceSelect(repair.bill_no)">{{
+                                            bulkInvoiceList.includes(repair.bill_no) ? 'Remove From' : 'Select For' }} Bulk
+                                        Invoicing</a></li>
 
                                 <li v-if="bulkInvoiceList.length > 0"><a href="javascript:void(0)"
-                                    @click="bulkInvoicePrint()">Print all selected invoice</a></li>
+                                        @click="bulkInvoicePrint()">Print all selected invoice</a></li>
                             </ul>
                         </div>
                     </div>
@@ -175,7 +183,7 @@
             </div>
         </div>
 
-        <div class="order">
+        <div id="rightMenu" class="order">
             <div class="head">
                 <h2>New Order</h2> <button @click="reloadPOS()"
                     class="primary-btn border-only submit-btn">Clear</button>
@@ -650,9 +658,16 @@
     <div class="row m-0 p-3 pending-orders row-gap-5">
         <div class="col-12 fw-bold fs-3 mt-3 text-center">Pending Orders</div>
         <div class="col-2" v-for="order in pendingOrders">
-            <div class="technician d-flex gap-3">{{ order['name'] }} <span style="cursor: pointer;" @click="generateInvoice(order['id'], order['name'])"><i class="fa-solid fa-print"></i></span></div>
+            <div class="technician d-flex gap-3">{{ order['name'] }} <span style="cursor: pointer;"
+                    @click="generateInvoice(order['id'], order['name'])"><i class="fa-solid fa-print"></i></span></div>
             <ul>
-                <li style="margin: 5px 0;" v-for="invoice in order['repairs']" @click="selectPendingOrder(invoice['id'])" :class="(checkPechdingSelected(invoice['id'])? 'border' : '') +' border-success p-1 rounded cursor-pointer'"><a href="javascript:void(0)" @click="printInvoice(invoice['invoice'])">{{ invoice['bill_no'] }}</a> - <div :class="'badge text-bg-'+(invoice['status']=='Pending'? 'danger' : 'warning')">{{ invoice['status'] }}</div></li>
+                <li style="margin: 5px 0;" v-for="invoice in order['repairs']"
+                    @click="selectPendingOrder(invoice['id'])"
+                    :class="(checkPechdingSelected(invoice['id']) ? 'border' : '') + ' border-success p-1 rounded cursor-pointer'">
+                    <a href="javascript:void(0)" @click="printInvoice(invoice['invoice'])">{{ invoice['bill_no'] }}</a>
+                    - <div :class="'badge text-bg-' + (invoice['status'] == 'Pending' ? 'danger' : 'warning')">{{
+                        invoice['status'] }}</div>
+                </li>
             </ul>
         </div>
     </div>
@@ -698,6 +713,9 @@ export default {
         currency,
         printJS,
         reformatPhoneNumbers,
+        openMenu(menuID) {
+            $('#' + menuID).toggle();
+        },
         loadModal(action) {
             $("#loadingModal").modal(action);
         },
@@ -1458,10 +1476,10 @@ export default {
             //document.addEventListener("click", this.closeContextMenu('#order_wrap_' + bill));
         },
         async generateInvoice(id, name = null) {
-            var postData = this.SelectedPendingOrders.length>0? this.SelectedPendingOrders : id;
+            var postData = this.SelectedPendingOrders.length > 0 ? this.SelectedPendingOrders : id;
 
             const { data } = await axios.post('/pos/get_pending_report', {
-                id:postData,
+                id: postData,
                 name: name
             });
 
@@ -1515,6 +1533,14 @@ export default {
         document.addEventListener('click', (e) => {
             const menus = document.querySelectorAll('.context_menu');
             menus.forEach(menu => menu.style.display = 'none');
+
+            if (!$("#leftMenu, #leftMenuToggle").is(e.target) && !$("#leftMenu, #leftMenuToggle").has(e.target).length) {
+                $("#leftMenu").hide();
+            }
+
+            if (!$("#rightMenu, #rightMenuToggle").is(e.target) && !$("#rightMenu, #rightMenuToggle").has(e.target).length) {
+                $("#rightMenu").hide();
+            }
         });
     }
 }

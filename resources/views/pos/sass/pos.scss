@@ -2,11 +2,40 @@
 
 $theme-darkblue: #06468e;
 
+.action_icons {
+    position: absolute;
+    padding: 10px;
+
+    @media screen and (min-width: 1001px) {
+        display: none;
+    }
+
+    &.left {
+        left: 0;
+    }
+
+    &.right {
+        right: 0;
+    }
+
+    i {
+        background-color: #fff;
+        box-shadow: 0px 0px 10px 0px #aaaaaa;
+        padding: 10px;
+        border-radius: 5px;
+    }
+}
+
 .pos-wrap {
     display: flex;
     padding: 20px;
     gap: 30px;
     justify-content: space-between;
+
+    @media screen and (max-width: 1000px) {
+        display: block;
+        padding-top: 60px;
+    }
 
     .head {
         display: flex;
@@ -42,6 +71,31 @@ $theme-darkblue: #06468e;
         width: 340px;
         min-width: 340px;
         height: 100vh;
+
+        @media screen and (max-width: 1000px) {
+            display: none;
+            position: fixed;
+            overflow-y: auto;
+            top: 0;
+            left: 0;
+            border-radius: 0;
+            z-index: 101;
+            box-shadow: 4px 0px 19px 0px #bfbebe;
+
+            &::before {
+                content: '';
+                background-color: #0f0f0f67;
+                display: block;
+                position: fixed;
+                right: 0;
+                top: 0;
+                width: 100%;
+                height: 100%;
+                z-index: 100;
+                width: calc(100% - 340px - 0px);
+                display: none;
+            }
+        }
 
         .disabled {
             background-color: rgb(12 12 12 / 84%);
@@ -177,6 +231,10 @@ $theme-darkblue: #06468e;
         overflow: auto;
         padding-right: 10px;
 
+        @media screen and (max-width: 1000px) {
+            overflow: hidden;
+        }
+
         &::-webkit-scrollbar {
             background-color: #e2e2e2;
             width: 8px;
@@ -195,6 +253,10 @@ $theme-darkblue: #06468e;
                     width: 300px;
                     padding: 10px;
                     border-radius: 5px;
+
+                    @media screen and (max-width: 1000px) {
+                        width: 150px;
+                    }
                 }
             }
         }
@@ -315,6 +377,19 @@ $theme-darkblue: #06468e;
         .row {
             margin: 0;
 
+            @media screen and (max-width: 1000px) {
+                flex-wrap: nowrap;
+            }
+
+            &.row-wrap {
+                @media screen and (max-width: 1000px) {
+                    width: 100%;
+                    overflow-x: auto;
+                    padding-bottom: 20px;
+                    display: block;
+                }
+            }
+
             .col-12 {
                 &.active {
                     border: 4px solid $theme-blue;
@@ -331,6 +406,31 @@ $theme-darkblue: #06468e;
         width: 360px;
         min-width: 360px;
         height: 100vh;
+
+        @media screen and (max-width: 1000px) {
+            display: none;
+            position: fixed;
+            overflow-y: auto;
+            top: 0;
+            right: 0;
+            border-radius: 0;
+            z-index: 101;
+            box-shadow: 4px 0px 19px 0px #bfbebe;
+
+            &::before {
+                content: '';
+                background-color: #0f0f0f67;
+                display: block;
+                position: fixed;
+                left: 0;
+                top: 0;
+                width: 100%;
+                height: 100%;
+                z-index: 100;
+                width: calc(100% - 360px - 0px);
+                display: none;
+            }
+        }
 
         .customers {
             border-top: $theme-grey 1px solid;
