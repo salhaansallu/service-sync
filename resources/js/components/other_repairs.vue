@@ -1019,9 +1019,10 @@ export default {
                     if (data.error == "0") {
                         this.loadModal("hide");
                         toastr.success(data.msg, "Success");
-                        printJS(data.invoiceURL);
+                        //printJS(data.invoiceURL);
                         this.getRepairs();
                         this.reloadPOS();
+                        window.open(data.invoiceURL, '_blank');
                     }
                     else {
                         this.loadModal("hide");
