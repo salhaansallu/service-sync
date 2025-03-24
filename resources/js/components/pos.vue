@@ -1534,12 +1534,14 @@ export default {
             const menus = document.querySelectorAll('.context_menu');
             menus.forEach(menu => menu.style.display = 'none');
 
-            if (!$("#leftMenu, #leftMenuToggle").is(e.target) && !$("#leftMenu, #leftMenuToggle").has(e.target).length) {
-                $("#leftMenu").hide();
-            }
+            if (window.innerWidth < 1000) {
+                if (!$("#leftMenu, #leftMenuToggle").is(e.target) && !$("#leftMenu, #leftMenuToggle").has(e.target).length) {
+                    $("#leftMenu").hide();
+                }
 
-            if (!$("#rightMenu, #rightMenuToggle").is(e.target) && !$("#rightMenu, #rightMenuToggle").has(e.target).length) {
-                $("#rightMenu").hide();
+                if (!$("#rightMenu, #rightMenuToggle").is(e.target) && !$("#rightMenu, #rightMenuToggle").has(e.target).length) {
+                    $("#rightMenu").hide();
+                }
             }
         });
     }
