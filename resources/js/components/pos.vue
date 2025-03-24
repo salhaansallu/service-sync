@@ -1235,7 +1235,7 @@ export default {
             if (data.error == "0") {
                 this.loadModal("hide");
                 toastr.success(data.msg, "Success");
-                printJS(data.invoiceURL);
+                //printJS(data.invoiceURL);
                 this.$refs.bill_type.value = "new-order";
                 if (!this.new_bill) {
                     this.$refs.parent_bill_no.value = '';
@@ -1260,6 +1260,7 @@ export default {
                 this.getRepairs();
                 this.reloadPOS();
                 this.isDisabled = false;
+                window.open(data.invoiceURL, '_blank');
             }
             else {
                 this.loadModal("hide");
