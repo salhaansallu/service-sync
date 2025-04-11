@@ -209,10 +209,6 @@ class PosDataController extends Controller
                 return response(json_encode(array("error" => 1, "msg" => "Invalid Sale Type")));
             }
 
-            if (customers::where('pos_code', company()->pos_code)->where('id', $customer)->get()->count() == 0) {
-                return response(json_encode(array("error" => 1, "msg" => "Invalid Customer")));
-            }
-
             foreach ($spares as $key => $value) {
                 $stock = Products::where('sku', $value['id'])->where('pos_code', company()->pos_code)->get();
                 if ($stock->count() > 0) {

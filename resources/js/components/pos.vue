@@ -664,7 +664,7 @@
                 <li style="margin: 5px 0;" v-for="invoice in order['repairs']"
                     @click="selectPendingOrder(invoice['id'])"
                     :class="(checkPechdingSelected(invoice['id']) ? 'border' : '') + ' border-success p-1 rounded cursor-pointer'">
-                    <a href="javascript:void(0)" @click="printInvoice(invoice['invoice'])">{{ invoice['bill_no'] }}</a>
+                    <a href="javascript:void(0)" @click="printInvoice(invoice['invoice'])">{{ invoice['bill_no'] }} ({{ invoice['partner'] > 0? searchPartner(invoice['partner'])['name']:'' }})</a>
                     - <div :class="'badge text-bg-' + (invoice['status'] == 'Pending' ? 'danger' : 'warning')">{{
                         invoice['status'] }}</div>
                 </li>
@@ -891,6 +891,14 @@ export default {
         },
         searchCustomer(id) {
             var data = this.users.filter(item => item['id'] == id);
+            if (data.length > 0) {
+                return data[0];
+            }
+
+            return { "name": "N/A", "phone": "N/A", "email": "N/A" }
+        },
+        searchPartner(id) {
+            var data = this.partners.filter(item => item['id'] == id);
             if (data.length > 0) {
                 return data[0];
             }

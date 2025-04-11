@@ -13,7 +13,7 @@
                         <img :src="'/assets/images/products/' + pro['pro_image']" alt="">
                     </div>
                     <div class="name" @click="selectProduct(pro['sku'])">{{ pro['pro_name'] }}</div>
-                    <div class="sku" @click="selectProduct(pro['sku'])">Code: {{ pro['sku'] }}</div>
+                    <div class="sku" @click="selectProduct(pro['sku'])">Code: {{ pro['sku'] }} | QTY: {{ pro['qty'] }}</div>
                     <div class="price" @click="selectProduct(pro['sku'])">{{ currency(pro['price'], posData.currency) }}
                     </div>
                 </div>
