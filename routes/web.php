@@ -11,6 +11,7 @@ use App\Http\Controllers\ContactController;
 use App\Http\Controllers\CreditController;
 use App\Http\Controllers\CustomersController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\ExpensesController;
 use App\Http\Controllers\NewsletterController;
 use App\Http\Controllers\OrdersController;
 use App\Http\Controllers\PartnersController;
@@ -214,6 +215,15 @@ Route::prefix('dashboard')->group(function () {
     Route::post('purchase/create', [PurchasesController::class, 'store']);
     Route::get('purchase/edit/{id}', [PurchasesController::class, 'edit']);
     Route::post('/purchase/edit', [PurchasesController::class, 'update']);
+
+    Route::get('expenses', [ExpensesController::class, 'index']);
+    Route::get('expense-report', [ExpensesController::class, 'report']);
+    Route::get('expense/create', [ExpensesController::class, 'create']);
+    Route::post('expense/create', [ExpensesController::class, 'store']);
+    Route::get('expense/edit/{id}', [ExpensesController::class, 'edit']);
+    Route::post('/expense/edit', [ExpensesController::class, 'update']);
+    Route::post('/expense/get-items', [ExpensesController::class, 'getItems']);
+    Route::delete('/expense/delete', [ExpensesController::class, 'destroy']);
 
     Route::get('product-purchases', [DashboardController::class, 'listProductPurchses']);
     Route::get('product-purchase/create', [DashboardController::class, 'createProductPurchse']);

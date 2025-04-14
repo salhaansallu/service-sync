@@ -824,6 +824,11 @@ function getUser($id)
     return defaultValues();
 }
 
+function getUsers()
+{
+    return User::all();
+}
+
 function getCashierCode($id, $pos_code = null)
 {
     if ($pos_code == null) {
