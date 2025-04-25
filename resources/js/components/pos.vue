@@ -1261,6 +1261,7 @@ export default {
                 this.$refs.total.value = "0";
                 this.$refs.fault.value = "";
                 this.$refs.advance.value = "0";
+                this.$refs.new_order_qty.value = "1";
                 this.$refs.finish_note.value = "";
                 this.$refs.cashier_no.value = "";
                 this.newOrder('hide');
