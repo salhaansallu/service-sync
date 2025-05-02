@@ -72,7 +72,7 @@
                                             <label>Supplier <span class="text-danger">*</span></label>
                                             <select id="" class="form-control select2-multiple" name="supplier" required>
                                                 <option value="other">Other</option>
-                                                @foreach (getShippers('all') as $item)
+                                                @foreach (getSupplier('all') as $item)
                                                     <option
                                                         @isset($purchase) {{ $item->id == $purchase->supplier_id ? 'selected' : '' }} @endisset
                                                         value="{{ $item->id }}">{{ $item->name }}</option>

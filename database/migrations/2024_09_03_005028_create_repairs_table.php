@@ -35,7 +35,7 @@ return new class extends Migration
             $table->string("parent")->nullable();
             $table->timestamp("paid_date")->nullable();
             $table->timestamp("repaired_date")->nullable();
-            $table->int("warranty")->default(0);
+            $table->integer("warranty")->default(0);
             $table->timestamps();
         });
     }

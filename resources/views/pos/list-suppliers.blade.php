@@ -23,6 +23,7 @@
                                     <th class="text-start">Email</th>
                                     <th class="text-start">Address</th>
                                     <th class="text-start">Phone number</th>
+                                    <th class="text-start">Total balance</th>
                                     <th class="text-start">Added on</th>
                                     <th class="text-start">Action</th>
                                 </tr>
@@ -35,6 +36,7 @@
                                     <td class="text-start">{{ $item->email }}</td>
                                     <td class="text-start">{{ $item->address }}</td>
                                     <td class="text-start">{{ $item->phone }}</td>
+                                    <td class="text-start">{{ currency(getSupplierOutstanding($item->id), '') }}</td>
                                     <td class="text-start">{{ date('d-m-Y', strtotime($item->created_at)) }}</td>
                                     <td class="text-start">
                                         <div class="d-flex align-items-center list-action justify-content-start">

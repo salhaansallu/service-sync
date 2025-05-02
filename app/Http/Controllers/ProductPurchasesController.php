@@ -58,10 +58,6 @@ class ProductPurchasesController extends Controller
                 return response(json_encode(array("error" => 1, "msg" => "Please Use Only Numbers For CBM Price")));
             }
 
-            if ($supplier != "other") {
-                return response(json_encode(array("error" => 1, "msg" => "Invalid Supplier")));
-            }
-
             $product = [];
 
             for ($i=0; $i < $product_count; $i++) {
@@ -182,10 +178,6 @@ class ProductPurchasesController extends Controller
                 return response(json_encode(array("error" => 1, "msg" => "Please Use Only Numbers For Shippiing Charge")));
             }elseif (!is_numeric($cbm_price)) {
                 return response(json_encode(array("error" => 1, "msg" => "Please Use Only Numbers For CBM Price")));
-            }
-
-            if ($supplier != "other") {
-                return response(json_encode(array("error" => 1, "msg" => "Invalid Supplier")));
             }
 
             $product = [];

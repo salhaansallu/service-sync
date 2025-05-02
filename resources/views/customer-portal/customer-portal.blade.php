@@ -19,7 +19,9 @@
                                     <div class="form-group">
                                         <label>Mobile Number <span class="text-danger">*</span></label>
                                         <input type="text" class="mobile_number form-control"
-                                            placeholder="Enter Mobile Number" value="{{ isset($_GET['phone'])? sanitize($_GET['phone']) : '' }}" name="phone" required>
+                                            placeholder="Enter Mobile Number"
+                                            value="{{ isset($_GET['phone']) ? sanitize($_GET['phone']) : '' }}"
+                                            name="phone" required>
                                         <div class="help-block with-errors"></div>
                                     </div>
                                 </div>
@@ -182,14 +184,19 @@
                                             item["status"] + '</td>';
                                     }
 
-                                    row += '<td>' + new Date(item["created_at"])
-                                        .toLocaleString() + '</td>';
+                                    row += '<td>' + new Date(item["created_at"]).toLocaleString() + '</td>';
                                     row += `<td><a class="view_invoice badge bg-secondary mr-2" data-toggle="tooltip"
                                                 data-placement="top" title="View Invoice"
-                                                data-original-title="View Invoice" href="/invoice/` + item["invoice"] + `" target="_blank">
+                                                data-original-title="View Invoice" href="/invoice/`+item["invoice"]+`" target="_blank">
                                                 <i class="fa-regular fa-eye"></i></a>
-                                            </td>`;
-                                    row += '</tr>';
+                                            `;
+                                    if (item["status"] == "Delivered") {
+                                        row += `<a class="view_invoice badge bg-warning mr-2" data-toggle="tooltip"
+                                                data-placement="top" title="Check Warranty"
+                                                data-original-title="Check Warranty" href="javascript:void(0)" onclick="checkWarranty(`+item['warranty']+`, '`+item['paid_at']+`')">
+                                                <i class="fa-solid fa-award"></i></a>`;
+                                    }
+                                    row += '</td></tr>';
                                     tableBody.append(row);
                                 });
 
@@ -217,5 +224,23 @@
                 }
             });
         });
+
+        function addMonths(date, count) {
+            const newDate = new Date(date); // Clone original date
+            newDate.setMonth(newDate.getMonth() + count);
+            return newDate;
+        }
+
+        function checkWarranty(days, paid) {
+            if (days > 0) {
+                if (new Date() >= addMonths(new Date(paid), days)) {
+                    alert('Warranty for this product has expired');
+                } else {
+                    alert('This product has warranty for ' + days + ' month(s). and expires on ' + addMonths(new Date(paid), days).toLocaleDateString());
+                }
+            } else {
+                alert('This product has no warranty');
+            }
+        }
     </script>
 @endsection

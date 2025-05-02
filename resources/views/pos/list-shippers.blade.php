@@ -21,6 +21,7 @@
                                 <tr class="ligth ligth-data">
                                     <th class="text-start">Customer name</th>
                                     <th class="text-start">Phone number</th>
+                                    <th class="text-start">Total balance</th>
                                     <th class="text-start">Added on</th>
                                     <th class="text-start">Action</th>
                                 </tr>
@@ -31,6 +32,7 @@
                                 <tr id="category{{ $item->id }}">
                                     <td class="text-start">{{ $item->company_name }}</td>
                                     <td class="text-start">{{ $item->phone }}</td>
+                                    <td class="text-start">{{ currency(getShipperOutstanding($item->id), '') }}</td>
                                     <td class="text-start">{{ date('d-m-Y', strtotime($item->created_at)) }}</td>
                                     <td class="text-start">
                                         <div class="d-flex align-items-center list-action justify-content-start">

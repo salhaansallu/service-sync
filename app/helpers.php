@@ -15,7 +15,9 @@ use App\Models\partners;
 use App\Models\posData;
 use App\Models\PosInvitation;
 use App\Models\posUsers;
+use App\Models\ProductPurchases;
 use App\Models\Products;
+use App\Models\purchaseTransactions;
 use App\Models\quotations;
 use App\Models\Repairs;
 use App\Models\shippers;
@@ -448,6 +450,24 @@ function printInvoice($invoice)
     return $invoice;
 }
 
+function getShipperOutstanding($id)
+{
+    $total = 0;
+    $outstandings = ProductPurchases::where('shipper_id', $id)->get();
+    foreach ($outstandings as $key => $outstanding) {
+        $transaction = purchaseTransactions::where('purchase_id', $outstanding->id)->where('note', 'shipper-payment')->sum('amount');
+        $total += $outstanding->cbm_price - $transaction;
+    }
+
+    return $total;
+}
+
+function getSupplierOutstanding($id)
+{
+    $outstanding = ProductPurchases::where('supplier_id', $id)->sum('pending');
+    return $outstanding;
+}
+
 function POSSettings($pos_code = null)
 {
     if ($pos_code == null) {
@@ -612,12 +632,12 @@ function getCategory($id)
 function getSupplier($id)
 {
     if ($id == 'all') {
-        $supplier = supplier::where('pos_code', company()->pos_code)->get();
+        $supplier = supplier::all();
         if ($supplier) {
             return (object)$supplier;
         }
     } else {
-        $supplier = supplier::where('id', $id)->where('pos_code', company()->pos_code)->get();
+        $supplier = supplier::where('id', $id)->get();
         if ($supplier && $supplier->count() > 0) {
             return (object)$supplier[0];
         }
@@ -976,7 +996,7 @@ function generateInvoice($order_id, $inName, $bill_type)
                         <th style="width: 50%; padding: 8px; text-align: left;">Delivery Date:</th>
                     </tr>
                     <tr>
-                        <td style="padding: 8px;">' . date('d-m-Y H:i:s', strtotime($repairs->paid_at)) . '</td>
+                        <td style="padding: 8px;'. ($repairs->status == 'Delivered'? '' : 'display:none;') . '">' . date('d-m-Y H:i:s', strtotime($repairs->paid_at)) . '</td>
                     </tr>
                 </table>
             </div>
@@ -1305,9 +1325,10 @@ function generateThermalInvoice($order_id, $inName, $bill_type)
                 </tr>
 
                 <tr>
-                    <td style="font-size: 12px;">Invoice Date:</td>
-                    <td style="font-size: 12px; text-align: right;">' . date('d-m-Y H:i:s') . '</td>
+                    <td style="font-size: 12px;">Order Date:</td>
+                    <td style="font-size: 12px; text-align: right;">' . $repairs->created_at . '</td>
                 </tr>
+
                 <tr>
                     <td style="font-size: 12px;">Delivery Date:</td>
                     <td style="font-size: 12px; text-align: right;">' . ($repairs->paid_at? date('d-m-Y H:i:s', strtotime($repairs->paid_at)) : 'N/A') . '</td>
