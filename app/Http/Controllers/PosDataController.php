@@ -136,8 +136,8 @@ class PosDataController extends Controller
             $ThermalinName = str_replace(' ', '-', str_replace('.', '-', $bill_no[0])) . '-Thermal-delivery-' . $rand;
 
             foreach ($bill_no as $key => $id) {
-                $total += Repairs::where('bill_no', $id)->where('pos_code', $company->pos_code)->sum('total');
-                $advance += Repairs::where('bill_no', $id)->where('pos_code', $company->pos_code)->sum('advance');
+                $total += Repairs::where('bill_no', $id)->sum('total');
+                $advance += Repairs::where('bill_no', $id)->sum('advance');
 
                 Repairs::where('bill_no', $id)->update([
                     "status" => "Delivered",
@@ -198,7 +198,7 @@ class PosDataController extends Controller
             $spares = $request['products'];
             $customer = sanitize($request['customer']);
             $bill_no = 1001;
-            $getBillNo = Repairs::where('pos_code', company()->pos_code)->orderBy('id', 'DESC')->first();
+            $getBillNo = Repairs::orderBy('id', 'DESC')->first();
             $bill_no = $getBillNo && $getBillNo->count() > 0 ? (int)$getBillNo->bill_no + 1 : 1001;
             $total = 0;
             $cost = 0;
@@ -210,9 +210,9 @@ class PosDataController extends Controller
             }
 
             foreach ($spares as $key => $value) {
-                $stock = Products::where('sku', $value['id'])->where('pos_code', company()->pos_code)->get();
+                $stock = Products::where('id', $value['id'])->get();
                 if ($stock->count() > 0) {
-                    Products::where('id', $value['id'])->where('pos_code', company()->pos_code)->update([
+                    Products::where('id', $value['id'])->update([
                         "qty" => (float)$stock[0]['qty'] - $value['qty']
                     ]);
                     $cost += (float)$stock[0]['cost'] * (float)$value['qty'];
