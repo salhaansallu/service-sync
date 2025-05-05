@@ -7,8 +7,8 @@
                 <div class="col-lg-12">
                     <div class="d-flex flex-wrap flex-wrap align-items-center justify-content-between mb-4">
                         <div>
-                            <h4 class="mb-3">Expense List</h4>
-                            <p class="mb-0">The Expense list effectively dictates Expense presentation and provides
+                            <h4 class="mb-3">Expense Report</h4>
+                            <p class="mb-0">The Expense Report effectively dictates Expense presentation and provides
                                 space<br> to list your Expenses and offering in the most appealing way.</p>
                         </div>
                         <div class="d-block">

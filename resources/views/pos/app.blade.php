@@ -484,6 +484,12 @@
                                         <i class="fa-solid fa-minus"></i><span>Add Expense</span>
                                     </a>
                                 </li>
+                                <li
+                                    class="{{ isAdmin() ? '' : 'd-none' }} {{ Request::is('dashboard/expense-report') ? 'active' : '' }}">
+                                    <a href="/dashboard/expense-report">
+                                        <i class="fa-solid fa-minus"></i><span>Expense Report</span>
+                                    </a>
+                                </li>
                             </ul>
                         </li>
                         <li class="{{ Request::is('dashboard/product-purchase*') ? 'active' : '' }}">
