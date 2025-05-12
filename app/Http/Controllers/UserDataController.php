@@ -216,6 +216,10 @@ class UserDataController extends Controller
             $fname = sanitize($request->input('fname'));
             $lname = sanitize($request->input('lname'));
             $code = sanitize($request->input('code'));
+            $salary = sanitize($request->input('salary'));
+            $food = sanitize($request->input('food'));
+            $transport = sanitize($request->input('transport'));
+            $accommodation = sanitize($request->input('accommodation'));
 
             $code_verify = posUsers::where('cashier_code', $code)->where('user_id', '!=', $id)->get();
 
@@ -246,6 +250,10 @@ class UserDataController extends Controller
             $user = User::where('id', $id)->update([
                 "fname" => $fname,
                 "lname" => $lname,
+                "salary" => $salary,
+                "food" => $food,
+                "transport" => $transport,
+                "accommodation" => $accommodation,
             ]);
 
             if ($user) {
@@ -264,6 +272,10 @@ class UserDataController extends Controller
         if (Auth::check() && DashboardController::check()) {
             $fname = sanitize($request->input('fname'));
             $lname = sanitize($request->input('lname'));
+            $salary = sanitize($request->input('salary'));
+            $food = sanitize($request->input('food'));
+            $transport = sanitize($request->input('transport'));
+            $accommodation = sanitize($request->input('accommodation'));
             $email = sanitize($request->input('email'));
             $password = sanitize($request->input('password'));
             $code = sanitize($request->input('code'));
@@ -299,6 +311,10 @@ class UserDataController extends Controller
             $user->fname = $fname;
             $user->lname = $lname;
             $user->email = $email;
+            $user->salary = $salary;
+            $user->food = $food;
+            $user->transport = $transport;
+            $user->accommodation = $accommodation;
             $user->password = Hash::make($password);
 
             if ($user->save()) {

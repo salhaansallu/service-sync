@@ -16,6 +16,10 @@ return new class extends Migration
             $table->string('fname')->nullable();
             $table->string('lname')->nullable();
             $table->string('email')->unique();
+            $table->float('salary', 15, 2)->nullable();
+            $table->float('food', 15, 2)->nullable();
+            $table->float('transport', 15, 2)->nullable();
+            $table->float('accommodation', 15, 2)->nullable();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->rememberToken();

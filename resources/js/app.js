@@ -95,6 +95,11 @@ import purchaseForm from './components/purchaseOrder.vue';
 purchaseOrder.component('purchase-form', purchaseForm);
 purchaseOrder.mount('#purchaseForm');
 
+const hrComp = createApp({});
+import hr from './components/hr.vue';
+hrComp.component('hr-componenet', hr);
+hrComp.mount('#hrComp');
+
 
 $('#menu_close').click(function (e) {
   $('.open_menu').removeClass('hide')

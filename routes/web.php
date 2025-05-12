@@ -12,6 +12,7 @@ use App\Http\Controllers\CreditController;
 use App\Http\Controllers\CustomersController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ExpensesController;
+use App\Http\Controllers\hrController;
 use App\Http\Controllers\NewsletterController;
 use App\Http\Controllers\OrdersController;
 use App\Http\Controllers\PartnersController;
@@ -309,6 +310,15 @@ Route::prefix('dashboard')->group(function () {
 
     Route::get('sms', [SMSController::class, 'index']);
     Route::post('sms/send', [SMSController::class, 'send']);
+
+    Route::get('hr', [hrController::class, 'index']);
+    Route::post('hr/get-users', [hrController::class, 'getUsers']);
+    Route::post('hr/get-expenses', [hrController::class, 'getReport']);
+    Route::post('hr/print-expenses', [hrController::class, 'printExpense']);
+    Route::post('hr/add-expense', [hrController::class, 'addExpense']);
+    Route::post('hr/remove-expense', [hrController::class, 'removeExpense']);
+    Route::post('hr/pay-expense', [hrController::class, 'payExpense']);
+    Route::post('hr/get-loan-balance', [hrController::class, 'getLoanBalance']);
 });
 
 

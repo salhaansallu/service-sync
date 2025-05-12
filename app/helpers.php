@@ -2752,6 +2752,98 @@ function generateQuotation($q_no)
     return (object)array('generated' => true, 'url' => '/quotations/' . str_replace([' ', '.', "'", '"'], ['', '', "", ''], $q_no) . '-' . $company->pos_code . '.pdf');
 }
 
+function generateEmployeeExpenses($datas, $inName = 'employee-expenses.pdf')
+{
+
+    $total = 0;
+
+    $html = '
+        <!DOCTYPE html>
+        <html lang="en">
+
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Quotation</title>
+            <style>
+                @page {
+                    margin: 10px;
+                    height: auto;
+                    width: 210mm;
+                }
+
+                body {
+                    margin: 10px;
+                }
+            </style>
+        </head>
+
+        <body style="font-family: Arial, sans-serif; margin: 0; padding: 30px; padding-top: 30px; box-sizing: border-box;">
+
+        <h1 style="text-align:center;">Expenses</h1>
+
+            <section style="margin-bottom: 20px;">
+                <table style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr style="background-color: #f4f4f4;">
+                            <th style="text-align: left; padding: 8px; border: 1px solid #ddd;">Employee</th>
+                            <th style="text-align: left; padding: 8px; border: 1px solid #ddd;">Amount</th>
+                            <th style="text-align: left; padding: 8px; border: 1px solid #ddd;">Type</th>
+                            <th style="text-align: left; padding: 8px; border: 1px solid #ddd;">Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+        ';
+
+        foreach ($datas as $key => $data) {
+            if ($data->type == 'Loan' && $data->status == 'paid') {
+                // Skip paid loans
+            } else {
+                $total += $data->amount;
+            }
+            $html .= '
+                <tr>
+                    <td style="padding: 8px; border: 1px solid #ddd;">' . getUser($data->user)->fname . '</td>
+                    <td style="padding: 8px; border: 1px solid #ddd;">' . currency($data->amount, '') . '</td>
+                    <td style="padding: 8px; border: 1px solid #ddd;">' . ($data->type == 'Loan'? ($data->status == 'paid' ? 'Loan (Paid)' : 'Loan (Unpaid)') : $data->type) . '</td>
+                    <td style="padding: 8px; border: 1px solid #ddd;">' . $data->created_at . '</td>
+                </tr>
+            ';
+        }
+
+        $html .='
+                    </tbody>
+                </table>
+            </section>
+
+            <table style="width: 100%; border-collapse: collapse; border-bottom: 1px solid #ddd;margin-bottom: 20px;">
+                <tbody>
+                    <tr>
+                        <td style="vertical-align: top;">
+                            <div style="margin-top: -20px; text-align: right; font-size: 18px; font-weight: bold;">
+                                <p>Total Expenses: ' . currency($total, 'LKR') . '</p>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </body>
+
+        </html>
+    ';
+    // $connector = new FilePrintConnector("/dev/usb/lp0");
+    // $printer = new Printer($connector);
+
+    $pdf = new Dompdf();
+    $pdf->setPaper("A4", "portrait");
+    $pdf->loadHtml($html, 'UTF-8');
+    $pdf->render();
+    $path = public_path('invoice/'. $inName);
+    file_put_contents($path, $pdf->output());
+    return (object)array('generated' => true, 'url' => '/invoice/'. $inName);
+}
+
+
 function sendInvitation($email)
 {
     $verify = User::where('email', $email)->get();

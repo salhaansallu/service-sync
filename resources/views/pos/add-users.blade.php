@@ -15,7 +15,7 @@
                             <form id="CategoryCreate" action="" data-toggle="validator" onsubmit="return false;">
                                 @csrf
 
-                                @isset($user)  
+                                @isset($user)
                                 <input type="hidden" name="modelid" value="{{ $user->user_id }}">
                                 @endisset
 
@@ -46,6 +46,42 @@
                                             <label>ID Code </label>
                                             <input type="text" class="form-control" placeholder="Enter ID Code"
                                                 name="code" value="@isset($user){{ $user->cashier_code }}@endisset">
+                                            <div class="help-block with-errors"></div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label>Salary </label>
+                                            <input type="text" class="form-control" placeholder="Enter Salary"
+                                                name="salary" value="@isset($user){{ $user->salary }}@endisset">
+                                            <div class="help-block with-errors"></div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label>Food </label>
+                                            <input type="text" class="form-control" placeholder="Enter Food"
+                                                name="food" value="@isset($user){{ $user->food }}@endisset">
+                                            <div class="help-block with-errors"></div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label>Transport </label>
+                                            <input type="text" class="form-control" placeholder="Enter Transport"
+                                                name="transport" value="@isset($user){{ $user->transport }}@endisset">
+                                            <div class="help-block with-errors"></div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label>Accommodation </label>
+                                            <input type="text" class="form-control" placeholder="Enter Accommodation"
+                                                name="accommodation" value="@isset($user){{ $user->accommodation }}@endisset">
                                             <div class="help-block with-errors"></div>
                                         </div>
                                     </div>
