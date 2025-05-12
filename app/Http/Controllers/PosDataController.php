@@ -210,22 +210,21 @@ class PosDataController extends Controller
             }
 
             foreach ($spares as $key => $value) {
-                $stock = Products::where('id', $value['id'])->get();
-                if ($stock->count() > 0) {
-                    Products::where('id', $value['id'])->update([
-                        "qty" => (float)$stock[0]['qty'] - $value['qty']
-                    ]);
-                    $cost += (float)$stock[0]['cost'] * (float)$value['qty'];
-                    $total += (float)$stock[0]['price'] * (float)$value['qty'];
-                    $parts[] = $stock[0]['id'];
+                $stock = Products::where('sku', $value['id'])->first();
+                if ($stock != null) {
+                    $stock->qty = (float)$stock->qty - (float)$value['qty'];
+                    $stock->save();
+                    $cost += (float)$stock->cost * (float)$value['qty'];
+                    $total += (float)$stock->price * (float)$value['qty'];
+                    $parts[] = $stock->id;
 
                     $invoice_pro[] = array(
-                        "name" => $stock[0]["pro_name"],
-                        "unit" => $stock[0]["price"],
-                        "cost" => $stock[0]["cost"],
+                        "name" => $stock->pro_name,
+                        "unit" => $stock->price,
+                        "cost" => $stock->cost,
                         "qty" => $value['qty'],
-                        "sku" => $stock[0]['sku'],
-                        "id" => $stock[0]['id'],
+                        "sku" => $stock->sku,
+                        "id" => $stock->id,
                     );
                 }
             }
