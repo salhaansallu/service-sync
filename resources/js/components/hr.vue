@@ -112,8 +112,13 @@
                         <div class="row justify-content-between">
                             <div class="col-md-6 mt-3">
                                 <div class="input">
-                                    <label for="" class="mb-1">Employee</label>
-                                    <select @change="autoFill()" name="" id="" ref="user">
+                                    <label for="" class="mb-1 d-flex align-items-center gap-3">
+                                        Employee
+                                        <div class="form-text text-danger mt-0" ref="pendingLoan">Loan: 0.00</div>
+                                        <button @click="payAllExpense()" style="display: none;" ref="loanMassPayBtn"
+                                            class="btn btn-success btn-sm">Pay all</button>
+                                    </label>
+                                    <select name="" id="" @change="autoFill()" ref="user">
                                         <option value="">-- Select employee --</option>
                                         <option v-for="cashier in cashiers" :value="cashier['id']">{{ cashier['fname']
                                             + ' ' + cashier['lname'] }}</option>
@@ -123,37 +128,96 @@
 
                             <div class="col-md-6 mt-3">
                                 <div class="input">
-                                    <label for="" class="mb-1 d-flex align-items-center gap-3">Amount <div
-                                            class="form-text text-danger mt-0" ref="loan">Loan: 0.00</div> <button
-                                            @click="payAllExpense()" style="display: none;" ref="loanMassPayBtn" class="btn btn-success btn-sm">Pay
-                                            all</button></label>
-                                    <input type="number" ref="amount" placeholder="0">
-                                </div>
-                            </div>
-
-                            <div class="col-md-6 mt-3">
-                                <div class="input">
-                                    <label for="" class="mb-1">Type</label>
-                                    <select @change="autoFill()" name="" id="" ref="type">
-                                        <option value="">-- Select type --</option>
-                                        <option value="Salary">Salary</option>
-                                        <option value="Food">Food</option>
-                                        <option value="Transport">Transport</option>
-                                        <option value="Bonus">Bonus</option>
-                                        <option value="Commission">Commission</option>
-                                        <option value="Medical">Medical</option>
-                                        <option value="Accommodation">Accommodation</option>
-                                        <option value="OT">OT</option>
-                                        <option value="Loan">Loan</option>
-                                    </select>
-                                </div>
-                            </div>
-
-                            <div class="col-md-6 mt-3">
-                                <div class="input">
                                     <label for="" class="mb-1">Date</label>
                                     <input type="datetime-local" ref="date" value="">
                                 </div>
+                            </div>
+
+                            <div class="col-12 mt-3">
+                                <table class="table table-bordered">
+                                    <thead>
+                                        <tr>
+                                            <th class="text-center">Type</th>
+                                            <th class="text-center">Amount</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td class="text-center">Salary</td>
+                                            <td>
+                                                <div class="input">
+                                                    <input type="number" ref="salary" placeholder="0">
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="text-center">Food</td>
+                                            <td>
+                                                <div class="input">
+                                                    <input type="number" ref="food" placeholder="0">
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="text-center">Transport</td>
+                                            <td>
+                                                <div class="input">
+                                                    <input type="number" ref="transport" placeholder="0">
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="text-center">Bonus</td>
+                                            <td>
+                                                <div class="input">
+                                                    <input type="number" ref="bonus" placeholder="0">
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="text-center">Commission</td>
+                                            <td>
+                                                <div class="input">
+                                                    <input type="number" ref="commission" placeholder="0">
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="text-center">Medical</td>
+                                            <td>
+                                                <div class="input">
+                                                    <input type="number" ref="medical" placeholder="0">
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="text-center">Accommodation</td>
+                                            <td>
+                                                <div class="input">
+                                                    <input type="number" ref="accommodation" placeholder="0">
+                                                </div>
+                                            </td>
+                                        </tr>
+
+                                        <tr>
+                                            <td class="text-center">OT</td>
+                                            <td>
+                                                <div class="input">
+                                                    <input type="number" ref="ot" placeholder="0">
+                                                </div>
+                                            </td>
+                                        </tr>
+
+                                        <tr>
+                                            <td class="text-center">Loan</td>
+                                            <td>
+                                                <div class="input">
+                                                    <input type="number" ref="loan" placeholder="0">
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
                             </div>
 
                             <div class="col-md-12 mt-3">
@@ -276,30 +340,52 @@ export default {
         },
         async addExpense() {
             const user = this.$refs.user.value;
-            const amount = this.$refs.amount.value;
-            const type = this.$refs.type.value;
             const date = this.$refs.date.value;
             const note = this.$refs.note.value;
 
-            if (user == '' || amount == '' || type == '' || date == '') {
+            const salary = this.$refs.salary.value;
+            const food = this.$refs.food.value;
+            const transport = this.$refs.transport.value;
+            const bonus = this.$refs.bonus.value;
+            const commission = this.$refs.commission.value;
+            const medical = this.$refs.medical.value;
+            const accommodation = this.$refs.accommodation.value;
+            const ot = this.$refs.ot.value;
+            const loan = this.$refs.loan.value;
+
+            if (user == '' || date == '') {
                 alert('Please fill all fields');
                 return;
             }
 
             const { data } = await axios.post("/dashboard/hr/add-expense", {
                 user: user,
-                amount: amount,
-                type: type,
                 date: date,
-                note: note
+                note: note,
+                salary: salary,
+                food: food,
+                transport: transport,
+                bonus: bonus,
+                commission: commission,
+                medical: medical,
+                accommodation: accommodation,
+                ot: ot,
+                loan: loan,
             });
 
             if (data.error == 0) {
                 this.getReport();
                 this.$refs.user.value = '';
-                this.$refs.amount.value = '';
-                this.$refs.type.value = '';
                 this.$refs.note.value = '';
+                this.$refs.salary.value = '';
+                this.$refs.food.value = '';
+                this.$refs.transport.value = '';
+                this.$refs.bonus.value = '';
+                this.$refs.commission.value = '';
+                this.$refs.medical.value = '';
+                this.$refs.accommodation.value = '';
+                this.$refs.ot.value = '';
+                this.$refs.loan.value = '';
 
                 const now = new Date();
                 const offset = now.getTimezoneOffset();
@@ -374,40 +460,25 @@ export default {
         },
         async autoFill() {
             const user = this.$refs.user.value;
-            const type = this.$refs.type.value;
 
-            if (user != '' && type != '') {
+            if (user != '') {
 
                 const cashier = this.cashiers.filter(item => item['id'] == user)[0];
                 if (cashier != undefined) {
-                    if (type == 'Salary') {
-                        var loan = await this.getLoanBalance(user);
-                        this.$refs.loan.innerText = "Loan: " + currency(loan, '');
-                        this.$refs.amount.value = cashier['salary'] - loan;
+                    var loan = await this.getLoanBalance(user);
+                    this.$refs.pendingLoan.innerText = "Loan: " + currency(loan, '');
 
-                        if (loan > 0) {
-                            $(this.$refs.loanMassPayBtn).show();
-                        }
-                        else {
-                            $(this.$refs.loanMassPayBtn).hide();
-                        }
-                    }
-                    else if (type == 'Food') {
-                        this.$refs.amount.value = cashier['food'];
-                        $(this.$refs.loanMassPayBtn).hide();
-                    }
-                    else if (type == 'Transport') {
-                        this.$refs.amount.value = cashier['transport'];
-                        $(this.$refs.loanMassPayBtn).hide();
-                    }
-                    else if (type == 'Accommodation') {
-                        this.$refs.amount.value = cashier['accommodation'];
-                        $(this.$refs.loanMassPayBtn).hide();
+                    if (loan > 0) {
+                        $(this.$refs.loanMassPayBtn).show();
                     }
                     else {
-                        this.$refs.amount.value = 0;
                         $(this.$refs.loanMassPayBtn).hide();
                     }
+
+                    this.$refs.salary.value = cashier['salary'];
+                    this.$refs.food.value = cashier['food'];
+                    this.$refs.transport.value = cashier['transport'];
+                    this.$refs.accommodation.value = cashier['accommodation'];
                 }
             }
         },

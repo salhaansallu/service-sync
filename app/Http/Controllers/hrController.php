@@ -52,25 +52,28 @@ class hrController extends Controller
     {
         if (isAdmin()) {
             $user = sanitize($request->input('user'));
-            $amount = sanitize($request->input('amount'));
-            $type = sanitize($request->input('type'));
             $date = sanitize($request->input('date'));
             $note = sanitize($request->input('note'));
 
-            $data = new employee_expenses();
-            $data->user = $user;
-            $data->note = $note;
-            $data->amount = $amount;
-            $data->type = $type;
-            $data->created_at = date('Y-m-d H:i:s', strtotime($date));
-            $data->updated_at = date('Y-m-d H:i:s', strtotime($date));
+            $types = ['salary', 'food', 'transport', 'bonus', 'commission', 'medical', 'accommodation', 'ot', 'loan'];
 
-            if ($data->save()) {
-                return response(json_encode(['error' => 0, 'message' => 'Expense added successfully.']));
+            foreach ($types as $key => $type) {
+                if ($request->has($type) && !empty(sanitize($request->input($type))) && is_numeric(sanitize($request->input($type))) && sanitize($request->input($type)) > 0) {
+                    $data = new employee_expenses();
+                    $data->user = $user;
+                    $data->note = $note;
+                    $data->amount = sanitize($request->input($type));
+                    $data->type = ucfirst($type);
+                    $data->created_at = date('Y-m-d H:i:s', strtotime($date));
+                    $data->updated_at = date('Y-m-d H:i:s', strtotime($date));
+                    $data->save();
+                }
             }
 
-            return response(json_encode(['error' => 1, 'message' => 'Error while adding expense.']));
+            return response(json_encode(['error' => 0, 'message' => 'Expenses added successfully.']));
         }
+
+        return response(json_encode(['error' => 1, 'message' => 'Error while adding expense.']));
     }
 
     public function printExpense(Request $request)
