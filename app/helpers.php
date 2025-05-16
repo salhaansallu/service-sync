@@ -1560,6 +1560,102 @@ function generateThermalInvoice($order_id, $inName, $bill_type)
     return (object)array('generated' => true, 'url' => '/invoice/' . $bill_type . '/' . $inName);
 }
 
+function generateThermalSticker($order_id, $inName)
+{
+    $repair = Repairs::where('bill_no', $order_id)->first();
+    $customer = getCustomer($repair->customer);
+
+    if($repair == null || $customer->name == '') {
+        return (object)array('generated' => false, 'url' => '/invoice/' . $inName);
+    }
+
+    $html = '
+
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Repair Sticker</title>
+            <style>
+                @page {
+                    margin: 10px;
+                    height: auto;
+                    width: 80mm;
+                 }
+                body { margin: 10px; }
+            </style>
+        </head>
+        <body style="font-family: Arial, sans-serif;">
+
+            <h3 style="text-align: center; margin: 10px 0;">Repair Sticker</h3>
+
+            <table style="width: 100%; border-collapse: collapse; margin-bottom: 10px;">
+                <tr>
+                    <td style="font-size: 12px;padding: 5px 0; font-weight: bold;" colspan="2">Repair details</td>
+                </tr>
+                <tr>
+                    <td style="font-size: 12px;">Customer Name:</td>
+                    <td style="font-size: 12px; text-align: right;">' . $customer->name . '</td>
+                </tr>
+                <tr>
+                    <td style="font-size: 12px;">Customer Mobile:</td>
+                    <td style="font-size: 12px; text-align: right;">' . $customer->phone . '</td>
+                </tr>
+                <tr>
+                    <td style="font-size: 12px;">Fault:</td>
+                    <td style="font-size: 12px; text-align: right;">' . $repair->fault . '</td>
+                </tr>
+
+                <tr>
+                    <td style="font-size: 12px;">Bill Number:</td>
+                    <td style="font-size: 12px; text-align: right;">' . $order_id . '</td>
+                </tr>
+
+                <tr>
+                    <td style="font-size: 12px;">Date:</td>
+                    <td style="font-size: 12px; text-align: right;">' . date('d m Y', strtotime($repair->created_at)) . '</td>
+                </tr>
+            </table>
+        </body>
+        </html>
+    ';
+
+
+    $pdf = new Dompdf();
+    $pdf->setPaper([0, 0, 227, 800]);
+    $pdf->loadHtml($html, 'UTF-8');
+
+    $GLOBALS['bodyHeight'] = 0;
+
+    $pdf->setCallbacks([
+        'myCallbacks' => [
+            'event' => 'end_frame',
+            'f' => function ($frame) {
+                $node = $frame->get_node();
+                if (strtolower($node->nodeName) === "body") {
+                    $padding_box = $frame->get_padding_box();
+                    $GLOBALS['bodyHeight'] += $padding_box['h'];
+                }
+            }
+        ]
+    ]);
+
+    $pdf->render();
+    unset($pdf);
+
+    $docHeight = $GLOBALS['bodyHeight'] + 30;
+
+    $pdf = new Dompdf();
+    $pdf->setPaper([0, 0, 230, $docHeight]);
+    $pdf->loadHtml($html, 'UTF-8');
+    $pdf->render();
+    $path = public_path('invoice/' . $inName);
+    file_put_contents($path, $pdf->output());
+
+    return (object)array('generated' => true, 'url' => '/invoice/' . $inName);
+}
+
 function generateSalesInvoice($order_id, $inName, $products, $cashin)
 {
     $company = PosDataController::company();

@@ -371,11 +371,13 @@ class RepairsController extends Controller
                                 }
                             }
                         } catch (Exception $e) {
+
                         }
                     }
 
                     $tempBill = 'temp-muilti-repairs-invoice';
                     $generate_temp_thermal_invoice = generateThermalInvoice($bills, $tempBill, 'newOrder');
+                    $generate_temp_sticker = generateThermalSticker(is_array($bills)? $bills[0] : $bills, 'temp-sticker');
 
                     if ($bill_type != 'new-order') {
                         $commis = new repairCommissions();
@@ -387,7 +389,7 @@ class RepairsController extends Controller
                     }
                 }
 
-                return response(json_encode(array("error" => $new_order_qty != $success_count, "msg" => $success_count . " out of " . $new_order_qty . " orders placed", "invoiceURL" => $generate_temp_thermal_invoice->url)));
+                return response(json_encode(array("error" => $new_order_qty != $success_count, "msg" => $success_count . " out of " . $new_order_qty . " orders placed", "invoiceURL" => $generate_temp_thermal_invoice->url, 'sticker'=> $generate_temp_sticker)));
             } catch (Exception $e) {
                 return response(json_encode(array("error" => 1, "msg" => "Error: " . $e->getMessage())));
             }
