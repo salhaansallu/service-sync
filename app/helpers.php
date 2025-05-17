@@ -1590,7 +1590,7 @@ function generateThermalSticker($order_id, $inName)
 
             <h3 style="text-align: center; margin: 10px 0;">Repair Sticker</h3>
 
-            <table style="width: 100%; border-collapse: collapse; margin-bottom: 10px;">
+            <table style="width: 100%; border-collapse: collapse;">
                 <tr>
                     <td style="font-size: 12px;padding: 5px 0; font-weight: bold;" colspan="2">Repair details</td>
                 </tr>
@@ -1621,33 +1621,8 @@ function generateThermalSticker($order_id, $inName)
         </html>
     ';
 
-
     $pdf = new Dompdf();
-    $pdf->setPaper([0, 0, 227, 800]);
-    $pdf->loadHtml($html, 'UTF-8');
-
-    $GLOBALS['bodyHeight'] = 0;
-
-    $pdf->setCallbacks([
-        'myCallbacks' => [
-            'event' => 'end_frame',
-            'f' => function ($frame) {
-                $node = $frame->get_node();
-                if (strtolower($node->nodeName) === "body") {
-                    $padding_box = $frame->get_padding_box();
-                    $GLOBALS['bodyHeight'] += $padding_box['h'];
-                }
-            }
-        ]
-    ]);
-
-    $pdf->render();
-    unset($pdf);
-
-    $docHeight = $GLOBALS['bodyHeight'] + 30;
-
-    $pdf = new Dompdf();
-    $pdf->setPaper([0, 0, 230, $docHeight]);
+    $pdf->setPaper([0, 0, 230, 230]);
     $pdf->loadHtml($html, 'UTF-8');
     $pdf->render();
     $path = public_path('invoice/' . $inName);
