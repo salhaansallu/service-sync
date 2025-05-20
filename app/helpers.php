@@ -1588,7 +1588,7 @@ function generateThermalSticker($order_id, $inName)
         </head>
         <body style="font-family: Arial, sans-serif;">
 
-            <h3 style="text-align: center; margin: 10px 0;">Repair Sticker</h3>
+            <h3 style="text-align: center; margin: 10px 0;">'.$order_id.'</h3>
 
             <table style="width: 100%; border-collapse: collapse;">
                 <tr>
@@ -1600,18 +1600,12 @@ function generateThermalSticker($order_id, $inName)
                 </tr>
                 <tr>
                     <td style="font-size: 12px;">Customer Mobile:</td>
-                    <td style="font-size: 12px; text-align: right;">' . $customer->phone . '</td>
+                    <td style="font-size: 12px; text-align: right; font-size: 11px;">' . $customer->phone . '</td>
                 </tr>
                 <tr>
                     <td style="font-size: 12px;">Fault:</td>
                     <td style="font-size: 12px; text-align: right;">' . $repair->fault . '</td>
                 </tr>
-
-                <tr>
-                    <td style="font-size: 12px;">Bill Number:</td>
-                    <td style="font-size: 12px; text-align: right;">' . $order_id . '</td>
-                </tr>
-
                 <tr>
                     <td style="font-size: 12px;">Date:</td>
                     <td style="font-size: 12px; text-align: right;">' . date('d m Y', strtotime($repair->created_at)) . '</td>
