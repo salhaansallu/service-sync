@@ -59,6 +59,7 @@ class ProductPurchasesController extends Controller
             }
 
             $product = [];
+            $stock_updated = 'N';
 
             for ($i=0; $i < $product_count; $i++) {
                 if (!empty(sanitize($request->input('product_'.$i)))) {
@@ -83,6 +84,13 @@ class ProductPurchasesController extends Controller
                             "price" => sanitize($request->input('price_'.$i)),
                             "qty" => sanitize($request->input('qty_'.$i)),
                         ];
+
+                        if ($status == 'approved') {
+                            $stock_updated = 'Y';
+                            $temp->qty = $temp->qty + sanitize($request->input('qty_'.$i));
+                            $temp->cost = divide(($total+$cbm_price+$shipping_charge), $total_in_currency) * sanitize($request->input('price_'.$i));
+                            $temp->save();
+                        }
                     }
                 }
             }
@@ -101,6 +109,7 @@ class ProductPurchasesController extends Controller
             $purchase->shipper_id = $shipper=='other'? '0' : $shipper;
             $purchase->status = $status;
             $purchase->note = $note;
+            $purchase->stock_updated = $stock_updated;
 
             if ($purchase->save()) {
                 return response(json_encode(array("error" => 0, "msg" => "Product Purchase Added Successfully")));
@@ -175,12 +184,16 @@ class ProductPurchasesController extends Controller
             if (!is_numeric($total)) {
                 return response(json_encode(array("error" => 1, "msg" => "Please Use Only Numbers For Total")));
             } elseif (!is_numeric($shipping_charge)) {
-                return response(json_encode(array("error" => 1, "msg" => "Please Use Only Numbers For Shippiing Charge")));
+                return response(json_encode(array("error" => 1, "msg" => "Please Use Only Numbers For Shipping Charge")));
             }elseif (!is_numeric($cbm_price)) {
                 return response(json_encode(array("error" => 1, "msg" => "Please Use Only Numbers For CBM Price")));
             }
 
             $product = [];
+
+            $stock_updated = 'N';
+
+            $purchase = ProductPurchases::where('id', $id)->first();
 
             for ($i=0; $i < $product_count; $i++) {
                 if (!empty(sanitize($request->input('product_'.$i)))) {
@@ -205,6 +218,13 @@ class ProductPurchasesController extends Controller
                             "price" => sanitize($request->input('price_'.$i)),
                             "qty" => sanitize($request->input('qty_'.$i)),
                         ];
+
+                        if ($status == 'approved' && $purchase != null && $purchase->stock_updated != 'Y') {
+                            $stock_updated = 'Y';
+                            $temp->qty = $temp->qty + sanitize($request->input('qty_'.$i));
+                            $temp->cost = divide(($total+$cbm_price+$shipping_charge), $total_in_currency) * sanitize($request->input('price_'.$i));
+                            $temp->save();
+                        }
                     }
                 }
             }
@@ -222,6 +242,7 @@ class ProductPurchasesController extends Controller
                 "shipper_id" => $shipper=='other'? '0' : $shipper,
                 "note" => $note,
                 "status" => $status,
+                "stock_updated" => $stock_updated,
             ]);
 
             if ($purchase) {

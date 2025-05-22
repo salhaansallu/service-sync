@@ -26,6 +26,7 @@ return new class extends Migration
             $table->integer("shipper_id")->nullable();
             $table->text("note");
             $table->string("status")->default('pending');
+            $table->string("stock_updated")->nullable();
             $table->timestamps();
         });
     }

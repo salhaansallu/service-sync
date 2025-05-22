@@ -75,7 +75,7 @@ export default {
 
             setTimeout(() => {
                 $('.select2').select2();
-            }, 100);
+            }, 50);
         },
 
         initializeFormData() {
@@ -106,7 +106,8 @@ export default {
         $('#currencySelector').change(function () {
             $('#selectedCurrency').text($('#currencySelector').val());
         });
+
         $('.select2').select2();
-    }
+    },
 }
 </script>
