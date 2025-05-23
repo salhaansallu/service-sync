@@ -44,7 +44,7 @@ class CreditController extends Controller
             if ($credits) {
                 foreach ($credits as $key => $credit) {
                     $credit['history'] = CreditHistory::where('credit_id', $credit->id)->get();
-                    $credit['partner'] = ['id'=>'', 'name'=>'', 'company'=>'', 'phone'=>''];
+                    $credit['partner'] = ['id' => '', 'name' => '', 'company' => '', 'phone' => ''];
                 }
             }
             $partners = partners::all();
@@ -60,13 +60,43 @@ class CreditController extends Controller
 
             $customerId = sanitize($request->input('params')['credit']);
             $paymentAmount = sanitize($request->input('params')['amount']);
+            $paymentType = sanitize($request->input('params')['type']);
             $paid = $paymentAmount;
+
+            if ($paymentType == 'manual') {
+                $credit = Credit::where('id', $customerId)->first();
+                if ($credit) {
+
+
+                    $total_due = DB::table('credits')
+                        ->where('customer_id', $credit->customer_id)
+                        ->where('ammount', '>', 0) // Select bills with balance remaining
+                        ->sum('ammount');
+
+                    DB::table('credits')
+                        ->where('id', $credit->id)
+                        ->update([
+                            'ammount' => ($credit->ammount - $paymentAmount < 0 ? 0 : $credit->ammount - $paymentAmount), // Reduce balance
+                            'status' => ($credit->ammount - $paymentAmount < 0 ? 'paid' : 'partially paid'),
+                            'updated_at' => now()
+                        ]);
+
+                    $this->recordPayment($credit, $paymentAmount);
+
+                    $bill_name = time() . rand(1111, 9999999) . rand(111, 9999) . '.pdf';
+                    $payment = generateCreditPay($total_due, $paid, $credit->customer_id, Carbon::now(), $bill_name);
+
+                    return response(json_encode(array('error' => 0, 'msg' => 'Payment recorded successfully', 'bill' => $bill_name)));
+                }
+
+                return response(json_encode(array('error' => 1, 'msg' => 'Error recording payment')));
+            }
+
 
             $total_due = DB::table('credits')
                 ->where('customer_id', $customerId)
                 ->where('ammount', '>', 0) // Select bills with balance remaining
                 ->sum('ammount');
-
 
             $bills = DB::table('credits')
                 ->where('customer_id', $customerId)

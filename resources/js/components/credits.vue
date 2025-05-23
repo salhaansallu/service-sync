@@ -46,7 +46,10 @@
                                 <td class="text-start">{{ new Date(item['updated_at']).toLocaleString('nl-NL') }}</td>
                                 <td class="text-start">
                                     <div class="d-flex align-items-center list-action justify-content-start">
-                                        <a class="badge bg-success mr-2" href="javascript:void(0)" title="View"
+                                        <a class="badge bg-success mr-2" href="javascript:void(0)" title="Pay Now"
+                                            @click="payCredit(item['id'])"><i class="fa-solid fa-pencil"></i></a>
+
+                                        <a class="badge bg-primary mr-2" href="javascript:void(0)" title="View"
                                             @click="getHistory(item['id'])"><i class="fa-regular fa-eye"></i></a>
                                     </div>
                                 </td>
@@ -215,10 +218,15 @@ export default {
                 $(".history-table").DataTable().order([0, 'desc']).draw();
             }, 500);
         },
-        payCredit() {
+        payCredit(credit = 0) {
             if (this.$refs.customer.value == '' || this.$refs.customer.value == 0 || this.$refs.customer.value == 'all') {
                 toastr.error('Please select a customer', 'Error');
                 return;
+            }
+
+            if (credit != 0) {
+                this.payID = credit;
+                this.$refs.amount.value = this.credit.filter(item => item['id'] == credit)[0]['ammount'];
             }
 
             $("#PaymentModal").modal('show');
@@ -241,8 +249,9 @@ export default {
 
             const { data } = await axios.post("/dashboard/credits/pay-credit", {
                 params: {
-                    credit: credit,
+                    credit: this.payID == 0 ? credit : this.payID,
                     amount: amount,
+                    type: this.payID == 0 ? 'auto' : 'manual',
                 }
             });
 
