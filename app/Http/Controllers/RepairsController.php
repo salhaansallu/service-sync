@@ -272,16 +272,17 @@ class RepairsController extends Controller
                 $bill_type = sanitize($request->input('bill_type'));
                 $parent_bill_no = sanitize($request->input('parent_bill_no'));
                 $new_order_qty = sanitize($request->input('new_order_qty'));
+                $customerData = [];
                 $billData = [];
 
                 if ($bill_type == 'new-order') {
-                    $customerData = customers::where('pos_code', company()->pos_code)->where('id', $customer)->get();
+                    $customerData = customers::where('id', $customer)->get();
 
                     if ($customerData->count() == 0) {
                         return response(json_encode(array("error" => 1, "msg" => "Invalid customer")));
                     }
                 } else {
-                    $billData = Repairs::where('pos_code', company()->pos_code)->where('bill_no', $parent_bill_no)->where('status', 'Delivered')->get();
+                    $billData = Repairs::where('bill_no', $parent_bill_no)->where('status', 'Delivered')->get();
 
                     if ($billData->count() == 0) {
                         return response(json_encode(array("error" => 1, "msg" => "Invalid bill number")));
@@ -301,7 +302,7 @@ class RepairsController extends Controller
                     return response(json_encode(array("error" => 1, "msg" => "Invalid advance format")));
                 }
 
-                $getCashier = posUsers::where('pos_code', company()->pos_code)->where('cashier_code', $cashier_no)->get();
+                $getCashier = posUsers::where('cashier_code', $cashier_no)->get();
 
                 if ($getCashier->count() > 0) {
                     $cashier_no = $getCashier[0]->user_id;
@@ -313,8 +314,8 @@ class RepairsController extends Controller
                 if ($new_order_qty > 0) {
                     for ($i = 0; $i < $new_order_qty; $i++) {
                         try {
-                            $getBillNo = Repairs::where('pos_code', company()->pos_code)->orderBy('id', 'DESC')->first();
-                            $bill_no = $getBillNo && $getBillNo->count() > 0 ? (int)$getBillNo->bill_no + 1 : 1001;
+                            $getBillNo = Repairs::orderBy('id', 'DESC')->first();
+                            $bill_no = $getBillNo != null ? (int)$getBillNo->bill_no + 1 : 1001;
 
                             $repair = new Repairs();
                             $repair->bill_no = $bill_no;
@@ -342,7 +343,8 @@ class RepairsController extends Controller
 
                             if ($repair->save()) {
 
-                                if (($partner == "" || $partner == 0) && $repair->type == 'repair') {
+                                if (($partner == "" || $partner == 0) && $repair->type == 'repair' && $bill_type == 'new-order') {
+                                    dd($customerData);
                                     $sms = new SMS();
                                     $sms->contact = array(array(
                                         "fname" => $customerData[0]["name"],
@@ -352,7 +354,8 @@ class RepairsController extends Controller
                                         "email" => $customerData[0]["email"],
                                     ));
                                     $sms->message = "Dear Customer, your  " . company()->company_name . " account is created. We've received your product and will notify you when the repair is done. Track it at https://wefixservers.xyz/customer-portal?phone=".$customerData[0]["phone"].". Thank you!";
-                                    $sms->Send();
+
+
                                 }
 
                                 $rand = date('d-m-Y-h-i-s') . '-' . rand(0, 9999999) . '.pdf';
@@ -361,11 +364,13 @@ class RepairsController extends Controller
                                 $success_count++;
                                 $bills[] = $bill_no;
 
+
+
                                 $generate_invoice = generateInvoice($bill_no, $inName, 'newOrder');
                                 $generate_thermal_invoice = generateThermalInvoice($bill_no, $thermalInName, 'newOrder');
 
                                 if ($generate_invoice->generated == true) {
-                                    Repairs::where('bill_no', $bill_no)->where('pos_code', company()->pos_code)->update([
+                                    Repairs::where('bill_no', $bill_no)->update([
                                         "invoice" => "newOrder/" . $inName,
                                     ]);
                                 }

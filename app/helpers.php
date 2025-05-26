@@ -909,7 +909,7 @@ function generateInvoice($order_id, $inName, $bill_type)
 
     if (is_array($order_id)) {
         foreach ($order_id as $key => $id) {
-            $temp_order = Repairs::where('bill_no', $id)->where('pos_code', $company->pos_code)->get();
+            $temp_order = Repairs::where('bill_no', $id)->get();
             if ($temp_order->count() > 0) {
                 $temp_order = $temp_order[0];
                 $delivery = $temp_order->delivery;
@@ -919,10 +919,10 @@ function generateInvoice($order_id, $inName, $bill_type)
             }
         }
 
-        $repairs = Repairs::where('bill_no', $order_id[0])->where('pos_code', $company->pos_code)->get()[0];
+        $repairs = Repairs::where('bill_no', $order_id[0])->get()[0];
         $customer = getCustomer($repairs->customer);
     } else {
-        $temp_order = Repairs::where('bill_no', $order_id)->where('pos_code', $company->pos_code)->get();
+        $temp_order = Repairs::where('bill_no', $order_id)->get();
         if ($temp_order->count() > 0) {
             $temp_order = $temp_order[0];
             $total += $temp_order->total;
@@ -1219,7 +1219,7 @@ function generateThermalInvoice($order_id, $inName, $bill_type)
 
     if (is_array($order_id)) {
         foreach ($order_id as $key => $id) {
-            $temp_order = Repairs::where('bill_no', $id)->where('pos_code', $company->pos_code)->get();
+            $temp_order = Repairs::where('bill_no', $id)->get();
             if ($temp_order->count() > 0) {
                 $temp_order = $temp_order[0];
                 $total += $temp_order->total;
@@ -1229,10 +1229,14 @@ function generateThermalInvoice($order_id, $inName, $bill_type)
             }
         }
 
-        $repairs = Repairs::where('bill_no', $order_id[0])->where('pos_code', $company->pos_code)->get()[0];
+        $repairs = Repairs::where('bill_no', $order_id[0])->first();
+        if($repairs == null) {
+            return (object)array('generated' => false, 'url' => '');
+        }
+
         $customer = getCustomer($repairs->customer);
     } else {
-        $temp_order = Repairs::where('bill_no', $order_id)->where('pos_code', $company->pos_code)->get();
+        $temp_order = Repairs::where('bill_no', $order_id)->get();
         if ($temp_order->count() > 0) {
             $temp_order = $temp_order[0];
             $total += $temp_order->total;
@@ -1241,7 +1245,7 @@ function generateThermalInvoice($order_id, $inName, $bill_type)
             $orders[] = array("id" => $order_id, "total" => $temp_order->total, "advance" => $temp_order->advance, "model" => $temp_order->model_no, "serial" => $temp_order->serial_no, 'warranty' => $temp_order->warranty, "fault"=>$temp_order->fault);
         }
 
-        $repairs = Repairs::where('bill_no', $order_id)->where('pos_code', $company->pos_code)->get()[0];
+        $repairs = Repairs::where('bill_no', $order_id)->get()[0];
         $customer = getCustomer($repairs->customer);
     }
 
