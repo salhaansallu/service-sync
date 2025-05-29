@@ -83,6 +83,12 @@ class CreditController extends Controller
 
                     $this->recordPayment($credit, $paymentAmount);
 
+                    if ($total_due < $paymentAmount) {
+                        if ($paymentAmount > 0) {
+                            $this->storeAdvancePayment($credit->customer_id, $total_due - $paymentAmount, 'customer');
+                        }
+                    }
+
                     $bill_name = time() . rand(1111, 9999999) . rand(111, 9999) . '.pdf';
                     $payment = generateCreditPay($total_due, $paid, $credit->customer_id, Carbon::now(), $bill_name);
 
@@ -134,6 +140,10 @@ class CreditController extends Controller
                     $this->recordPayment($bill, $paymentAmount);
                     $paymentAmount = 0; // Entire payment used
                 }
+            }
+
+            if ($paymentAmount > 0) {
+                $this->storeAdvancePayment($customerId, $paymentAmount, 'customer');
             }
 
             $bill_name = time() . rand(1111, 9999999) . rand(111, 9999) . '.pdf';
@@ -216,9 +226,57 @@ class CreditController extends Controller
     {
         if (Auth::check() && DashboardController::check(true)) {
 
+            $credit = sanitize($request->input('params')['credit']);
+            $partner_id = sanitize($request->input('params')['partner_id']);
+            $paymentAmount = sanitize($request->input('params')['amount']);
+            $paid = $paymentAmount;
+
+            if (sanitize($request->input('params')['type']) == 'manual') {
+                $credit = Credit::where('id', $credit)->first();
+                if ($credit) {
+
+                    foreach (Repairs::where('partner', $partner_id)->where('status', 'Delivered')->get() as $key => $value) {
+                        $billNumbers[] = $value->bill_no;
+                    }
+
+                    $total_due = DB::table('credits')
+                        ->whereExists(function ($query) use ($billNumbers) {
+                            $query->select(DB::raw(1))
+                                ->from('repairs')
+                                ->whereRaw('FIND_IN_SET(repairs.bill_no, credits.order_id) > 0')
+                                ->whereIn('repairs.bill_no', $billNumbers);
+                        })
+                        ->where('ammount', '>', 0)
+                        ->sum('ammount');
+
+                    DB::table('credits')
+                        ->where('id', $credit->id)
+                        ->update([
+                            'ammount' => ($credit->ammount - $paymentAmount < 0 ? 0 : $credit->ammount - $paymentAmount), // Reduce balance
+                            'status' => ($credit->ammount - $paymentAmount < 0 ? 'paid' : 'partially paid'),
+                            'updated_at' => now()
+                        ]);
+
+                    $this->recordPayment($credit, $paymentAmount);
+
+                    if ($total_due < $paymentAmount) {
+                        if ($paymentAmount > 0) {
+                            $this->storeAdvancePayment($partner_id, $total_due - $paymentAmount, 'partner');
+                        }
+                    }
+
+                    $bill_name = time() . rand(1111, 9999999) . rand(111, 9999) . '.pdf';
+                    $payment = generateCreditPay($total_due, $paid, $credit->customer_id, Carbon::now(), $bill_name);
+
+                    return response(json_encode(array('error' => 0, 'msg' => 'Payment recorded successfully', 'bill' => $bill_name)));
+                }
+
+                return response(json_encode(array('error' => 1, 'msg' => 'Error recording payment')));
+            }
+
             $billNumbers = [];
 
-            foreach (Repairs::where('partner', sanitize($request->input('params')['partner_id']))->where('status', 'Delivered')->get() as $key => $value) {
+            foreach (Repairs::where('partner', $credit)->where('status', 'Delivered')->get() as $key => $value) {
                 $billNumbers[] = $value->bill_no;
             }
 
@@ -242,10 +300,6 @@ class CreditController extends Controller
                 ->where('ammount', '>', 0)
                 ->get()
                 ->toArray();
-
-            $parnerId = sanitize($request->input('params')['partner_id']);
-            $paymentAmount = sanitize($request->input('params')['amount']);
-            $paid = $paymentAmount;
 
             foreach ($bills as $bill) {
                 if ($paymentAmount <= 0) {
@@ -279,12 +333,36 @@ class CreditController extends Controller
                 }
             }
 
+            if ($paymentAmount > 0) {
+                $this->storeAdvancePayment($partner_id, $paymentAmount, 'partner');
+            }
+
             $bill_name = time() . rand(1111, 9999999) . rand(111, 9999) . '.pdf';
-            $payment = generateParterCreditPay($total_due, $paid, $parnerId, Carbon::now(), $bill_name);
+            $payment = generateParterCreditPay($total_due, $paid, $credit, Carbon::now(), $bill_name);
 
             return response(json_encode(array('error' => 0, 'msg' => 'Payment recorded successfully', 'bill' => $bill_name)));
         }
         return response(json_encode(array('error' => 1, 'msg' => 'Not logged In')));
+    }
+
+    private function storeAdvancePayment($customerId, $amount, $type)
+    {
+        if ($type == 'customer') {
+            $credit = getCustomer($customerId);
+            customers::where('id', $customerId)->update([
+                'store_credit' => abs($amount) + (isset($credit->store_credit) ? $credit->store_credit : 0),
+            ]);
+
+            return;
+        }
+
+        if ($type == 'partner') {
+            $credit = getPartner($customerId);
+            partners::where('id', $customerId)->update([
+                'store_credit' => abs($amount) + (isset($credit->store_credit) ? $credit->store_credit : 0),
+            ]);
+            return;
+        }
     }
 
     /**

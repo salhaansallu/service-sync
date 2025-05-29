@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string("email")->default("");
             $table->string("address")->default("");
             $table->string("phone")->default("");
+            $table->decimal("store_credit", 15, 2)->nullable();
             $table->timestamps();
         });
     }

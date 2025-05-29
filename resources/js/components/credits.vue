@@ -47,7 +47,7 @@
                                 <td class="text-start">
                                     <div class="d-flex align-items-center list-action justify-content-start">
                                         <a class="badge bg-success mr-2" href="javascript:void(0)" title="Pay Now"
-                                            @click="payCredit(item['id'])"><i class="fa-solid fa-pencil"></i></a>
+                                            @click="payCredit(item['id'])">Pay</a>
 
                                         <a class="badge bg-primary mr-2" href="javascript:void(0)" title="View"
                                             @click="getHistory(item['id'])"><i class="fa-regular fa-eye"></i></a>

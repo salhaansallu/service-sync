@@ -3,12 +3,14 @@
         <div class="container-fluid">
             <div class="sales-filter">
                 <div class="filter_from table-responsive pb-3">
-                    <div class="row row-cols-md-6 align-items-center justify-content-between" style="flex-wrap: nowrap;">
+                    <div class="row row-cols-md-6 align-items-center justify-content-between"
+                        style="flex-wrap: nowrap;">
                         <div class="col">
                             <div class="input">
                                 <div class="label">Select Partner</div>
                                 <select name="" id="" ref="partner" @change="search()" value="Today's Credits">
-                                    <option :value="partner['id']" v-for="partner in partners">{{ partner['name'] }}</option>
+                                    <option :value="partner['id']" v-for="partner in partners">{{ partner['name'] }}
+                                    </option>
                                 </select>
                             </div>
                         </div>
@@ -45,7 +47,9 @@
                                 <td class="text-start">{{ new Date(item['updated_at']).toLocaleString('nl-NL') }}</td>
                                 <td class="text-start">
                                     <div class="d-flex align-items-center list-action justify-content-start">
-                                        <a class="badge bg-success mr-2" href="javascript:void(0)" title="View"
+                                        <a class="badge bg-success mr-2" href="javascript:void(0)" title="Pay Now"
+                                            @click="payCredit(item['id'])">Pay</a>
+                                        <a class="badge bg-primary mr-2" href="javascript:void(0)" title="View"
                                             @click="getHistory(item['id'])"><i class="fa-regular fa-eye"></i></a>
                                     </div>
                                 </td>
@@ -93,7 +97,8 @@
                                 </thead>
                                 <tbody class="ligth-body">
                                     <tr v-for="history in histories">
-                                        <td class="text-start">{{ new Date(history['created_at']).toLocaleString('nl-NL') }}
+                                        <td class="text-start">{{ new
+                                            Date(history['created_at']).toLocaleString('nl-NL') }}
                                         </td>
                                         <td class="text-start">{{ history['ammount'] }}</td>
                                     </tr>
@@ -214,10 +219,15 @@ export default {
                 $(".history-table").DataTable().order([0, 'desc']).draw();
             }, 500);
         },
-        payCredit() {
+        payCredit(credit = 0) {
             if (this.$refs.partner.value == '' || this.$refs.partner.value == 0 || this.$refs.partner.value == 'all') {
                 toastr.error('Please select a partner', 'Error');
                 return;
+            }
+
+            if (credit != 0) {
+                this.payID = credit;
+                this.$refs.amount.value = this.credit.filter(item => item['id'] == credit)[0]['ammount'];
             }
 
             $("#PaymentModal").modal('show');
@@ -240,8 +250,10 @@ export default {
 
             const { data } = await axios.post("/dashboard/partner-credits/pay-credit", {
                 params: {
+                    credit: this.payID == 0 ? credit : this.payID,
                     partner_id: credit,
                     amount: amount,
+                    type: this.payID == 0 ? 'auto' : 'manual',
                 }
             });
 

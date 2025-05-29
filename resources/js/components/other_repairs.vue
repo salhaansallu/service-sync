@@ -32,6 +32,11 @@
             </div>
 
             <div class="favourits">
+                <button @click="finishOrder('show')" class="primary-btn submit-btn border-only"><i
+                        class="fa-solid fa-wrench"></i>Bulk Finish Order</button>
+            </div>
+
+            <div class="favourits">
                 <button @click="newCustomer('show')" class="primary-btn submit-btn border-only"><i
                         class="fa-solid fa-user-plus"></i>Customers</button>
             </div>
@@ -154,6 +159,8 @@
                                     v-if="repair.status == 'Pending' || repair.status == 'Awaiting Parts'"><a
                                         href="javascript:void(0)">Update
                                         Order Status</a></li>
+                                <li v-if="repair.status == 'Pending'"><a href="javascript:void(0)"
+                                    @click="selectForUpdate(repair.bill_no)">Select For Bulk Update</a></li>
                                 <li v-if="repair.status == 'Return'"><a href="javascript:void(0)"
                                         @click="selectProduct(repair.bill_no)">Checkout Order</a></li>
                                 <li v-if="repair.status == 'Repaired' || repair.status == 'Customer Pending'"><a
@@ -719,13 +726,34 @@ export default {
             $("#NewSale").modal(action);
         },
         finishOrder(action, bill_no = 0) {
-            $("#FinishOrder").modal(action);
-            if (bill_no != 0) {
+
+            if (action == 'hide') {
+                $("#FinishOrder").modal(action);
+                return 0;
+            }
+
+            if (this.selectedRepair.length > 0) {
+                this.$refs['finish_bill_no'].Readonly = true;
+                this.$refs['finish_note'].style.display = "none";
+                this.$refs['finish_total'].value = '0.00';
+                this.finishOrderNo = [];
+
+                this.selectedRepair.forEach(element => {
+                    this.finishOrderNo.push(element['bill_no']);
+                });
+            }
+            else if (bill_no != 0) {
                 this.$refs['finish_bill_no'].value = bill_no;
                 this.$refs['finish_note'].value = this.repairs.filter(item => item['bill_no'] == bill_no)[0].note.replace(/\s*<br>\s*/g, "\n");
                 this.$refs['finish_total'].value = this.repairs.filter(item => item['bill_no'] == bill_no)[0].total;
                 this.finishOrderNo = bill_no;
             }
+            else {
+                toastr.error('Please select orders to bulk update', "Error");
+                return 0;
+            }
+
+            $("#FinishOrder").modal(action);
 
             const myModalEl = document.getElementById('FinishOrder')
             myModalEl.addEventListener('shown.bs.modal', event => {
@@ -878,6 +906,20 @@ export default {
             }
 
             this.updateOrder();
+        },
+        selectForUpdate(pro) {
+            var has = this.selectedRepair.filter(item => item['bill_no'] == pro).length > 0;
+            if (has) {
+                this.removeProduct(pro);
+            }
+            else {
+                this.repairs.forEach(element => {
+                    if (element['bill_no'] == pro) {
+                        element["selectStatus"] = "active";
+                        this.selectedRepair.push(element);
+                    }
+                });
+            }
         },
         reloadPOS() {
             this.selectedRepair = [];
@@ -1097,7 +1139,7 @@ export default {
                 this.loadModal("show");
 
                 const { data } = await axios.post('/pos/update', {
-                    bill_no: this.finishOrderNo,
+                    bill_no: Array.isArray(this.finishOrderNo) ? this.finishOrderNo : [this.finishOrderNo],
                     total: total,
                     note: note,
                     spares: sparePro,
@@ -1117,6 +1159,8 @@ export default {
                     this.getRepairs();
                     this.reloadPOS();
                     $(this.$refs.techie).val("").trigger("change");
+                    this.finishOrderNo = 0;
+                    this.selectedRepair = [];
                 }
                 else {
                     this.loadModal("hide");
@@ -1242,6 +1286,9 @@ export default {
                 this.getRepairs();
                 this.reloadPOS();
                 this.isDisabled = false;
+                if (data.sticker.generated) {
+                    printJS(data.sticker.url);
+                }
                 window.open(data.invoiceURL, '_blank');
             }
             else {

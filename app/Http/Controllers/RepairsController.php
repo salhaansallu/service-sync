@@ -125,7 +125,7 @@ class RepairsController extends Controller
     public function orderUpdate(Request $request)
     {
         if (Auth::check() && DashboardController::check(true)) {
-            $bill_no = sanitize($request->input('bill_no'));
+            $bills = $request->input('bill_no');
             $total = sanitize($request->input('total'));
             $note = sanitize($request->input('note'));
             $spares = $request->input('spares');
@@ -136,26 +136,27 @@ class RepairsController extends Controller
             $cost = 0;
 
             if ($status == "Awaiting Parts") {
-                $update =  Repairs::where('bill_no', $bill_no)->where('pos_code', company()->pos_code);
+                foreach ($bills as $key => $bill_no) {
+                    $update =  Repairs::where('bill_no', $bill_no);
 
-                if ($update->update(["note" => $note, "status" => $status, "total" => $total, "cost" => $cost, "spares" => json_encode($parts)])) {
+                    if ($update->update(["note" => $note, "status" => $status, "total" => $total, "cost" => $cost, "spares" => json_encode($parts)])) {
 
-                    $customerData = customers::where('pos_code', company()->pos_code)->where('id', $update->get()[0]["customer"])->get();
-                    $sms = new SMS();
-                    $sms->contact = array(array(
-                        "fname" => $customerData[0]["name"],
-                        "lname" => "",
-                        "group" => "",
-                        "number" => $customerData[0]["phone"],
-                        "email" => $customerData[0]["email"],
-                    ));
+                        $customerData = customers::where('id', $update->get()[0]["customer"])->get();
+                        $sms = new SMS();
+                        $sms->contact = array(array(
+                            "fname" => $customerData[0]["name"],
+                            "lname" => "",
+                            "group" => "",
+                            "number" => $customerData[0]["phone"],
+                            "email" => $customerData[0]["email"],
+                        ));
 
-                    $sms->message = "Dear Customer, \nWe are awaiting parts for your repair. Delivery by air cargo takes 7 to 10 days, and by sea cargo, 45 to 60 days. We’ll update you once they arrive. The total cost is " . currency($update->get()[0]["total"]) . ", with " . currency($update->get()[0]["advance"]) . " paid as advance. For more info, please contact us at " . formatPhoneNumber(getUserData(company()->admin_id)->phone) . ". Thank you for your patience.";
-                    $sms->Send();
-
-                    return response(json_encode(array("error" => 0, "msg" => "Order Updated Successfully")));
+                        $sms->message = "Dear Customer, \nWe are awaiting parts for your repair. Delivery by air cargo takes 7 to 10 days, and by sea cargo, 45 to 60 days. We’ll update you once they arrive. The total cost is " . currency($update->get()[0]["total"]) . ", with " . currency($update->get()[0]["advance"]) . " paid as advance. For more info, please contact us at " . formatPhoneNumber(getUserData(company()->admin_id)->phone) . ". Thank you for your patience.";
+                        $sms->Send();
+                    }
                 }
-                return response(json_encode(array("error" => 1, "msg" => "Something went wrong please, try again later")));
+
+                return response(json_encode(array("error" => 0, "msg" => "Order Updated Successfully")));
             }
 
             if (!is_numeric($service_cost)) {
@@ -166,59 +167,63 @@ class RepairsController extends Controller
                 return response(json_encode(array("error" => 1, "msg" => "Please enter atleast 1 spare or enter service charge")));
             }
 
-            foreach ($spares as $key => $value) {
-                $stock = Products::where('id', $value['id'])->where('pos_code', company()->pos_code)->get();
-                if ($stock->count() > 0) {
-                    Products::where('id', $value['id'])->where('pos_code', company()->pos_code)->update([
-                        "qty" => (float)$stock[0]['qty'] - $value['qty']
-                    ]);
+            foreach ($bills as $key => $bill_no) {
 
-                    $sale = new spareSaleHistory();
-                    $sale->spare_name = $stock[0]['pro_name'];
-                    $sale->spare_id = $stock[0]['id'];
-                    $sale->cost = $stock[0]['cost'];
-                    $sale->qty = $value['qty'];
-                    $sale->bill_no = $bill_no;
-                    $sale->pos_code = company()->pos_code;
-                    $sale->save();
+                foreach ($spares as $key => $value) {
+                    $stock = Products::where('id', $value['id'])->get();
+                    if ($stock->count() > 0) {
+                        Products::where('id', $value['id'])->update([
+                            "qty" => (float)$stock[0]['qty'] - $value['qty']
+                        ]);
 
-                    $cost += (float)$stock[0]['cost'] * (float)$value['qty'];
-                    $parts[] = $value['id'];
+                        $sale = new spareSaleHistory();
+                        $sale->spare_name = $stock[0]['pro_name'];
+                        $sale->spare_id = $stock[0]['id'];
+                        $sale->cost = $stock[0]['cost'];
+                        $sale->qty = $value['qty'];
+                        $sale->bill_no = $bill_no;
+                        $sale->pos_code = company()->pos_code;
+                        $sale->save();
+
+                        $cost += (float)$stock[0]['cost'] * (float)$value['qty'];
+                        $parts[] = $value['id'];
+                    }
+                }
+
+                if (is_numeric($service_cost) && $service_cost > 0) {
+                    $cost += ($service_cost / 100) * $total;
+                }
+
+                $update =  Repairs::where('bill_no', $bill_no);
+
+                if ($update->update(["note" => $note, "techie" => $techie, "status" => $status, "total" => $total, "cost" => $cost, "spares" => json_encode($parts), "repaired_date" => date('Y-m-d H:i:s')])) {
+
+                    $customerData = customers::where('id', $update->get()[0]["customer"])->get();
+                    $sms = new SMS();
+                    $sms->contact = array(array(
+                        "fname" => $customerData[0]["name"],
+                        "lname" => "",
+                        "group" => "",
+                        "number" => $customerData[0]["phone"],
+                        "email" => $customerData[0]["email"],
+                    ));
+
+                    if ($status == "Repaired") {
+                        $sms->message = "Dear Customer, \nyour product repair is complete. The total cost is " . currency($update->get()[0]["total"]) . ", with " . currency($update->get()[0]["advance"]) . " paid as advance. The remaining balance is " . currency($update->get()[0]["total"] - $update->get()[0]["advance"]) . ". \nThank you for choosing " . company()->company_name . ".";
+                    } elseif ($status == "Customer Pending") {
+                        $sms->message = "Dear Customer,\nThis is the WeFix.lk team. We tried contacting you regarding your service request but couldn't reach you. The total cost is " . currency($update->get()[0]["total"]) . ", with " . currency($update->get()[0]["advance"]) . " paid as advance. Please let us know a convenient time for us to call, or feel free to contact us at " . formatPhoneNumber(getUserData(company()->admin_id)->phone) . ". \nThank you for choosing " . company()->company_name . ".";
+                    } else {
+                        $sms->message = "Dear Customer, \nWe couldn't repair some of your items. The total cost is " . currency($update->get()[0]["total"]) . ", with " . currency($update->get()[0]["advance"]) . " paid as advance. Please collect them within 14 days, as we are not responsible after this period. For any questions, call us at " . formatPhoneNumber(getUserData(company()->admin_id)->phone) . ". \nThank you for choosing " . company()->company_name . ".";
+                    }
+
+                    $sms->Send();
+
+                    generateInvoice($bill_no, str_replace(['checkout/', 'newOrder/'], ['', ''], $update->get()[0]["invoice"]), 'newOrder');
+                    generateThermalInvoice($bill_no, str_replace('Invoice', 'Thermal-invoice', str_replace(['checkout/', 'newOrder/'], ['', ''], $update->get()[0]["invoice"])), 'newOrder');
                 }
             }
 
-            if (is_numeric($service_cost) && $service_cost > 0) {
-                $cost += ($service_cost / 100) * $total;
-            }
-
-            $update =  Repairs::where('bill_no', $bill_no)->where('pos_code', company()->pos_code);
-
-            if ($update->update(["note" => $note, "techie" => $techie, "status" => $status, "total" => $total, "cost" => $cost, "spares" => json_encode($parts), "repaired_date" => date('Y-m-d H:i:s')])) {
-
-                $customerData = customers::where('pos_code', company()->pos_code)->where('id', $update->get()[0]["customer"])->get();
-                $sms = new SMS();
-                $sms->contact = array(array(
-                    "fname" => $customerData[0]["name"],
-                    "lname" => "",
-                    "group" => "",
-                    "number" => $customerData[0]["phone"],
-                    "email" => $customerData[0]["email"],
-                ));
-
-                if ($status == "Repaired") {
-                    $sms->message = "Dear Customer, \nyour product repair is complete. The total cost is " . currency($update->get()[0]["total"]) . ", with " . currency($update->get()[0]["advance"]) . " paid as advance. The remaining balance is " . currency($update->get()[0]["total"] - $update->get()[0]["advance"]) . ". \nThank you for choosing " . company()->company_name . ".";
-                } elseif ($status == "Customer Pending") {
-                    $sms->message = "Dear Customer,\nThis is the WeFix.lk team. We tried contacting you regarding your service request but couldn't reach you. The total cost is " . currency($update->get()[0]["total"]) . ", with " . currency($update->get()[0]["advance"]) . " paid as advance. Please let us know a convenient time for us to call, or feel free to contact us at " . formatPhoneNumber(getUserData(company()->admin_id)->phone) . ". \nThank you for choosing " . company()->company_name . ".";
-                } else {
-                    $sms->message = "Dear Customer, \nWe couldn't repair some of your items. The total cost is " . currency($update->get()[0]["total"]) . ", with " . currency($update->get()[0]["advance"]) . " paid as advance. Please collect them within 14 days, as we are not responsible after this period. For any questions, call us at " . formatPhoneNumber(getUserData(company()->admin_id)->phone) . ". \nThank you for choosing " . company()->company_name . ".";
-                }
-
-                $sms->Send();
-
-                return response(json_encode(array("error" => 0, "msg" => "Order Updated Successfully")));
-            }
-
-            return response(json_encode(array("error" => 1, "msg" => "Something went wrong please, try again later")));
+            return response(json_encode(array("error" => 0, "msg" => "Order Updated Successfully")));
         }
     }
 
@@ -353,9 +358,7 @@ class RepairsController extends Controller
                                         "number" => $customerData[0]["phone"],
                                         "email" => $customerData[0]["email"],
                                     ));
-                                    $sms->message = "Dear Customer, your  " . company()->company_name . " account is created. We've received your product and will notify you when the repair is done. Track it at https://wefixservers.xyz/customer-portal?phone=".$customerData[0]["phone"].". Thank you!";
-
-
+                                    $sms->message = "Dear Customer, your  " . company()->company_name . " account is created. We've received your product and will notify you when the repair is done. Track it at https://wefixservers.xyz/customer-portal?phone=" . $customerData[0]["phone"] . ". Thank you!";
                                 }
 
                                 $rand = date('d-m-Y-h-i-s') . '-' . rand(0, 9999999) . '.pdf';
@@ -376,25 +379,24 @@ class RepairsController extends Controller
                                 }
                             }
                         } catch (Exception $e) {
-
                         }
                     }
 
                     $tempBill = 'temp-muilti-repairs-invoice';
                     $generate_temp_thermal_invoice = generateThermalInvoice($bills, $tempBill, 'newOrder');
-                    $generate_temp_sticker = generateThermalSticker(is_array($bills)? $bills[0] : $bills, 'temp-sticker');
+                    $generate_temp_sticker = generateThermalSticker(is_array($bills) ? $bills[0] : $bills, 'temp-sticker');
 
                     if ($bill_type != 'new-order') {
                         $commis = new repairCommissions();
                         $commis->user = $billData[0]->techie;
-                        $commis->amount = -(0.1*($billData[0]->total - $billData[0]->cost));
+                        $commis->amount = - (0.1 * ($billData[0]->total - $billData[0]->cost));
                         $commis->status = "pending";
-                        $commis->note = $billData[0]->bill_no." Return for re-service";
+                        $commis->note = $billData[0]->bill_no . " Return for re-service";
                         $commis->save();
                     }
                 }
 
-                return response(json_encode(array("error" => $new_order_qty != $success_count, "msg" => $success_count . " out of " . $new_order_qty . " orders placed", "invoiceURL" => $generate_temp_thermal_invoice->url, 'sticker'=> $generate_temp_sticker)));
+                return response(json_encode(array("error" => $new_order_qty != $success_count, "msg" => $success_count . " out of " . $new_order_qty . " orders placed", "invoiceURL" => $generate_temp_thermal_invoice->url, 'sticker' => $generate_temp_sticker)));
             } catch (Exception $e) {
                 return response(json_encode(array("error" => 1, "msg" => "Error: " . $e->getMessage())));
             }
@@ -602,11 +604,11 @@ class RepairsController extends Controller
             $result = [];
             $techs = User::all();
             foreach ($techs as $key => $tech) {
-                $data = DB::select('SELECT * FROM repairs WHERE (status = "Pending" AND cashier= "'.$tech->id.'") OR ((status = "Return" OR status = "Awaiting Parts" OR status = "Customer Pending") AND techie = "'.$tech->id.'")');
+                $data = DB::select('SELECT * FROM repairs WHERE (status = "Pending" AND cashier= "' . $tech->id . '") OR ((status = "Return" OR status = "Awaiting Parts" OR status = "Customer Pending") AND techie = "' . $tech->id . '")');
 
                 if (count($data) > 0) {
                     $result[] = [
-                        "name" => $tech->fname . ' '.$tech->lname,
+                        "name" => $tech->fname . ' ' . $tech->lname,
                         "id" => $tech->id,
                         "repairs" => $data
                     ];
@@ -621,7 +623,7 @@ class RepairsController extends Controller
         if (Auth::check() && PosDataController::check()) {
             $id = $request->input('id');
             $name = $request->input('name');
-            $data = is_array($id)? json_decode(json_encode($id)) : $id;
+            $data = is_array($id) ? json_decode(json_encode($id)) : $id;
 
             if (!is_array($id)) {
                 $data = DB::select('SELECT * FROM repairs WHERE (status = "Pending" AND cashier = ?) OR (status IN ("Return", "Awaiting Parts", "Customer Pending") AND techie = ?) LIMIT 10', [$id, $id]);
@@ -629,7 +631,7 @@ class RepairsController extends Controller
 
             $generate = generatePendingInvoice($data, 'panding-repair-report.pdf', $id, $name);
 
-            return response(json_encode(['error'=>0, 'report'=>asset($generate->url)]));
+            return response(json_encode(['error' => 0, 'report' => asset($generate->url)]));
         }
     }
 }
