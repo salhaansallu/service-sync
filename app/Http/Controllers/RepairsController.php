@@ -349,7 +349,6 @@ class RepairsController extends Controller
                             if ($repair->save()) {
 
                                 if (($partner == "" || $partner == 0) && $repair->type == 'repair' && $bill_type == 'new-order') {
-                                    dd($customerData);
                                     $sms = new SMS();
                                     $sms->contact = array(array(
                                         "fname" => $customerData[0]["name"],
