@@ -996,7 +996,7 @@ function generateInvoice($order_id, $inName, $bill_type)
                         <th style="width: 50%; padding: 8px; text-align: left;">Delivery Date:</th>
                     </tr>
                     <tr>
-                        <td style="padding: 8px;'. ($repairs->status == 'Delivered'? '' : 'display:none;') . '">' . date('d-m-Y H:i:s', strtotime($repairs->paid_at)) . '</td>
+                        <td style="padding: 8px;' . ($repairs->status == 'Delivered' ? '' : 'display:none;') . '">' . date('d-m-Y H:i:s', strtotime($repairs->paid_at)) . '</td>
                     </tr>
                 </table>
             </div>
@@ -1131,7 +1131,7 @@ function generateInvoice($order_id, $inName, $bill_type)
                     </tr>
                     <tr>
                         <td style="padding: 5px; text-align: right;">Total:</td>
-                        <td style="padding: 5px; text-align: right; width: 230px;">' . currency(((float)$total - (float)$advance)+$delivery, 'LKR') . '</td>
+                        <td style="padding: 5px; text-align: right; width: 230px;">' . currency(((float)$total - (float)$advance) + $delivery, 'LKR') . '</td>
                     </tr>
                 </table>
             </div>
@@ -1143,7 +1143,7 @@ function generateInvoice($order_id, $inName, $bill_type)
             <p style="font-size: 14px; text-align: left;font-weight: bold; border-bottom: 1px solid #000;padding-bottom: 5px;">Warranty Disclaimer</p>
         ';
 
-        if($orders[0]["warranty"] == 0) {
+        if ($orders[0]["warranty"] == 0) {
             $html .= '
                 <table style="width: 100%; border-collapse: collapse;">
                     <tr>
@@ -1153,13 +1153,12 @@ function generateInvoice($order_id, $inName, $bill_type)
                     </tr>
                 </table>
             ';
-        }
-        elseif ($orders[0]["warranty"] > 0) {
+        } elseif ($orders[0]["warranty"] > 0) {
             $html .= '
                 <table style="width: 100%; border-collapse: collapse;">
                     <tr>
                         <td style="font-size: 14px; text-align: left;">
-                            This product includes a warranty valid for '.$orders[0]["warranty"].' months from the date of recived. For detailed terms and conditions, please contact us.
+                            This product includes a warranty valid for ' . $orders[0]["warranty"] . ' months from the date of recived. For detailed terms and conditions, please contact us.
                         </td>
                     </tr>
                 </table>
@@ -1225,12 +1224,12 @@ function generateThermalInvoice($order_id, $inName, $bill_type)
                 $total += $temp_order->total;
                 $delivery = $temp_order->delivery;
                 $advance += $temp_order->advance;
-                $orders[] = array("id" => $id, "total" => $temp_order->total, "advance" => $temp_order->advance, "model" => $temp_order->model_no, "serial" => $temp_order->serial_no, 'warranty' => $temp_order->warranty, "fault"=>$temp_order->fault);
+                $orders[] = array("id" => $id, "total" => $temp_order->total, "advance" => $temp_order->advance, "model" => $temp_order->model_no, "serial" => $temp_order->serial_no, 'warranty' => $temp_order->warranty, "fault" => $temp_order->fault);
             }
         }
 
         $repairs = Repairs::where('bill_no', $order_id[0])->first();
-        if($repairs == null) {
+        if ($repairs == null) {
             return (object)array('generated' => false, 'url' => '');
         }
 
@@ -1242,7 +1241,7 @@ function generateThermalInvoice($order_id, $inName, $bill_type)
             $total += $temp_order->total;
             $delivery = $temp_order->delivery;
             $advance += $temp_order->advance;
-            $orders[] = array("id" => $order_id, "total" => $temp_order->total, "advance" => $temp_order->advance, "model" => $temp_order->model_no, "serial" => $temp_order->serial_no, 'warranty' => $temp_order->warranty, "fault"=>$temp_order->fault);
+            $orders[] = array("id" => $order_id, "total" => $temp_order->total, "advance" => $temp_order->advance, "model" => $temp_order->model_no, "serial" => $temp_order->serial_no, 'warranty' => $temp_order->warranty, "fault" => $temp_order->fault);
         }
 
         $repairs = Repairs::where('bill_no', $order_id)->get()[0];
@@ -1267,15 +1266,14 @@ function generateThermalInvoice($order_id, $inName, $bill_type)
         $company_address = $partner->address;
         $company_phone = formatPhoneNumber($partner->phone);
 
-        $path = public_path('user_profile/'.$partner->logo);
+        $path = public_path('user_profile/' . $partner->logo);
         if (!empty($partner->logo) && file_exists($path)) {
             $type = pathinfo($path, PATHINFO_EXTENSION);
             $data = file_get_contents($path);
             $logo = 'data:image/' . $type . ';base64,' . base64_encode($data);
             $hasPartnerLogo = $partner->logo;
         }
-    }
-    else {
+    } else {
         $company_name = $company->company_name;
         $company_address = getUserData($company->admin_id)->address;
         $company_phone = formatPhoneNumber(getUserData($company->admin_id)->phone);
@@ -1301,12 +1299,12 @@ function generateThermalInvoice($order_id, $inName, $bill_type)
         <body style="font-family: Arial, sans-serif;">
 
             <div style="text-align: center;">
-            '. ($hasPartnerLogo && !empty($logo) ? '<img height="70px" src="'.$logo.'">' : '') .'
+            ' . ($hasPartnerLogo && !empty($logo) ? '<img height="70px" src="' . $logo . '">' : '') . '
 
                 <h2 style="margin: 0; margin-top: 10px;">' . $company_name . '</h2>
                 <p style="margin: 2px 0; font-size: 13px;">' . $company_address . '</p>
                 <p style="margin: 2px 0; font-size: 13px;">Tel: ' . $company_phone . '</p>
-                <p style="margin: 2px 0; font-size: 13px;">'. ($repairs->partner == 0? 'www.wefix.lk' : '') .'</p>
+                <p style="margin: 2px 0; font-size: 13px;">' . ($repairs->partner == 0 ? 'www.wefix.lk' : '') . '</p>
             </div>
 
             <h3 style="text-align: center; margin: 10px 0;">' . $note2 . '</h3>
@@ -1335,12 +1333,12 @@ function generateThermalInvoice($order_id, $inName, $bill_type)
 
                 <tr>
                     <td style="font-size: 12px;">Delivery Date:</td>
-                    <td style="font-size: 12px; text-align: right;">' . ($repairs->paid_at? date('d-m-Y H:i:s', strtotime($repairs->paid_at)) : 'N/A') . '</td>
+                    <td style="font-size: 12px; text-align: right;">' . ($repairs->paid_at ? date('d-m-Y H:i:s', strtotime($repairs->paid_at)) : 'N/A') . '</td>
                 </tr>
             </table>
 
             <table style="width: 100%; border-collapse: collapse; margin-bottom: 10px; margin-top: 5px; border-top: 1px solid #000;">
-                <tr style="'.($repairs->partner != 0? 'display:none;' : '').'">
+                <tr style="">
                     <th style="color: #000;padding: 5px; text-align: left;">Order</th>
                     <th style="color: #000;padding: 5px; text-align: left;">Total</th>
                     <th style="color: #000;padding: 5px; text-align: left;">Advance</th>
@@ -1357,15 +1355,40 @@ function generateThermalInvoice($order_id, $inName, $bill_type)
                 <td style="font-size: 13px; padding-top: 5px;" colspan="4"><span style="margin-right: 5px;">Fault - </span> <span style="margin-right: 10px;">' . $order["fault"] . '</span></td>
             </tr>
             <tr style="width: 100%;">
-                <td style="'.($repairs->partner != 0? 'display:none;' : '').'font-size: 14px; border-bottom: #8d8d8d 2px dotted;"></td>
-                <td style="'.($repairs->partner != 0? 'display:none;' : '').'font-size: 14px; border-bottom: #8d8d8d 2px dotted;"><div style="margin-left: 5px;">' . currency($order["total"], '') . '</div></td>
-                <td style="'.($repairs->partner != 0? 'display:none;' : '').'font-size: 14px; text-align: center;border-bottom: #8d8d8d 2px dotted;">' . currency($order["advance"], '') . '</td>
-                <td style="'.($repairs->partner != 0? 'display:none;' : '').'font-size: 14px; text-align: right;border-bottom: #8d8d8d 2px dotted;">' . currency($order["total"] - $order["advance"], '') . '</td>
+                <td style="font-size: 14px; border-bottom: #8d8d8d 2px dotted;"></td>
+                <td style="font-size: 14px; border-bottom: #8d8d8d 2px dotted;"><div style="margin-left: 5px;">' . currency($order["total"], '') . '</div></td>
+                <td style="font-size: 14px; text-align: center;border-bottom: #8d8d8d 2px dotted;">' . currency($order["advance"], '') . '</td>
+                <td style="font-size: 14px; text-align: right;border-bottom: #8d8d8d 2px dotted;">' . currency($order["total"] - $order["advance"], '') . '</td>
             </tr>
         ';
     }
 
     $html .= '</table>';
+
+    if ($repairs->partner != 0) {
+        $html .= '
+                </table>
+
+                <table style="width: 100%; border-collapse: collapse; border-top: 1px solid #000; margin-top: 10px;">
+                    <tr>
+                        <td style="width: 50%; font-size: 14px;padding-top: 10px; font-weight: bold; text-align: right;">Subtotal: </td>
+                        <td style="width: 50%; font-size: 14px;padding-top: 10px;  text-align: right;">' . currency($total, 'LKR') . '</td>
+                    </tr>
+                    <tr>
+                        <td style="width: 50%; font-size: 14px;padding-top: 10px; font-weight: bold; text-align: right;">Advance: </td>
+                        <td style="width: 50%; font-size: 14px;padding-top: 10px;  text-align: right;">' . currency($advance, 'LKR') . '</td>
+                    </tr>
+                    <tr>
+                        <td style="width: 50%; font-size: 14px;padding-top: 10px; font-weight: bold; text-align: right;">Delivery: </td>
+                        <td style="width: 50%; font-size: 14px;padding-top: 10px;  text-align: right;">' . currency($delivery, 'LKR') . '</td>
+                    </tr>
+                    <tr>
+                        <td style="width: 50%; font-size: 14px;padding-top: 10px; font-weight: bold; text-align: right;">Total: </td>
+                        <td style="width: 50%; font-size: 14px;padding-top: 10px;  text-align: right;">' . currency(((float)$total - (float)$advance) + $delivery, 'LKR') . '</td>
+                    </tr>
+                </table>
+            ';
+    }
 
     if ($repairs->partner == 0) {
         if ($bill_type == "newOrder" && $repairs->type != "other") {
@@ -1419,8 +1442,7 @@ function generateThermalInvoice($order_id, $inName, $bill_type)
                     </tr>
                 </table>
             ';
-        }
-        else {
+        } else {
             $html .= '
                 </table>
 
@@ -1439,7 +1461,7 @@ function generateThermalInvoice($order_id, $inName, $bill_type)
                     </tr>
                     <tr>
                         <td style="width: 50%; font-size: 14px;padding-top: 10px; font-weight: bold; text-align: right;">Total: </td>
-                        <td style="width: 50%; font-size: 14px;padding-top: 10px;  text-align: right;">' . currency(((float)$total - (float)$advance)+$delivery, 'LKR') . '</td>
+                        <td style="width: 50%; font-size: 14px;padding-top: 10px;  text-align: right;">' . currency(((float)$total - (float)$advance) + $delivery, 'LKR') . '</td>
                     </tr>
                 </table>
             ';
@@ -1484,7 +1506,7 @@ function generateThermalInvoice($order_id, $inName, $bill_type)
             <p style="font-size: 12px; text-align: left;font-weight: bold; border-bottom: 1px solid #000;">Warranty Disclaimer</p>
         ';
 
-        if($orders[0]["warranty"] == 0) {
+        if ($orders[0]["warranty"] == 0) {
             $html .= '
                 <table style="width: 100%; border-collapse: collapse;">
                     <tr>
@@ -1494,13 +1516,12 @@ function generateThermalInvoice($order_id, $inName, $bill_type)
                     </tr>
                 </table>
             ';
-        }
-        elseif ($orders[0]["warranty"] > 0) {
+        } elseif ($orders[0]["warranty"] > 0) {
             $html .= '
                 <table style="width: 100%; border-collapse: collapse;">
                     <tr>
                         <td style="font-size: 14px; text-align: left;">
-                            This product includes a warranty valid for '.$orders[0]["warranty"].' months from the date of recived. For detailed terms and conditions, please contact us.
+                            This product includes a warranty valid for ' . $orders[0]["warranty"] . ' months from the date of recived. For detailed terms and conditions, please contact us.
                         </td>
                     </tr>
                 </table>
@@ -1569,7 +1590,7 @@ function generateThermalSticker($order_id, $inName)
     $repair = Repairs::where('bill_no', $order_id)->first();
     $customer = getCustomer($repair->customer);
 
-    if($repair == null || $customer->name == '') {
+    if ($repair == null || $customer->name == '') {
         return (object)array('generated' => false, 'url' => '/invoice/' . $inName);
     }
 
@@ -1592,7 +1613,7 @@ function generateThermalSticker($order_id, $inName)
         </head>
         <body style="font-family: Arial, sans-serif;">
 
-            <h3 style="text-align: center; margin: 10px 0;">'.$order_id.'</h3>
+            <h3 style="text-align: center; margin: 10px 0;">' . $order_id . '</h3>
 
             <table style="width: 100%; border-collapse: collapse;">
                 <tr>
@@ -1646,8 +1667,7 @@ function generateSalesInvoice($order_id, $inName, $products, $cashin)
         $company_name = $partner->company;
         $company_address = $partner->address;
         $company_phone = formatPhoneNumber($partner->phone);
-    }
-    else {
+    } else {
         $company_name = $company->company_name;
         $company_address = getUserData($company->admin_id)->address;
         $company_phone = formatPhoneNumber(getUserData($company->admin_id)->phone);
@@ -1675,7 +1695,7 @@ function generateSalesInvoice($order_id, $inName, $products, $cashin)
                 <h1 style="margin: 0;">' . $company_name . '</h1>
                 <p style="margin: 0;">' . $company_address . '</p>
                 <p style="margin: 0;">Tel: ' . $company_phone . '</p>
-                <p style="margin: 0;">'. ($repairs->partner == 0? 'www.wefix.lk' : '') .'</p>
+                <p style="margin: 0;">' . ($repairs->partner == 0 ? 'www.wefix.lk' : '') . '</p>
                 <h2 style="margin: 20px 0;">Sales Note</h2>
             </div>
 
@@ -2182,7 +2202,7 @@ function generatePendingInvoice($orders, $inName, $cashier, $name = null)
         <body style="font-family: Arial, sans-serif;">
 
             <div style="text-align: center; margin-bottom: 20px; margin-top: 30px;">
-                <h1 style="margin: 0;">' . (is_array($cashier)? ($name != null? $name : 'Repair Report') : getUser($cashier)->fname) . '</h1>
+                <h1 style="margin: 0;">' . (is_array($cashier) ? ($name != null ? $name : 'Repair Report') : getUser($cashier)->fname) . '</h1>
             </div>
             <!-- Item Details -->
             <div style="margin-bottom: 20px;">
@@ -2199,7 +2219,7 @@ function generatePendingInvoice($orders, $inName, $cashier, $name = null)
     foreach ($orders as $key => $order) {
         $html .= '
             <tr>
-                <td style="padding: 5px; border: 1px solid black;">' . $order->bill_no .'</td>
+                <td style="padding: 5px; border: 1px solid black;">' . $order->bill_no . '</td>
                 <td style="padding: 5px; border: 1px solid black;">' . $order->model_no . '</td>
                 <td style="padding: 5px; border: 1px solid black;">' . $order->serial_no . '</td>
                 <td style="padding: 5px; border: 1px solid black;">' . $order->fault . '</td>
@@ -2554,11 +2574,10 @@ function generateQuotation($q_no)
 
     $repair = null;
 
-    if($quotation->bill_no != "custom") {
+    if ($quotation->bill_no != "custom") {
         $repair = Repairs::where('bill_no', $quotation->bill_no)->where('pos_code', $company->pos_code)->first();
-    }
-    else {
-        $repair = (object)["customer"=>0, "bill_no"=>"New Order", "fault"=>"N/A", "total"=>0, "advance"=>0];
+    } else {
+        $repair = (object)["customer" => 0, "bill_no" => "New Order", "fault" => "N/A", "total" => 0, "advance" => 0];
     }
 
     if ($repair == null) {
@@ -2569,9 +2588,9 @@ function generateQuotation($q_no)
 
     if ($quotation->bill_no == "custom") {
         $customer = (object)[
-            'name'=>isset(json_decode($quotation->products)[10])?json_decode($quotation->products)[10]->customer->customer_name : '',
-            'phone'=>isset(json_decode($quotation->products)[10])?json_decode($quotation->products)[10]->customer->customer_phone : '',
-            'address'=>isset(json_decode($quotation->products)[10])?json_decode($quotation->products)[10]->customer->customer_address : '',
+            'name' => isset(json_decode($quotation->products)[10]) ? json_decode($quotation->products)[10]->customer->customer_name : '',
+            'phone' => isset(json_decode($quotation->products)[10]) ? json_decode($quotation->products)[10]->customer->customer_phone : '',
+            'address' => isset(json_decode($quotation->products)[10]) ? json_decode($quotation->products)[10]->customer->customer_address : '',
         ];
     }
 
@@ -2604,7 +2623,7 @@ function generateQuotation($q_no)
                 <h1 style="margin: 0; font-size: 24px;">Quotation</h1>
                 <p style="margin: 5px 0; font-size: 14px; color: #666;">' . $company->company_name . '</p>
                 <p style="margin: 5px 0; font-size: 14px; color: #666;">' . getUserData($company->admin_id)->address . ' <br> '
-                . formatPhoneNumber(getUserData($company->admin_id)->phone) . ' <br> www.wefix.lk</p>
+        . formatPhoneNumber(getUserData($company->admin_id)->phone) . ' <br> www.wefix.lk</p>
             </header>
 
             <section style="margin-bottom: 20px;">
@@ -2613,30 +2632,30 @@ function generateQuotation($q_no)
                         <tr>
                             <td style="vertical-align: bottom;">
                                 <p style="font-size: 13px;"><strong>Customer Name:</strong> ' .
-                                $customer->name . '</p>
+        $customer->name . '</p>
                                                 <p style="font-size: 13px;"><strong>Phone Number:</strong> ' .
-                                $customer->phone . '</p>
+        $customer->phone . '</p>
                                                 <p style="font-size: 13px;"><strong>Address:</strong> ' .
-                                $customer->address . '</p>
+        $customer->address . '</p>
                                 <p style="font-size: 13px; text-transform: capitalize"><strong>Bill Number:</strong> ' .
-                                $repair->bill_no . '</p>
+        $repair->bill_no . '</p>
                                 <p style="font-size: 13px;"><strong>Quotation Number:</strong> ' .
-                                $q_no . '</p>
+        $q_no . '</p>
                             </td>
 
                             <td style="vertical-align: bottom;">
                                 <p style="font-size: 13px; text-align: right;"><strong>Date:</strong> ' . date(
-                    'Y-m-d',
-                    strtotime($quotation->created_at)
-                ) . '</p>
+            'Y-m-d',
+            strtotime($quotation->created_at)
+        ) . '</p>
                                 <p style="font-size: 13px; text-align: right;"><strong>Valid Until:</strong> ' . date(
-                    'Y-m-d',
-                    strtotime($quotation->expiry_date)
-                ) . '</p>
+            'Y-m-d',
+            strtotime($quotation->expiry_date)
+        ) . '</p>
                                 <p style="font-size: 13px; text-align: right;"><strong>Cargo Type:</strong> ' .
-                $quotation->cargo_type . '</p>
+        $quotation->cargo_type . '</p>
                                 <p style="font-size: 13px; text-align: right;"><strong>Estimated Delivery:</strong> ' .
-                date('Y-m-d', strtotime($quotation->delivery_date)) . '</p>
+        date('Y-m-d', strtotime($quotation->delivery_date)) . '</p>
                             </td>
                         </tr>
                     </tbody>
@@ -2656,11 +2675,11 @@ function generateQuotation($q_no)
                     <tbody>
         ';
 
-        if ($quotation->bill_no == 'custom') {
-            foreach (json_decode($quotation->products) as $key => $product) {
-                if (!empty($product->model_no) || !empty($product->serial_no) || !empty($product->fault)) {
-                    (float)$total += $product->price;
-                    $html .= '
+    if ($quotation->bill_no == 'custom') {
+        foreach (json_decode($quotation->products) as $key => $product) {
+            if (!empty($product->model_no) || !empty($product->serial_no) || !empty($product->fault)) {
+                (float)$total += $product->price;
+                $html .= '
                         <tr>
                             <td style="padding: 8px; border: 1px solid #ddd;">' . $product->model_no . '</td>
                             <td style="padding: 8px; border: 1px solid #ddd;">' . $product->serial_no . '</td>
@@ -2668,11 +2687,10 @@ function generateQuotation($q_no)
                             <td style="padding: 8px; border: 1px solid #ddd;">' . $product->price . '</td>
                         </tr>
                     ';
-                }
             }
         }
-        else {
-            $html .= '
+    } else {
+        $html .= '
                     <tr>
                         <td style="padding: 8px; border: 1px solid #ddd;">' . $repair->model_no . '</td>
                         <td style="padding: 8px; border: 1px solid #ddd;">' . $repair->serial_no . '</td>
@@ -2680,9 +2698,9 @@ function generateQuotation($q_no)
                         <td style="padding: 8px; border: 1px solid #ddd;">' . $quotation->total . '</td>
                     </tr>
             ';
-        }
+    }
 
-        $html .='
+    $html .= '
                     </tbody>
                 </table>
             </section>
@@ -2692,13 +2710,13 @@ function generateQuotation($q_no)
                     <tr>
                         <td style="vertical-align: top;">
                             <div style="margin-top: 0px; text-align: right; font-size: 18px;">
-                        <p>Sub Total: ' . ($quotation->bill_no == "custom"? currency($total, 'LKR') : currency($quotation->total, 'LKR')) . '</p>
+                        <p>Sub Total: ' . ($quotation->bill_no == "custom" ? currency($total, 'LKR') : currency($quotation->total, 'LKR')) . '</p>
                             </div>
                             <div style="margin-top: -20px; text-align: right; font-size: 18px;">
                                 <p>Paid Advance: ' . currency($repair->advance, 'LKR') . '</p>
                             </div>
                             <div style="margin-top: -20px; text-align: right; font-size: 18px; font-weight: bold;">
-                                <p>Total Due: ' . ( $quotation->bill_no == "custom"? currency($total, 'LKR') : currency($quotation->total - $repair->advance, 'LKR')) . '</p>
+                                <p>Total Due: ' . ($quotation->bill_no == "custom" ? currency($total, 'LKR') : currency($quotation->total - $repair->advance, 'LKR')) . '</p>
                             </div>
                         </td>
                     </tr>
@@ -2864,23 +2882,23 @@ function generateEmployeeExpenses($datas, $inName = 'employee-expenses.pdf')
                     <tbody>
         ';
 
-        foreach ($datas as $key => $data) {
-            if ($data->type == 'Loan' && $data->status == 'paid') {
-                // Skip paid loans
-            } else {
-                $total += $data->amount;
-            }
-            $html .= '
+    foreach ($datas as $key => $data) {
+        if ($data->type == 'Loan' && $data->status == 'paid') {
+            // Skip paid loans
+        } else {
+            $total += $data->amount;
+        }
+        $html .= '
                 <tr>
                     <td style="padding: 8px; border: 1px solid #ddd;">' . getUser($data->user)->fname . '</td>
                     <td style="padding: 8px; border: 1px solid #ddd;">' . currency($data->amount, '') . '</td>
-                    <td style="padding: 8px; border: 1px solid #ddd;">' . ($data->type == 'Loan'? ($data->status == 'paid' ? 'Loan (Paid)' : 'Loan (Unpaid)') : $data->type) . '</td>
+                    <td style="padding: 8px; border: 1px solid #ddd;">' . ($data->type == 'Loan' ? ($data->status == 'paid' ? 'Loan (Paid)' : 'Loan (Unpaid)') : $data->type) . '</td>
                     <td style="padding: 8px; border: 1px solid #ddd;">' . $data->created_at . '</td>
                 </tr>
             ';
-        }
+    }
 
-        $html .='
+    $html .= '
                     </tbody>
                 </table>
             </section>
@@ -2907,9 +2925,9 @@ function generateEmployeeExpenses($datas, $inName = 'employee-expenses.pdf')
     $pdf->setPaper("A4", "portrait");
     $pdf->loadHtml($html, 'UTF-8');
     $pdf->render();
-    $path = public_path('invoice/'. $inName);
+    $path = public_path('invoice/' . $inName);
     file_put_contents($path, $pdf->output());
-    return (object)array('generated' => true, 'url' => '/invoice/'. $inName);
+    return (object)array('generated' => true, 'url' => '/invoice/' . $inName);
 }
 
 
@@ -3150,8 +3168,8 @@ function statusToBootstrap($status)
 
 function divide($num1, $num2)
 {
-    if ($num1 !=0 && $num2 !=0) {
-        return number_format(($num1/$num2), 1);
+    if ($num1 != 0 && $num2 != 0) {
+        return number_format(($num1 / $num2), 1);
     }
 
     return 0;
