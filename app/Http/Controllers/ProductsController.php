@@ -21,7 +21,7 @@ class ProductsController extends Controller
     {
         $response = [];
         if (PosDataController::check()) {
-            return response(json_encode(Products::where('stock', '>', 0)->where('cost', '>', 0)->get()));
+            return response(json_encode(Products::where('qty', '>', 0)->where('cost', '>', 0)->get()));
         } else {
             $response['error'] = 1;
             $response['msg'] = "not_logged_in";
