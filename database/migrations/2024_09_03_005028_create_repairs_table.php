@@ -17,6 +17,8 @@ return new class extends Migration
             $table->string("model_no")->nullable();
             $table->string("serial_no")->nullable();
             $table->text("fault")->nullable();
+            $table->string("has_multiple_fault")->nullable();
+            $table->text("multiple_fault")->nullable();
             $table->text("note")->nullable();
             $table->float("advance", 10, 2)->default(0);
             $table->float("total", 10, 2)->default(0);

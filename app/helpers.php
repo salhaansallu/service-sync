@@ -1224,7 +1224,7 @@ function generateThermalInvoice($order_id, $inName, $bill_type)
                 $total += $temp_order->total;
                 $delivery = $temp_order->delivery;
                 $advance += $temp_order->advance;
-                $orders[] = array("id" => $id, "total" => $temp_order->total, "advance" => $temp_order->advance, "model" => $temp_order->model_no, "serial" => $temp_order->serial_no, 'warranty' => $temp_order->warranty, "fault" => $temp_order->fault);
+                $orders[] = array("id" => $id, "total" => $temp_order->total, "advance" => $temp_order->advance, "model" => $temp_order->model_no, "serial" => $temp_order->serial_no, 'warranty' => $temp_order->warranty, "fault" => $temp_order->fault, 'has_multiple_fault'=>$temp_order->has_multiple_fault, 'multiple_fault'=> $temp_order->multiple_fault);
             }
         }
 
@@ -1241,7 +1241,7 @@ function generateThermalInvoice($order_id, $inName, $bill_type)
             $total += $temp_order->total;
             $delivery = $temp_order->delivery;
             $advance += $temp_order->advance;
-            $orders[] = array("id" => $order_id, "total" => $temp_order->total, "advance" => $temp_order->advance, "model" => $temp_order->model_no, "serial" => $temp_order->serial_no, 'warranty' => $temp_order->warranty, "fault" => $temp_order->fault);
+            $orders[] = array("id" => $order_id, "total" => $temp_order->total, "advance" => $temp_order->advance, "model" => $temp_order->model_no, "serial" => $temp_order->serial_no, 'warranty' => $temp_order->warranty, "fault" => $temp_order->fault, 'has_multiple_fault'=>$temp_order->has_multiple_fault, 'multiple_fault'=> $temp_order->multiple_fault);
         }
 
         $repairs = Repairs::where('bill_no', $order_id)->get()[0];
@@ -1347,12 +1347,26 @@ function generateThermalInvoice($order_id, $inName, $bill_type)
             ';
 
     foreach ($orders as $key => $order) {
+        $tempHtml = '';
+        foreach (json_decode($order['multiple_fault']) as $key => $fault) {
+            $tempHtml .= '
+                <tr>
+                    <td style="width: 50%;">'.$fault->fault.':</td>
+                    <td style="width: 50%;">'.currency($fault->price, '').'</td>
+                </tr>
+            ';
+        }
+
         $html .= '
             <tr style="width: 100%;">
                 <td style="font-size: 14px; padding-top: 5px;" colspan="4"><span style="margin-right: 5px;">' . $key + 1 . '. </span> <span style="margin-right: 10px;">' . $order["id"] . ' - ' . $order["model"] . ' (' . $order["serial"] . ')</span></td>
             </tr>
             <tr style="width: 100%;">
-                <td style="font-size: 13px; padding-top: 5px;" colspan="4"><span style="margin-right: 5px;">Fault - </span> <span style="margin-right: 10px;">' . $order["fault"] . '</span></td>
+                <td style="font-size: 13px; padding-top: 5px;" colspan="4"><span style="margin-right: 5px;">Fault: </span> <span style="margin-right: 10px; '.($order['has_multiple_fault']? 'd-none' : '').'">' . $order["fault"] . '</span> <div style="'.($order['has_multiple_fault']? '' : 'd-none').'">
+                <table style="width: 100%;">
+                    '.$tempHtml.'
+                </table>
+                </div></td>
             </tr>
             <tr style="width: 100%;">
                 <td style="font-size: 14px; border-bottom: #8d8d8d 2px dotted;"></td>

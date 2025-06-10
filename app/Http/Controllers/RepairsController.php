@@ -277,6 +277,8 @@ class RepairsController extends Controller
                 $bill_type = sanitize($request->input('bill_type'));
                 $parent_bill_no = sanitize($request->input('parent_bill_no'));
                 $new_order_qty = sanitize($request->input('new_order_qty'));
+                $has_multiple_faults = sanitize($request->input('has_multiple_faults'));
+                $faults = json_decode($request->input('faults'));
                 $customerData = [];
                 $billData = [];
 
@@ -315,6 +317,7 @@ class RepairsController extends Controller
 
                 $success_count = 0;
                 $bills = [];
+                $totalAmount = 0;
 
                 if ($new_order_qty > 0) {
                     for ($i = 0; $i < $new_order_qty; $i++) {
@@ -322,14 +325,26 @@ class RepairsController extends Controller
                             $getBillNo = Repairs::orderBy('id', 'DESC')->first();
                             $bill_no = $getBillNo != null ? (int)$getBillNo->bill_no + 1 : 1001;
 
+                            if ($has_multiple_faults) {
+                                foreach ($faults as $key => $faultItem) {
+                                    if (!is_numeric($faultItem->price)) {
+                                        return response(json_encode(array("error" => 1, "msg" => "Some faults contain invalid price format")));
+                                    }
+
+                                    $totalAmount += $faultItem->price;
+                                }
+                            }
+
                             $repair = new Repairs();
                             $repair->bill_no = $bill_no;
                             $repair->model_no = $model_no;
                             $repair->serial_no = $serial_no;
                             $repair->fault = $fault;
+                            $repair->has_multiple_fault = $has_multiple_faults? 'Y' : 'N';
+                            $repair->multiple_fault = json_encode($faults);
                             $repair->note = $note;
                             $repair->advance = $advance;
-                            $repair->total = $total;
+                            $repair->total = $has_multiple_faults? $totalAmount : $total;
                             $repair->customer = $customer;
                             $repair->partner = $partner == "" ? 0 : $partner;
                             $repair->cashier = $cashier_no;
