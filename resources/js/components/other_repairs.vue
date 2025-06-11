@@ -1,6 +1,8 @@
 <template>
-    <div id="leftMenuToggle" class="action_icons left" @click="openMenu('leftMenu')"><i class="fa-solid fa-bars"></i></div>
-    <div id="rightMenuToggle" class="action_icons right" @click="openMenu('rightMenu')"><i class="fa-solid fa-cash-register"></i></div>
+    <div id="leftMenuToggle" class="action_icons left" @click="openMenu('leftMenu')"><i class="fa-solid fa-bars"></i>
+    </div>
+    <div id="rightMenuToggle" class="action_icons right" @click="openMenu('rightMenu')"><i
+            class="fa-solid fa-cash-register"></i></div>
 
     <div class="pos-wrap">
         <div id="leftMenu" class="category">
@@ -160,7 +162,7 @@
                                         href="javascript:void(0)">Update
                                         Order Status</a></li>
                                 <li v-if="repair.status == 'Pending'"><a href="javascript:void(0)"
-                                    @click="selectForUpdate(repair.bill_no)">Select For Bulk Update</a></li>
+                                        @click="selectForUpdate(repair.bill_no)">Select For Bulk Update</a></li>
                                 <li v-if="repair.status == 'Return'"><a href="javascript:void(0)"
                                         @click="selectProduct(repair.bill_no)">Checkout Order</a></li>
                                 <li v-if="repair.status == 'Repaired' || repair.status == 'Customer Pending'"><a
@@ -169,10 +171,17 @@
 
                                 <!-- <li v-if="repair.status == 'Delivered'"><a href="javascript:void(0)">Re-service</a></li> -->
                                 <li v-if="repair.status == 'Pending'"><a href="javascript:void(0)"
-                                        @click="bulkInvoiceSelect(repair.bill_no)">{{ bulkInvoiceList.includes(repair.bill_no)? 'Remove From' : 'Select For' }} Bulk Invoicing</a></li>
+                                        @click="bulkInvoiceSelect(repair.bill_no)">{{
+                                            bulkInvoiceList.includes(repair.bill_no) ? 'Remove From' : 'Select For' }} Bulk
+                                        Invoicing</a></li>
 
                                 <li v-if="bulkInvoiceList.length > 0"><a href="javascript:void(0)"
-                                    @click="bulkInvoicePrint()">Print all selected invoice</a></li>
+                                        @click="bulkInvoicePrint()">Print all selected invoice</a></li>
+
+                                <li v-if="repair.has_multiple_fault == 'Y'">
+                                    <a href="javascript:void(0)" @click="displayFaults(repair.multiple_fault)">Display
+                                        Faults</a>
+                                </li>
                             </ul>
                         </div>
                     </div>
@@ -340,9 +349,62 @@
                             </div>
 
                             <div class="col-6 mt-3">
-                                <div class="input">
-                                    <label for="" class="mb-1">Fault</label>
-                                    <input ref="fault" type="text" placeholder="Fault" value="">
+                                <div class="row">
+                                    <div :class="'col-lg-8 ' + (multipleFult ? 'd-none' : '')">
+                                        <div class="input">
+                                            <label for="" class="mb-1">Fault</label>
+                                            <input ref="fault" type="text" placeholder="Fault" value="">
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-4">
+                                        <div class="input">
+                                            <label for="" class="mb-1">Has Multiple</label><br>
+                                            <input ref="faultCheckbox" type="checkbox" placeholder="Fault" value=""
+                                                style="width: max-content;" @click="multipleFaultToggle()">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-12 mt-3 border py-3 bg-grey" v-if="multipleFult">
+                                <div class="row">
+                                    <div class="col-6">
+                                        <div class="input">
+                                            <label for="" class="">Fault</label>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-6">
+                                        <div class="input">
+                                            <label for="" class="">Price</label>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row mt-2" v-for="(count, index) in faultCount" :key="index">
+                                    <div class="col-6">
+                                        <div class="input">
+                                            <input :ref="'fault_' + (index + 1)" type="text" placeholder="Fault"
+                                                value="">
+                                        </div>
+                                    </div>
+
+                                    <div class="col-6">
+                                        <div class="input">
+                                            <input :ref="'price_' + (index + 1)" type="text" placeholder="Price"
+                                                value="">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row mt-2">
+                                    <div class="col-6">
+                                        <button type="button" class="border-0 bg-none text-danger"
+                                            @click="changeFaultCount('-')">- Remove</button>
+                                    </div>
+                                    <div class="col-6">
+                                        <button type="button" class="border-0 bg-none text-success text-end w-100"
+                                            @click="changeFaultCount('+')">+ Add</button>
+                                    </div>
                                 </div>
                             </div>
 
@@ -375,36 +437,6 @@
                                         <option v-for="customer in users" :value="customer.id">{{ customer.name }} ({{
                                             customer.phone }})</option>
                                     </select>
-                                </div>
-                            </div>
-
-                            <div class="col-6 mt-3">
-                                <div class="inner border p-3">
-                                    <div class="input d-flex align-items-center">
-                                        <input type="checkbox" :value="'Box'" ref="box" class="d-inline"
-                                            style="width: 15px; height: 15px; margin-right: 10px;">
-                                        <label for="" class="mb-1 d-inline">Box</label>
-                                    </div>
-                                    <div class="input d-flex align-items-center">
-                                        <input type="checkbox" :value="'Stand'" ref="stand" class="d-inline"
-                                            style="width: 15px; height: 15px; margin-right: 10px;">
-                                        <label for="" class="mb-1 d-inline">Stand</label>
-                                    </div>
-                                    <div class="input d-flex align-items-center">
-                                        <input type="checkbox" :value="'Remote'" ref="remote" class="d-inline"
-                                            style="width: 15px; height: 15px; margin-right: 10px;">
-                                        <label for="" class="mb-1 d-inline">Remote</label>
-                                    </div>
-                                    <div class="input d-flex align-items-center">
-                                        <input type="checkbox" :value="'Wall Bracket'" ref="wall" class="d-inline"
-                                            style="width: 15px; height: 15px; margin-right: 10px;">
-                                        <label for="" class="mb-1 d-inline">Wall Bracket</label>
-                                    </div>
-                                    <div class="input d-flex align-items-center">
-                                        <input type="checkbox" :value="'Panel Scratches'" ref="panel" class="d-inline"
-                                            style="width: 15px; height: 15px; margin-right: 10px;">
-                                        <label for="" class="mb-1 d-inline">Panel Scratches</label>
-                                    </div>
                                 </div>
                             </div>
 
@@ -633,6 +665,36 @@
         </div>
     </div>
 
+    <div class="modal fade" id="faultsDisplay" tabindex="-1" role="dialog" aria-labelledby="faultsDisplay"
+        aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+        <div class="modal-dialog modal-md" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Fault List</h5>
+                </div>
+                <div class="modal-body">
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Fault</th>
+                                <th>Price</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr v-for="fault in selectedFaults">
+                                <td>{{ fault.fault }}</td>
+                                <td>{{ currency(fault.price, '') }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="modal fade" id="NewSale" tabindex="-1" role="dialog" aria-labelledby="NewSale" aria-hidden="true"
         data-bs-backdrop="static" data-bs-keyboard="false">
         <div class="modal-dialog modal-fullscreen" role="document">
@@ -686,6 +748,9 @@ export default {
             cashiers: [],
             new_bill: true,
             bulkInvoiceList: [],
+            multipleFult: false,
+            faultCount: 1,
+            selectedFaults: [],
         }
     },
     methods: {
@@ -931,6 +996,9 @@ export default {
             });
 
             this.spareCount = 1;
+            this.faultCount = 1;
+            this.multipleFult = false;
+            this.$refs.faultCheckbox.checked = false;
 
             this.$refs["cashin"].value = '0';
             this.$refs["total"].innerText = "LKR 0.00";
@@ -1180,13 +1248,13 @@ export default {
             var fault = this.$refs.fault.value;
             var advance = this.$refs.advance.value;
             var note = this.$refs.note.value;
-            var note2 = "";
             var customer = this.new_bill == true ? this.$refs.customer.value : '';
             var partner = this.$refs.partner.value;
             var cashier_no = this.$refs.cashier_no.value;
             var bill_type = this.$refs.bill_type.value;
             var parent_bill_no = this.new_bill == false ? this.$refs.parent_bill_no.value : '';
             var new_order_qty = this.$refs.new_order_qty.value;
+            var faults = [];
 
             if (cashier_no.trim() == "") {
                 toastr.error("Please enter cashier code", "Error");
@@ -1222,20 +1290,11 @@ export default {
 
             this.isDisabled = true;
 
-            const checkboxes = document.querySelectorAll('input[type="checkbox"]');
-
-            checkboxes.forEach((checkbox, index) => {
-                if (checkbox.checked) {
-                    if (index == 0) {
-                        note2 += 'Has ' + checkbox.value;
-                    }
-                    else {
-                        note2 += '\nHas ' + checkbox.value;
-                    }
+            if (this.multipleFult) {
+                for (let i = 0; i < this.faultCount; i++) {
+                    faults.push({ fault: this.$refs['fault_' + (i + 1)][0].value, price: this.$refs['price_' + (i + 1)][0].value });
                 }
-            });
-
-            note2 += "\n" + note.replace(/\r?\n/g, '\n');
+            }
 
             const { data } = await axios.post('/other-pos/new_order?source=other-pos', {
                 total: total,
@@ -1243,13 +1302,15 @@ export default {
                 serial_no: serial_no,
                 fault: fault,
                 advance: advance,
-                note: note2,
+                note: note.replace(/\r?\n/g, '\n'),
                 customer: customer,
                 partner: partner,
                 cashier_no: cashier_no,
                 bill_type: bill_type,
                 parent_bill_no: parent_bill_no,
-                new_order_qty: new_order_qty
+                new_order_qty: new_order_qty,
+                has_multiple_faults: this.multipleFult,
+                faults: JSON.stringify(faults),
             }).catch(function (error) {
                 if (error.response) {
                     this.loadModal("hide");
@@ -1482,6 +1543,31 @@ export default {
             $(menu).css('top', `${mouseY}px`);
             $(menu).css('opacity', '1');
             //document.addEventListener("click", this.closeContextMenu('#order_wrap_' + bill));
+        },
+        multipleFaultToggle() {
+            this.multipleFult = this.multipleFult ? false : true;
+        },
+        changeFaultCount(op) {
+            if (op == '-') {
+                if (this.faultCount > 1) {
+                    this.faultCount--;
+                }
+                return;
+            }
+
+            if (op == '+') {
+                if (this.faultCount < 10) {
+                    this.faultCount++;
+                }
+                else {
+                    toastr.error('Maximum fault cout reached', 'Error');
+                }
+                return;
+            }
+        },
+        displayFaults(faults) {
+            this.selectedFaults = JSON.parse(faults);
+            $('#faultsDisplay').modal('toggle');
         },
     },
     beforeMount() {
