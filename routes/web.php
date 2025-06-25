@@ -164,6 +164,9 @@ Route::prefix('dashboard')->group(function () {
     Route::post('/products/edit', [ProductsController::class, 'update']);
     Route::delete('/products/delete', [ProductsController::class, 'destroy']);
 
+    Route::get('low-stock-products', [DashboardController::class, 'listLowStockProducts']);
+    Route::post('low-stock-report', [DashboardController::class, 'generateLowStockReport']);
+
     Route::get('repairs', [DashboardController::class, 'listrepairs']);
     Route::get('repairs/other-repairs', [DashboardController::class, 'listrepairs']);
     Route::get('/repairs/edit/{id}', [RepairsController::class, 'edit']);

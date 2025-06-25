@@ -2944,6 +2944,113 @@ function generateEmployeeExpenses($datas, $inName = 'employee-expenses.pdf')
     return (object)array('generated' => true, 'url' => '/invoice/' . $inName);
 }
 
+function generateLowStockReport($low, $inName = 'low-stock-report.pdf')
+{
+    $products = products::where('qty', '<=', (int)$low)->get();
+
+    $html = '
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Document</title>
+            <style>
+                @page {
+                    margin: 10px;
+                    height: auto;
+                    width: 210mm;
+                 }
+                body { margin: 10px; }
+            </style>
+        </head>
+        <body style="font-family: Arial, sans-serif;">
+
+                <!-- Header -->
+            <div style="text-align: center; margin-bottom: 20px; margin-top: 30px;">
+                <h2 style="margin: 20px 0;">Stock Report</h2>
+            </div>
+
+            <!-- Item Details -->
+            <div style="margin-bottom: 20px;">
+                <table style="width: 100%; border-collapse: collapse;">
+                    <tr>
+                        <th style="color: #000;padding: 5px; border: 1px solid black; text-align: left;">SKU</th>
+                        <th style="color: #000;padding: 5px; border: 1px solid black; text-align: left;">Product</th>
+                        <th style="color: #000;padding: 5px; border: 1px solid black; text-align: right;">Price</th>
+                        <th style="color: #000;padding: 5px; border: 1px solid black; text-align: right;">Stock</th>
+                        <th style="color: #000;padding: 5px; border: 1px solid black; text-align: right;">Stock value</th>
+                    </tr>
+    ';
+
+    $total = 0;
+
+    foreach ($products as $key => $pro) {
+        $total += $pro->cost * $pro->qty;
+        $html .= '
+            <tr>
+                <td style="padding: 5px; border: 1px solid black;">' . $pro->sku . '</td>
+                <td style="padding: 5px; border: 1px solid black;">' . $pro->pro_name . '</td>
+                <td style="padding: 5px; border: 1px solid black; text-align: right;">' . currency($pro->price, '') . '</td>
+                <td style="padding: 5px; border: 1px solid black; text-align: right;">' . $pro->qty . '</td>
+                <td style="padding: 5px; border: 1px solid black; text-align: right;">' . currency(($pro->cost * $pro->qty), '') . '</td>
+            </tr>
+        ';
+    }
+
+    $html .= '
+            </table>
+            <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
+                <tr>
+                    <th style="color: #000;padding: 5px; border: 1px solid black; text-align: right;">Total stock value</th>
+                </tr>
+                <tr>
+                    <td style="padding: 5px; border: 1px solid black;text-align: right;">' . currency($total, 'LKR') . '</td>
+                </tr>
+            </table>
+        </div>
+    ';
+
+    $html .= '
+        </body>
+        </html>
+    ';
+
+    // $connector = new FilePrintConnector("/dev/usb/lp0");
+    // $printer = new Printer($connector);
+
+    $pdf = new Dompdf();
+    $pdf->setPaper("A4", "portrait");
+    $pdf->loadHtml($html, 'UTF-8');
+
+    $GLOBALS['bodyHeight'] = 0;
+
+    $pdf->setCallbacks([
+        'myCallbacks' => [
+            'event' => 'end_frame',
+            'f' => function ($frame) {
+                $node = $frame->get_node();
+                if (strtolower($node->nodeName) === "body") {
+                    $padding_box = $frame->get_padding_box();
+                    $GLOBALS['bodyHeight'] += $padding_box['h'];
+                }
+            }
+        ]
+    ]);
+
+    $pdf->render();
+    unset($pdf);
+
+    $docHeight = $GLOBALS['bodyHeight'] + 30;
+
+    $pdf = new Dompdf();
+    $pdf->setPaper("A4", "portrait");
+    $pdf->loadHtml($html, 'UTF-8');
+    $pdf->render();
+    $path = public_path('invoice/' . $inName);
+    file_put_contents($path, $pdf->output());
+
+    return (object)array('generated' => true, 'url' => $inName);
+}
 
 function sendInvitation($email)
 {

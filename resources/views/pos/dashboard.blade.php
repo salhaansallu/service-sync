@@ -167,9 +167,7 @@
                             <div class="header-title">
                                 <h4 class="card-title">Low Stock Products</h4>
                             </div>
-                            @if (company()->plan == 1)
-                                <span><a href="/pricing">Upgrade premium</a> to use this feature</span>
-                            @endif
+                            <a href="/dashboard/low-stock-products">View all</a>
                             {{-- <div class="card-header-toolbar d-flex align-items-center">
                             <div class="dropdown">
                                 <span class="dropdown-toggle dropdown-bg btn" id="dropdownMenuButton006"

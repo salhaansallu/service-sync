@@ -172,6 +172,37 @@ class DashboardController extends Controller
         }
     }
 
+    public function listLowStockProducts()
+    {
+        login_redirect('/' . request()->path());
+
+        if (Auth::check() && isCashier()) {
+            $low = isset($_GET['qty'])? sanitize($_GET['qty']) : 5;
+            $products = Products::where('qty', '<=', (int)$low)->get();
+            return view('pos.list-stock')->with(['stocks' => $products]);
+        } else {
+            return redirect('/signin');
+        }
+    }
+
+    public function generateLowStockReport(Request $request)
+    {
+        login_redirect('/' . request()->path());
+
+        if (Auth::check() && isAdmin()) {
+
+            $low = $request->has('qty')? sanitize($request->input('qty')) : 5;
+
+            $report = generateLowStockReport($low);
+            if($report->generated) {
+                return response(json_encode(['error'=>'0', 'url' => $report->url]));
+            }
+            return response(json_encode(['error'=>'1', 'msg' => 'Error generating report']));
+        } else {
+            return redirect('/account/overview');
+        }
+    }
+
     public function listCategories()
     {
         login_redirect('/' . request()->path());
