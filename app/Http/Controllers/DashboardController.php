@@ -103,6 +103,10 @@ class DashboardController extends Controller
             //$best_selling = DB::table('order_products')->select('*')->where('pos_id', $company->pos_code)->leftJoin('orders', 'order_products.order_id', '=', 'orders.order_number')->where('pos_code', $company->pos_code)->groupBy('sku')->orderByDesc('qty')->limit(3)->get();
             $best_selling = [];
 
+            $todayRepairsIn = Repairs::whereDate('created_at', Carbon::today())->count();
+            $todayRepaired = Repairs::whereDate('repaired_date', Carbon::today())->count();
+            $todayRepairsOut = Repairs::whereDate('paid_at', Carbon::today())->count();
+
             if ($todaysalesqry && $todaysalesqry->count() > 0) {
                 foreach ($todaysalesqry as $key => $qry) {
                     (float)$todaysales += (float)$qry['total'];
@@ -145,7 +149,7 @@ class DashboardController extends Controller
             }
 
 
-            return view('pos.dashboard')->with(['company' => $company, 'todaysales' => $todaysales, 'cost' => $cost, 'sales' => json_encode($sales), 'low_stock' => $low_stock, 'yearcost' => json_encode($yearcost), 'yearexpense' => json_encode($yearexpense), 'best_sellings' => $best_selling]);
+            return view('pos.dashboard')->with(['company' => $company, 'todaysales' => $todaysales, 'cost' => $cost, 'sales' => json_encode($sales), 'low_stock' => $low_stock, 'yearcost' => json_encode($yearcost), 'yearexpense' => json_encode($yearexpense), 'best_sellings' => $best_selling, 'todayRepairsIn'=>$todayRepairsIn, 'todayRepaired'=>$todayRepaired, 'todayRepairsOut'=>$todayRepairsOut]);
         } else {
             return redirect('/account/overview');
         }

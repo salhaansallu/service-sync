@@ -100,6 +100,63 @@
                                 </div>
                             </div>
                         </div>
+                        <div class="col-lg-3 col-md-3">
+                            <div class="card card-block card-stretch card-height">
+                                <div class="card-body">
+                                    <div class="d-flex align-items-center card-total-sale">
+                                        <div class="icon iq-icon-box-2 bg-warning-light">
+                                            <i class="fa-solid fa-screwdriver-wrench"></i>
+                                        </div>
+                                        <div>
+                                            <p class="mb-2">New Orders</p>
+                                            <h4>{{ $todayRepairsIn }}</h4>
+                                        </div>
+                                    </div>
+                                    {{-- <div class="iq-progress-bar mt-2">
+                                    <span class="bg-success iq-progress progress-1" data-percent="75">
+                                    </span>
+                                </div> --}}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-3">
+                            <div class="card card-block card-stretch card-height">
+                                <div class="card-body">
+                                    <div class="d-flex align-items-center card-total-sale">
+                                        <div class="icon iq-icon-box-2 bg-success-light">
+                                            <i class="fa-regular fa-circle-check"></i>
+                                        </div>
+                                        <div>
+                                            <p class="mb-2">Repaired Orders</p>
+                                            <h4>{{ $todayRepaired }}</h4>
+                                        </div>
+                                    </div>
+                                    {{-- <div class="iq-progress-bar mt-2">
+                                    <span class="bg-success iq-progress progress-1" data-percent="75">
+                                    </span>
+                                </div> --}}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-3">
+                            <div class="card card-block card-stretch card-height">
+                                <div class="card-body">
+                                    <div class="d-flex align-items-center card-total-sale">
+                                        <div class="icon iq-icon-box-2 bg-primary-light">
+                                            <i class="fa-solid fa-people-carry-box"></i>
+                                        </div>
+                                        <div>
+                                            <p class="mb-2">Delivered Orders</p>
+                                            <h4>{{ $todayRepairsOut }}</h4>
+                                        </div>
+                                    </div>
+                                    {{-- <div class="iq-progress-bar mt-2">
+                                    <span class="bg-success iq-progress progress-1" data-percent="75">
+                                    </span>
+                                </div> --}}
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <div class="col-lg-6">
