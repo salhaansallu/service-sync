@@ -6,6 +6,7 @@ use App\Models\Credit;
 use App\Models\customers;
 use App\Models\orderProducts;
 use App\Models\orders;
+use App\Models\partners;
 use App\Models\personalCredits;
 use App\Models\posData;
 use App\Models\posUsers;
@@ -43,12 +44,9 @@ class PosDataController extends Controller
 
     public static function company()
     {
-        if (Auth::check() && get_Cookie('pos_session') != false) {
-            $data = posData::where('pos_code', Crypt::decrypt(get_Cookie('pos_session')))->get();
-            if ($data && $data->count() > 0) {
-                return (object)$data[0];
-            }
-            return defaultValues();
+        $data = posData::first();
+        if ($data) {
+            return $data;
         }
         return defaultValues();
     }
@@ -104,7 +102,8 @@ class PosDataController extends Controller
         }
     }
 
-    public function getCashiers() {
+    public function getCashiers()
+    {
         $response = [];
         if ($this->check()) {
             $data = DB::table('users')->select('pos_users.*', 'users.fname', 'users.lname', 'users.id', 'users.email')->leftJoin('pos_users', 'users.id', '=', 'pos_users.user_id')->where('pos_code', company()->pos_code)->get();
@@ -161,7 +160,6 @@ class PosDataController extends Controller
                 personalCredits::where('bill_no', $id)->update([
                     'status' => 'Delivered',
                 ]);
-
             }
 
             $repairs = Repairs::where('bill_no', $bill_no[0])->where('pos_code', $company->pos_code)->get('customer')[0];
@@ -360,12 +358,16 @@ class PosDataController extends Controller
         //
     }
 
-    public function runCron() {
+    public function runCron()
+    {
         $this->reminder();
         //$this->termination();
+
+        PartnersController::runSubscription();
     }
 
-    public function reminder() {
+    public function reminder()
+    {
         $repairedData = Repairs::where('status', 'Repaired')->whereDate('repaired_date', Carbon::now()->subDays(14))->get();
         $customerPendingData = Repairs::where('status', 'Customer Pending')->where('type', 'repair')->whereDate('repaired_date', Carbon::now()->subDays(14))->get();
         $returnData = Repairs::where('status', 'Return')->where('type', 'repair')->whereDate('repaired_date', Carbon::now()->subDays(14))->get();
@@ -442,12 +444,12 @@ class PosDataController extends Controller
 
                 $sms->message = "හිතවත් පාරිභෝගිකයා,\nඔබගේ TV check කර ඇති නමුත් repair කළ නොහැක. කරුණාකර දින 2ක් ඇතුළත ලබාගන්න, නැතිනම් disassemble කිරීමට ක්‍රියාකරනවා. Inspection සඳහා service charge අයකරනු ලැබේ. විමසීම්: 077 330 0905.";
                 $sms->Send();
-
             }
         }
     }
 
-    public function termination() {
+    public function termination()
+    {
         $repairedData = Repairs::where('status', 'Repaired')->whereDate('repaired_date', Carbon::now()->subDays(16))->delete();
         $customerPendingData = Repairs::where('status', 'Customer Pending')->whereDate('repaired_date', Carbon::now()->subDays(16))->delete();
         $returnData = Repairs::where('status', 'Return')->whereDate('repaired_date', Carbon::now()->subDays(16))->delete();

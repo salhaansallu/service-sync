@@ -22,7 +22,7 @@ class CreditController extends Controller
         login_redirect('/' . request()->path());
 
         if (Auth::check() && DashboardController::check(true)) {
-            $credits = Credit::where('pos_code', company()->pos_code)->where('ammount', '>', 0)->whereDate('created_at', Carbon::today())->get();
+            $credits = Credit::where('customer_id', '!=', 0)->where('pos_code', company()->pos_code)->where('ammount', '>', 0)->whereDate('created_at', Carbon::today())->get();
             if ($credits) {
                 foreach ($credits as $key => $credit) {
                     $credit['history'] = CreditHistory::where('credit_id', $credit->id)->get();

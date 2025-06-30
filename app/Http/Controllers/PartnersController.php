@@ -2,15 +2,19 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Credit;
 use App\Models\partners;
 use App\Models\Products;
 use App\Models\Repairs;
+use Carbon\Carbon;
+use Dompdf\Dompdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\View;
 
 class PartnersController extends Controller
 {
@@ -189,6 +193,10 @@ class PartnersController extends Controller
                 return response(json_encode(array("error" => 1, "msg" => "Please use only numbers for phone number")));
             }
 
+            if (!empty(sanitize($request->input('subscription_amount'))) && !is_numeric(sanitize($request->input('subscription_amount')))) {
+                return response(json_encode(array("error" => 1, "msg" => "Please use only numbers for subscription amount")));
+            }
+
             if (!empty($email) && partners::where('email', $email)->where('pos_code', company()->pos_code)->count() > 0) {
                 return response(json_encode(array("error" => 1, "msg" => "Email already in use")));
             }
@@ -211,6 +219,20 @@ class PartnersController extends Controller
                 }
             }
 
+            $subscription_options = array(
+                "No Subscription" => 0,
+                "Daily"           => 1,
+                "Weekly"          => 7,
+                "2 Weeks"         => 14,
+                "Monthly"         => 30,   // Approximate month
+                "3 Months"        => 90,   // 3 × 30
+                "6 Months"        => 180,  // 6 × 30
+                "9 Months"        => 270,  // 9 × 30
+                "12 Months"       => 365   // Full year
+            );
+
+
+
             $partner = new partners();
             $partner->name = $name;
             $partner->company = $company;
@@ -222,6 +244,8 @@ class PartnersController extends Controller
             if (!empty($password)) {
                 $partner->password = Hash::make($password);
             }
+            $partner->subscription_frequency = $subscription_options[sanitize($request->input('subscription_frequency'))];
+            $partner->subscription_amount = sanitize($request->input('subscription_amount'));
             $partner->pos_code = company()->pos_code;
 
             if ($partner->save()) {
@@ -303,6 +327,10 @@ class PartnersController extends Controller
                 return response(json_encode(array("error" => 1, "msg" => "Phone number already in use")));
             }
 
+            if (!empty(sanitize($request->input('subscription_amount'))) && !is_numeric(sanitize($request->input('subscription_amount')))) {
+                return response(json_encode(array("error" => 1, "msg" => "Please use only numbers for subscription amount")));
+            }
+
             if ($request->hasFile('logo')) {
                 $extension = $request->file('logo')->getClientOriginalExtension();
                 if (in_array($extension, array('png', 'jpeg', 'jpg'))) {
@@ -313,6 +341,18 @@ class PartnersController extends Controller
                 }
             }
 
+            $subscription_options = array(
+                "No Subscription" => 0,
+                "Daily"           => 1,
+                "Weekly"          => 7,
+                "2 Weeks"         => 14,
+                "Monthly"         => 30,   // Approximate month
+                "3 Months"        => 90,   // 3 × 30
+                "6 Months"        => 180,  // 6 × 30
+                "9 Months"        => 270,  // 9 × 30
+                "12 Months"       => 365   // Full year
+            );
+
             $update_arr = [
                 "name" => $name,
                 "company" => $company,
@@ -320,6 +360,8 @@ class PartnersController extends Controller
                 "address" => $address,
                 "email" => $email,
                 "username" => $username,
+                "subscription_frequency" => $subscription_options[sanitize($request->input('subscription_frequency'))],
+                "subscription_amount" => sanitize($request->input('subscription_amount')),
             ];
 
             if (!empty($password)) {
@@ -376,13 +418,160 @@ class PartnersController extends Controller
                     if ($customer) {
                         return response(json_encode(array("error" => 0, "msg" => "Logo Updated Successfully")));
                     }
-
                 } else {
                     return response(json_encode(array("error" => 1, "msg" => "Please select 'png', 'jpeg', or 'jpg' type image")));
                 }
             }
 
             return response(json_encode(array("error" => 1, "msg" => "Please select an image")));
+        }
+    }
+
+    public function getReport()
+    {
+        if (isAdmin()) {
+            $from = sanitize(request()->input('from'));
+            $to   = sanitize(request()->input('to'));
+            $partnerId = sanitize(request()->input('partner_id'));
+
+            $from = Carbon::parse($from)->startOfDay();
+            $to   = Carbon::parse($to)->endOfDay();
+
+            // Repairs filtered by partner and date
+            $repairs = DB::table('repairs')
+                ->leftJoin('partners', 'repairs.partner', '=', 'partners.id')
+                ->where('repairs.partner', $partnerId)
+                ->whereBetween('repairs.created_at', [$from, $to])
+                ->orderBy('repairs.created_at', 'desc')
+                ->select('repairs.*', 'partners.name as partner_name', 'partners.company')
+                ->get();
+
+            // Credits related to the partner’s repairs
+            $credits = DB::table('credits')
+                ->join('repairs', 'credits.order_id', '=', 'repairs.bill_no')
+                ->where('repairs.partner', $partnerId)
+                ->whereBetween('credits.created_at', [$from, $to])
+                ->select('credits.*', 'repairs.customer', 'repairs.model_no')
+                ->orderBy('credits.created_at', 'desc')
+                ->get();
+
+            // Credit histories for customers in this date range (no partner_id directly, optional join logic)
+            $credit_histories = DB::table('credit_histories')
+                ->whereBetween('created_at', [$from, $to])
+                ->orderBy('created_at', 'desc')
+                ->get();
+
+            $html = View::make('pos.repair_credit_report', compact('repairs', 'credits', 'credit_histories', 'from', 'to'))->render();
+
+            $dompdf = new Dompdf();
+            $dompdf->loadHtml($html);
+            $dompdf->setPaper('A4', 'portrait');
+            $dompdf->render();
+
+            $filename = 'partner_filtered_report.pdf';
+            $path = public_path('invoice/' . $filename);
+            file_put_contents($path, $dompdf->output());
+
+            return response()->json([
+                'error' => 0,
+                'msg' => 'Report generated successfully',
+                'url' => $filename,
+            ]);
+        }
+    }
+
+    public static function runSubscription()
+    {
+        $partners = partners::where('subscription_frequency', '!=', 0)->get();
+        $date = Carbon::today();
+
+        $parts[] = 'temp';
+
+        foreach ($partners as $key => $partner) {
+
+            $update = false;
+
+            if (!$partner->next_due) {
+                $partner->last_activation = $date;
+                $partner->next_due = Carbon::today()->addDays($partner->subscription_frequency)->format('Y-m-d');
+                $partner->save();
+
+                $update = true;
+            }
+
+            if ($partner->next_due && Carbon::parse($partner->next_due)->format('Y-m-d') <= $date->format('Y-m-d')) {
+                $partner->last_activation = $date;
+                $partner->next_due = Carbon::parse($partner->next_due)->addDays($partner->subscription_frequency)->format('Y-m-d');
+                $partner->save();
+
+                $update = true;
+            }
+
+            if ($update) {
+                $invoice_pro[] = array(
+                    "name" => "Subscription of " . $date,
+                    "unit" => $partner->subscription_amount,
+                    "cost" => 0,
+                    "qty" => "1",
+                    "sku" => "temp",
+                    "id" => "temp",
+                );
+
+                $bill_no = 1001;
+                $getBillNo = Repairs::orderBy('id', 'DESC')->first();
+                $bill_no = $getBillNo && $getBillNo->count() > 0 ? (int)$getBillNo->bill_no + 1 : 1001;
+
+                $repair = new Repairs();
+                $repair->bill_no = $bill_no;
+                $repair->model_no = "";
+                $repair->serial_no = "";
+                $repair->fault = "";
+                $repair->note = "";
+                $repair->advance = 0;
+                $repair->spares = json_encode($parts);
+                $repair->total = $partner->subscription_amount;
+                $repair->cost = 0;
+                $repair->customer = 0;
+                $repair->partner = $partner->id;
+                $repair->cashier = 0;
+                $repair->status = "Delivered";
+                $repair->type = "sale";
+                $repair->paid_at = date('Y-m-d H:i:s');
+                $repair->repaired_date = date('Y-m-d H:i:s');
+                $repair->products = htmlspecialchars(json_encode($invoice_pro));
+                $repair->pos_code = company()->pos_code;
+
+                if ($repair->save()) {
+
+                    $credit = new Credit();
+                    $credit->customer_id = 0;
+                    $credit->ammount = $partner->subscription_amount;
+                    $credit->pos_code = company()->pos_code;
+                    $credit->order_id = $bill_no;
+                    $credit->save();
+
+                    $rand = date('d-m-Y-h-i-s') . '-' . rand(0, 9999999) . '.pdf';
+
+                    $inName = str_replace(' ', '-', str_replace('.', '-', $bill_no)) . '-Invoice-' . $rand;
+                    $ThermalInName = str_replace(' ', '-', str_replace('.', '-', $bill_no)) . '-Thermal-invoice-' . $rand;
+
+                    $generate_invoice = generateSalesInvoice($bill_no, $inName, $invoice_pro, 0);
+                    $generate_thermal_invoice = generateThermalSalesInvoice($bill_no, $ThermalInName, json_encode($invoice_pro), 0);
+
+                    if ($generate_invoice->generated == true) {
+
+                        Repairs::where('bill_no', $bill_no)->where('pos_code', company()->pos_code)->update([
+                            "invoice" => 'checkout/' . $inName,
+                        ]);
+                    }
+                }
+            }
+        }
+
+        $noSubPartners = partners::where('subscription_frequency', 0)->get();
+        foreach ($noSubPartners as $key => $partner) {
+            $partner->next_due = null;
+            $partner->save();
         }
     }
 }

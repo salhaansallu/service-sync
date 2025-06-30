@@ -305,6 +305,7 @@ Route::prefix('dashboard')->group(function () {
     Route::get('partner-credits', [CreditController::class, 'partnerIndex']);
     Route::post('/partner-credits/get-credits', [CreditController::class, 'getPartnerCredits']);
     Route::post('/partner-credits/pay-credit', [CreditController::class, 'payPartnerCredit']);
+    Route::post('/partner-credits/get-report', [PartnersController::class, 'getReport']);
 
     Route::get('invoice-settings', [DashboardController::class, 'InvoiceSettings']);
     Route::post('invoice-settings', [POSSettingsController::class, 'update']);

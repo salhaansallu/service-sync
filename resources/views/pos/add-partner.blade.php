@@ -102,6 +102,36 @@
                                             <div class="help-block with-errors"></div>
                                         </div>
                                     </div>
+
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label>Subscription Amount </label>
+                                            <input type="text" class="form-control" placeholder="Enter Subscription Amount"
+                                                name="subscription_amount"
+                                                value="@isset($user){{ $user->subscription_amount }}@endisset"
+                                                data-errors="Please Enter Subscription Amount." >
+                                            <div class="help-block with-errors"></div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label>Subscription Frequency </label>
+
+                                            <select name="subscription_frequency" id="" class="form-control">
+                                                <option {{ isset($user) && $user->subscription_frequency == 0 ? "selected" : '' }} value="No Subscription">No Subscription</option>
+                                                <option {{ isset($user) && $user->subscription_frequency == 1 ? "selected" : '' }} value="Daily">Daily</option>
+                                                <option {{ isset($user) && $user->subscription_frequency == 7 ? "selected" : '' }} value="Weekly">Weekly</option>
+                                                <option {{ isset($user) && $user->subscription_frequency == 14 ? "selected" : '' }} value="2 Weeks">2 Weeks</option>
+                                                <option {{ isset($user) && $user->subscription_frequency == 30 ? "selected" : '' }} value="Monthly">Monthly</option>
+                                                <option {{ isset($user) && $user->subscription_frequency == 90 ? "selected" : '' }} value="3 Months">3 Months</option>
+                                                <option {{ isset($user) && $user->subscription_frequency == 180 ? "selected" : '' }} value="6 Months">6 Months</option>
+                                                <option {{ isset($user) && $user->subscription_frequency == 270 ? "selected" : '' }} value="9 Months">9 Months</option>
+                                                <option {{ isset($user) && $user->subscription_frequency == 356 ? "selected" : '' }} value="12 Months">12 Months</option>
+                                            </select>
+                                            <div class="help-block with-errors"></div>
+                                        </div>
+                                    </div>
                                 </div>
                                 <button type="submit" id="save_btn" class="btn btn-primary mr-2">
                                     @isset($user)

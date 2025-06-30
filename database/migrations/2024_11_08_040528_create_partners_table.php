@@ -21,8 +21,11 @@ return new class extends Migration
             $table->string('email')->nullable();
             $table->string('username')->nullable();
             $table->text('password')->nullable();
-            $table->text('logo')->nullable();
             $table->decimal("store_credit", 15, 2)->nullable();
+            $table->decimal("subscription_amount", 15, 2)->nullable();
+            $table->string('subscription_frequency')->nullable();
+            $table->date('last_activation')->nullable();
+            $table->date('next_due')->nullable();
             $table->text('pos_code');
             $table->timestamps();
         });

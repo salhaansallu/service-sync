@@ -3,19 +3,36 @@
         <div class="container-fluid">
             <div class="sales-filter">
                 <div class="filter_from table-responsive pb-3">
-                    <div class="row row-cols-md-6 align-items-center justify-content-between"
-                        style="flex-wrap: nowrap;">
-                        <div class="col">
+                    <div class="row row-cols-1 row-cols-md-2 align-items-center justify-content-between row-gap-3">
+                        <div class="col d-flex align-items-center gap-3">
                             <div class="input">
                                 <div class="label">Select Partner</div>
-                                <select name="" id="" ref="partner" @change="search()" value="Today's Credits">
+                                <select name="" id="" ref="partner" @change="search()" value="Today's Credits" style="width: 200px;">
                                     <option :value="partner['id']" v-for="partner in partners">{{ partner['name'] }}
                                     </option>
                                 </select>
                             </div>
+
+                            <button class="btn btn-primary mt-3" style="height: 40px;" @click="payCredit()">Pay Credit</button>
                         </div>
                         <div class="col">
-                            <button class="btn btn-primary" @click="payCredit()">Pay Credit</button>
+                            <div class="row row-cols-1 row-cols-md-3 align-items-center">
+                                <div class="col">
+                                    <div class="form-group input-group-sm">
+                                        <label for="">From Date</label>
+                                        <input type="date" ref="from_date" name="from" id="" class="form-control">
+                                    </div>
+                                </div>
+                                <div class="col">
+                                    <div class="form-group input-group-sm">
+                                        <label for="">To Date</label>
+                                        <input type="date" ref="to_date" name="to" id="" class="form-control">
+                                    </div>
+                                </div>
+                                <div class="col">
+                                    <button class="btn btn-primary mt-2" @click="getReport()">Get Report</button>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -271,6 +288,52 @@ export default {
                 let objFra = document.createElement('iframe');
                 objFra.style.visibility = 'hidden';
                 objFra.src = '/credit-invoice/' + data.bill;
+                document.body.appendChild(objFra);
+                objFra.contentWindow.focus();
+                objFra.contentWindow.print();
+            }
+            else {
+                toastr.error(data.msg, "Error");
+            }
+
+            setTimeout(function () {
+                $("#loadingModal").modal('hide');
+            }, 1000);
+
+        },
+        async getReport() {
+            var credit = this.$refs.partner.value;
+            var from_date = this.$refs.from_date.value;
+            var to_date = this.$refs.to_date.value;
+
+            if (credit == '' || credit == 0 || credit == 'all') {
+                toastr.error('Please select a partner', "Error");
+                return false;
+            }
+
+            if (from_date == '' || to_date == '') {
+                toastr.error('Please select from and to dates', "Error");
+                return false;
+            }
+
+            $("#loadingModal").modal('show');
+
+            const { data } = await axios.post("/dashboard/partner-credits/get-report", {
+                partner_id: credit,
+                from: from_date,
+                to: to_date,
+            });
+
+            $("#loadingModal").modal('hide');
+
+            if (data.error == 0) {
+                $("#loadingModal").modal('hide');
+
+                toastr.success('Report generated', 'Success');
+
+                let objFra = document.createElement('iframe');
+                objFra.style.visibility = 'hidden';
+                objFra.src = '/invoice/' + data.url;
                 document.body.appendChild(objFra);
                 objFra.contentWindow.focus();
                 objFra.contentWindow.print();
