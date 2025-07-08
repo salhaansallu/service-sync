@@ -141,18 +141,20 @@ class RepairsController extends Controller
 
                     if ($update->update(["note" => $note, "status" => $status, "total" => $total, "cost" => $cost, "spares" => json_encode($parts)])) {
 
-                        $customerData = customers::where('id', $update->get()[0]["customer"])->get();
-                        $sms = new SMS();
-                        $sms->contact = array(array(
-                            "fname" => $customerData[0]["name"],
-                            "lname" => "",
-                            "group" => "",
-                            "number" => $customerData[0]["phone"],
-                            "email" => $customerData[0]["email"],
-                        ));
+                        if ($request->has('send_sms') && sanitize($request->input('send_sms')) == true) {
+                            $customerData = customers::where('id', $update->get()[0]["customer"])->get();
+                            $sms = new SMS();
+                            $sms->contact = array(array(
+                                "fname" => $customerData[0]["name"],
+                                "lname" => "",
+                                "group" => "",
+                                "number" => $customerData[0]["phone"],
+                                "email" => $customerData[0]["email"],
+                            ));
 
-                        $sms->message = "Dear Customer, \nWe are awaiting parts for your repair. Delivery by air cargo takes 7 to 10 days, and by sea cargo, 45 to 60 days. We’ll update you once they arrive. The total cost is " . currency($update->get()[0]["total"]) . ", with " . currency($update->get()[0]["advance"]) . " paid as advance. For more info, please contact us at " . formatPhoneNumber(getUserData(company()->admin_id)->phone) . ". Thank you for your patience.";
-                        $sms->Send();
+                            $sms->message = "Dear Customer, \nWe are awaiting parts for your repair. Delivery by air cargo takes 7 to 10 days, and by sea cargo, 45 to 60 days. We’ll update you once they arrive. The total cost is " . currency($update->get()[0]["total"]) . ", with " . currency($update->get()[0]["advance"]) . " paid as advance. For more info, please contact us at " . formatPhoneNumber(getUserData(company()->admin_id)->phone) . ". Thank you for your patience.";
+                            $sms->Send();
+                        }
                     }
                 }
 
@@ -198,25 +200,29 @@ class RepairsController extends Controller
 
                 if ($update->update(["note" => $note, "techie" => $techie, "status" => $status, "total" => $total, "cost" => $cost, "spares" => json_encode($parts), "repaired_date" => date('Y-m-d H:i:s')])) {
 
-                    $customerData = customers::where('id', $update->get()[0]["customer"])->get();
-                    $sms = new SMS();
-                    $sms->contact = array(array(
-                        "fname" => $customerData[0]["name"],
-                        "lname" => "",
-                        "group" => "",
-                        "number" => $customerData[0]["phone"],
-                        "email" => $customerData[0]["email"],
-                    ));
+                    if ($request->has('send_sms') && sanitize($request->input('send_sms')) == true) {
+                        $customerData = customers::where('id', $update->get()[0]["customer"])->get();
+                        $sms = new SMS();
+                        $sms->contact = array(array(
+                            "fname" => $customerData[0]["name"],
+                            "lname" => "",
+                            "group" => "",
+                            "number" => $customerData[0]["phone"],
+                            "email" => $customerData[0]["email"],
+                        ));
 
-                    if ($status == "Repaired") {
-                        $sms->message = "Dear Customer, \nyour product repair is complete. The total cost is " . currency($update->get()[0]["total"]) . ", with " . currency($update->get()[0]["advance"]) . " paid as advance. The remaining balance is " . currency($update->get()[0]["total"] - $update->get()[0]["advance"]) . ". \nThank you for choosing " . company()->company_name . ".";
-                    } elseif ($status == "Customer Pending") {
-                        $sms->message = "Dear Customer,\nThis is the WeFix.lk team. We tried contacting you regarding your service request but couldn't reach you. The total cost is " . currency($update->get()[0]["total"]) . ", with " . currency($update->get()[0]["advance"]) . " paid as advance. Please let us know a convenient time for us to call, or feel free to contact us at " . formatPhoneNumber(getUserData(company()->admin_id)->phone) . ". \nThank you for choosing " . company()->company_name . ".";
-                    } else {
-                        $sms->message = "Dear Customer, \nWe couldn't repair some of your items. The total cost is " . currency($update->get()[0]["total"]) . ", with " . currency($update->get()[0]["advance"]) . " paid as advance. Please collect them within 14 days, as we are not responsible after this period. For any questions, call us at " . formatPhoneNumber(getUserData(company()->admin_id)->phone) . ". \nThank you for choosing " . company()->company_name . ".";
+                        if ($status == "Repaired") {
+                            $sms->message = "Dear Customer, \nyour product repair is complete. The total cost is " . currency($update->get()[0]["total"]) . ", with " . currency($update->get()[0]["advance"]) . " paid as advance. The remaining balance is " . currency($update->get()[0]["total"] - $update->get()[0]["advance"]) . ". \nThank you for choosing " . company()->company_name . ".";
+                        } elseif ($status == "Customer Pending") {
+                            $sms->message = "Dear Customer,\nThis is the WeFix.lk team. We tried contacting you regarding your service request but couldn't reach you. The total cost is " . currency($update->get()[0]["total"]) . ", with " . currency($update->get()[0]["advance"]) . " paid as advance. Please let us know a convenient time for us to call, or feel free to contact us at " . formatPhoneNumber(getUserData(company()->admin_id)->phone) . ". \nThank you for choosing " . company()->company_name . ".";
+                        } else {
+                            $sms->message = "Dear Customer, \nWe couldn't repair some of your items. The total cost is " . currency($update->get()[0]["total"]) . ", with " . currency($update->get()[0]["advance"]) . " paid as advance. Please collect them within 14 days, as we are not responsible after this period. For any questions, call us at " . formatPhoneNumber(getUserData(company()->admin_id)->phone) . ". \nThank you for choosing " . company()->company_name . ".";
+                        }
+
+                        $sms->Send();
                     }
 
-                    $sms->Send();
+
 
                     generateInvoice($bill_no, str_replace(['checkout/', 'newOrder/'], ['', ''], $update->get()[0]["invoice"]), 'newOrder');
                     generateThermalInvoice($bill_no, str_replace('Invoice', 'Thermal-invoice', str_replace(['checkout/', 'newOrder/'], ['', ''], $update->get()[0]["invoice"])), 'newOrder');
@@ -340,11 +346,11 @@ class RepairsController extends Controller
                             $repair->model_no = $model_no;
                             $repair->serial_no = $serial_no;
                             $repair->fault = $fault;
-                            $repair->has_multiple_fault = $has_multiple_faults? 'Y' : 'N';
+                            $repair->has_multiple_fault = $has_multiple_faults ? 'Y' : 'N';
                             $repair->multiple_fault = json_encode($faults);
                             $repair->note = $note;
                             $repair->advance = $advance;
-                            $repair->total = $has_multiple_faults? $totalAmount : $total;
+                            $repair->total = $has_multiple_faults ? $totalAmount : $total;
                             $repair->customer = $customer;
                             $repair->partner = $partner == "" ? 0 : $partner;
                             $repair->cashier = $cashier_no;
@@ -363,7 +369,7 @@ class RepairsController extends Controller
 
                             if ($repair->save()) {
 
-                                if (($partner == "" || $partner == 0) && $repair->type == 'repair' && $bill_type == 'new-order') {
+                                if (($partner == "" || $partner == 0) && $repair->type == 'repair' && $bill_type == 'new-order' && $request->has('send_sms') && sanitize($request->input('send_sms')) == true) {
                                     $sms = new SMS();
                                     $sms->contact = array(array(
                                         "fname" => $customerData[0]["name"],

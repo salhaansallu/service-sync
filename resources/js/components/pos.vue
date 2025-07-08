@@ -1241,6 +1241,7 @@ export default {
                 var techie = this.$refs.techie.value;
                 var sparePro = [];
                 var service_cost = 0;
+                var send_sms = false;
 
                 if (total.trim() == "") {
                     toastr.error("Please enter a total amount", "Error");
@@ -1284,6 +1285,10 @@ export default {
                 //     });
                 // }
 
+                if (confirm("Do you want to send SMS notification to customer")) {
+                    send_sms = true;
+                }
+
                 this.loadModal("show");
 
                 const { data } = await axios.post('/pos/update', {
@@ -1294,6 +1299,7 @@ export default {
                     service_cost: service_cost,
                     techie: techie,
                     status: status,
+                    send_sms: send_sms,
 
                 }).catch(function (error) {
                     this.loadModal("hide");
@@ -1336,6 +1342,7 @@ export default {
             var parent_bill_no = this.new_bill == false ? this.$refs.parent_bill_no.value : '';
             var new_order_qty = this.$refs.new_order_qty.value;
             var faults = [];
+            var send_sms = false;
 
             if (cashier_no.trim() == "") {
                 toastr.error("Please enter cashier code", "Error");
@@ -1367,6 +1374,10 @@ export default {
                     toastr.error("Please enter old bill number", "Error");
                     return;
                 }
+            }
+
+            if (confirm("Do you want to send SMS notification to customer")) {
+                send_sms = true;
             }
 
             this.isDisabled = true;
@@ -1407,6 +1418,7 @@ export default {
                 new_order_qty: new_order_qty,
                 has_multiple_faults: this.multipleFult,
                 faults: JSON.stringify(faults),
+                send_sms: send_sms,
             }).catch(function (error) {
                 if (error.response) {
                     this.loadModal("hide");
