@@ -129,6 +129,7 @@ class PosDataController extends Controller
             $advance = 0;
             $delivery = sanitize($request['delivery']);
             $warranty = sanitize($request['warranty']);
+            $signature = sanitize($request['signature']);
 
             $rand = date('d-m-Y-h-i-s') . '-' . rand(0, 9999999) . '.pdf';
             $inName = str_replace(' ', '-', str_replace('.', '-', $bill_no[0])) . '-Delivery-' . $rand;
@@ -145,6 +146,7 @@ class PosDataController extends Controller
                     "paid_at" => Carbon::now(),
                     "delivery" => $delivery,
                     "warranty" => $warranty,
+                    "signature" => $signature,
                 ]);
 
                 $rp = Repairs::where('bill_no', $id)->get(['techie', 'total', 'cost']);

@@ -915,7 +915,7 @@ function generateInvoice($order_id, $inName, $bill_type)
                 $delivery = $temp_order->delivery;
                 $total += $temp_order->total;
                 $advance += $temp_order->advance;
-                $orders[] = array("id" => $id, "total" => $temp_order->total, "advance" => $temp_order->advance, "model" => $temp_order->model_no, "serial" => $temp_order->serial_no, 'warranty' => $temp_order->warranty);
+                $orders[] = array("id" => $id, "total" => $temp_order->total, "advance" => $temp_order->advance, "model" => $temp_order->model_no, "serial" => $temp_order->serial_no, 'warranty' => $temp_order->warranty, 'signature'=>$temp_order->signature);
             }
         }
 
@@ -928,7 +928,7 @@ function generateInvoice($order_id, $inName, $bill_type)
             $total += $temp_order->total;
             $delivery = $temp_order->delivery;
             $advance += $temp_order->advance;
-            $orders[] = array("id" => $order_id, "total" => $temp_order->total, "advance" => $temp_order->advance, "model" => $temp_order->model_no, "serial" => $temp_order->serial_no, 'warranty' => $temp_order->warranty);
+            $orders[] = array("id" => $order_id, "total" => $temp_order->total, "advance" => $temp_order->advance, "model" => $temp_order->model_no, "serial" => $temp_order->serial_no, 'warranty' => $temp_order->warranty, 'signature'=>$temp_order->signature);
         }
 
         $repairs = Repairs::where('bill_no', $order_id)->where('pos_code', $company->pos_code)->get()[0];
@@ -1171,7 +1171,8 @@ function generateInvoice($order_id, $inName, $bill_type)
                 <table style="width: 100%; border-top: 1px solid black;">
                     <tr>
                         <td style="padding: 10px; text-align: center; border-right: 1px solid black; width: 50%;">
-                            <p>_____________________</p>
+                            <img src="' . $orders[0]["signature"] . '" style="margin-bottom: -10px;width: 120px;">
+                            <p style="margin: 0;">_____________________</p>
                             <p style="margin-top: 5px;">Customer Signature</p>
                         </td>
                         <td style="padding: 10px; text-align: center; width: 50%;">
@@ -1224,7 +1225,7 @@ function generateThermalInvoice($order_id, $inName, $bill_type)
                 $total += $temp_order->total;
                 $delivery = $temp_order->delivery;
                 $advance += $temp_order->advance;
-                $orders[] = array("id" => $id, "total" => $temp_order->total, "advance" => $temp_order->advance, "model" => $temp_order->model_no, "serial" => $temp_order->serial_no, 'warranty' => $temp_order->warranty, "fault" => $temp_order->fault, 'has_multiple_fault'=>$temp_order->has_multiple_fault, 'multiple_fault'=> $temp_order->multiple_fault);
+                $orders[] = array("id" => $id, "total" => $temp_order->total, "advance" => $temp_order->advance, "model" => $temp_order->model_no, "serial" => $temp_order->serial_no, 'warranty' => $temp_order->warranty, "fault" => $temp_order->fault, 'has_multiple_fault'=>$temp_order->has_multiple_fault, 'multiple_fault'=> $temp_order->multiple_fault, 'signature'=>$temp_order->signature);
             }
         }
 
@@ -1241,7 +1242,7 @@ function generateThermalInvoice($order_id, $inName, $bill_type)
             $total += $temp_order->total;
             $delivery = $temp_order->delivery;
             $advance += $temp_order->advance;
-            $orders[] = array("id" => $order_id, "total" => $temp_order->total, "advance" => $temp_order->advance, "model" => $temp_order->model_no, "serial" => $temp_order->serial_no, 'warranty' => $temp_order->warranty, "fault" => $temp_order->fault, 'has_multiple_fault'=>$temp_order->has_multiple_fault, 'multiple_fault'=> $temp_order->multiple_fault);
+            $orders[] = array("id" => $order_id, "total" => $temp_order->total, "advance" => $temp_order->advance, "model" => $temp_order->model_no, "serial" => $temp_order->serial_no, 'warranty' => $temp_order->warranty, "fault" => $temp_order->fault, 'has_multiple_fault'=>$temp_order->has_multiple_fault, 'multiple_fault'=> $temp_order->multiple_fault, 'signature'=>$temp_order->signature);
         }
 
         $repairs = Repairs::where('bill_no', $order_id)->get()[0];
@@ -1547,7 +1548,10 @@ function generateThermalInvoice($order_id, $inName, $bill_type)
 
             <table style="width: 100%; border-collapse: collapse;border-top: 1px solid #000; margin-top: 10px;">
                 <tr>
-                    <td style="text-align: center; width: 50%; font-size: 14px;padding-top: 50px;">-------------------------</td>
+                    <td style="text-align: center; width: 50%; font-size: 14px;padding-top: 50px;">
+                        <img src="' . $orders[0]["signature"] . '" style="width: 100px;">
+                        <div>-------------------------</div>
+                    </td>
                     <td style="text-align: center; width: 50%; font-size: 14px;padding-top: 50px;">' . substr(getUser(Auth::user()->id)->fname, 0, 11) . '</td>
                 </tr>
                 <tr>

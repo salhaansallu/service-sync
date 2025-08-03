@@ -294,7 +294,7 @@
             <div class="proceed_btn">
                 <div class="row row-cols-1">
                     <div class="col">
-                        <button class="primary-btn submit-btn w-100" @click="proceed()">Checkout</button>
+                        <button class="primary-btn submit-btn w-100" @click="getSignaure()">Checkout</button>
                     </div>
                 </div>
             </div>
@@ -756,6 +756,23 @@
         </div>
     </div>
 
+    <div class="modal fade" id="signature" tabindex="-1" role="dialog" aria-labelledby="signature" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+        <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-body">
+                      <div class="signature-container">
+                        <h3 class="text-start">Sign here</h3>
+                        <canvas ref="canvas" width="400" height="200" style="border: 1px solid #ccc;"></canvas>
+                        <div class="mt-4">
+                            <button class="btn btn-sm btn-danger" @click="clearSignature">Clear</button>
+                            <button class="btn btn-sm btn-success mx-2" @click="saveSignature">Save</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="row m-0 p-3 pending-orders row-gap-5">
         <div class="col-12 fw-bold fs-3 mt-3 text-center">Pending Orders</div>
         <div class="col-2" v-for="order in pendingOrders">
@@ -783,6 +800,7 @@ import { validateName, checkEmpty, validateCountry, validatePhone, getUrlParam, 
 import axios from 'axios';
 import printJS from 'print-js';
 import sale_pos from './sale_pos.vue';
+import SignaturePad from 'signature_pad'
 
 export default {
     props: ['app_url'],
@@ -812,6 +830,7 @@ export default {
             multipleFult: false,
             faultCount: 1,
             selectedFaults: [],
+            signaturePad: null,
         }
     },
     methods: {
@@ -823,6 +842,20 @@ export default {
         },
         loadModal(action) {
             $("#loadingModal").modal(action);
+        },
+        getSignaure(action = 'show') {
+            $("#signature").modal(action);
+        },
+        saveSignature() {
+            if (this.signaturePad.isEmpty()) {
+                toastr.error("Signature is required!", "Error")
+                return;
+            }
+
+            this.proceed()
+        },
+        clearSignature() {
+            this.signaturePad.clear()
         },
         goTo(location) {
             window.location.href = location;
@@ -1186,11 +1219,14 @@ export default {
 
                 if (payment == "credit" || payment == "cash") {
 
+                    this.getSignaure('hide');
                     this.loadModal("show");
 
                     this.selectedRepair.forEach(element => {
                         repair.push(element['bill_no']);
                     });
+
+                    const signDataURL = this.signaturePad.toDataURL('image/png');
 
                     const { data } = await axios.post('/pos/checkout', {
                         params: {
@@ -1198,23 +1234,29 @@ export default {
                             cashin: cashin,
                             delivery: order_delivery,
                             warranty: order_warranty,
+                            signature: signDataURL
                         }
                     }).catch(function (error) {
                         if (error.response) {
+                            this.getSignaure('hide');
                             this.loadModal("hide");
                         }
                     });
+                    this.getSignaure('hide');
                     this.loadModal("hide");
 
                     if (data.error == "0") {
+                        this.getSignaure('hide');
                         this.loadModal("hide");
                         toastr.success(data.msg, "Success");
                         //printJS(data.invoiceURL);
                         this.getRepairs();
                         this.reloadPOS();
                         window.open(data.invoiceURL, '_blank');
+                        this.clearSignature();
                     }
                     else {
+                        this.getSignaure('hide');
                         this.loadModal("hide");
                         toastr.error(data.msg, "Error");
                     }
@@ -1229,6 +1271,7 @@ export default {
                 toastr.error("Please select products", "Error");
             }
             setTimeout(() => {
+                this.getSignaure('hide');
                 this.loadModal('hide');
             }, 1000);
         },
@@ -1726,6 +1769,11 @@ export default {
             this.selectedFaults = JSON.parse(faults);
             $('#faultsDisplay').modal('toggle');
         },
+        handleKey(event) {
+            if (event.ctrlKey && event.key === 'Backspace') {
+                this.clearSignature();
+            }
+        },
     },
     beforeMount() {
         this.getPosData();
@@ -1749,6 +1797,21 @@ export default {
                 }
             }
         });
-    }
+
+        this.signaturePad = new SignaturePad(this.$refs.canvas)
+
+        window.addEventListener('keydown', this.handleKey);
+    },
+    beforeUnmount() {
+        window.removeEventListener('keydown', this.handleKey);
+    },
 }
 </script>
+
+<style scoped>
+.signature-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+</style>

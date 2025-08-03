@@ -38,6 +38,7 @@ return new class extends Migration
             $table->timestamp("paid_date")->nullable();
             $table->timestamp("repaired_date")->nullable();
             $table->integer("warranty")->default(0);
+            $table->text("signature")->nullable();
             $table->timestamps();
         });
     }

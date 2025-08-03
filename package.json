@@ -23,6 +23,7 @@
         "jquery-creditcardvalidator": "^1.2.0",
         "print-js": "^1.6.0",
         "select2": "^4.1.0-rc.0",
+        "signature_pad": "^5.0.10",
         "toastr": "^2.1.4",
         "vue": "^3.3.8",
         "vue-multiselect": "^3.0.0",
