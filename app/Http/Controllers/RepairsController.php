@@ -284,6 +284,7 @@ class RepairsController extends Controller
                 $parent_bill_no = sanitize($request->input('parent_bill_no'));
                 $new_order_qty = sanitize($request->input('new_order_qty'));
                 $has_multiple_faults = sanitize($request->input('has_multiple_faults'));
+                $signature = sanitize($request->input('signature'));
                 $faults = json_decode($request->input('faults'));
                 $customerData = [];
                 $billData = [];
@@ -357,6 +358,7 @@ class RepairsController extends Controller
                             $repair->techie = '';
                             $repair->status = "Pending";
                             $repair->parent = $bill_type == 'new-order' ? NULL : $parent_bill_no;
+                            $repair->signature = $signature;
 
                             if (isset($_GET['source']) && sanitize($_GET['source']) == "other-pos") {
                                 $repair->type = "other";

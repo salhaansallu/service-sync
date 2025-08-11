@@ -109,7 +109,7 @@
                 </div>
             </div>
 
-            <div class="row">
+            <div class="row row-wrap">
                 <div class="col-12 mt-4 mb-2">
                     <div class="order-display">
                         <div class="row">
@@ -255,7 +255,7 @@
                     </div>
                     <div class="col">
                         <input type="number" ref="cashin" value="0"
-                            @keyup="$event.key == 'Enter' ? proceed() : updateOrder()" @focus="$event.target.select();">
+                            @keyup="$event.key == 'Enter' ? getSignaure('show', 'checkout') : updateOrder()" @focus="$event.target.select();">
                     </div>
                 </div>
 
@@ -289,7 +289,7 @@
             <div class="proceed_btn">
                 <div class="row row-cols-1">
                     <div class="col">
-                        <button class="primary-btn submit-btn w-100" @click="proceed()">Checkout</button>
+                        <button class="primary-btn submit-btn w-100" @click="getSignaure('show', 'checkout')">Checkout</button>
                     </div>
                 </div>
             </div>
@@ -489,7 +489,7 @@
                             </div>
 
                             <div class="col-12 mt-3">
-                                <button :disabled="isDisabled" @click="PlaceOrder()"
+                                <button :disabled="isDisabled" @click="getSignaure('show','newOrder')"
                                     class="primary-btn submit-btn">Save</button>
                                 <button @click="getCashierModel('hide')"
                                     style="background: transparent; color: red !important; border: red 1px solid;"
@@ -695,6 +695,30 @@
         </div>
     </div>
 
+    <div class="modal fade" id="signature" tabindex="-1" role="dialog" aria-labelledby="signature" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-body">
+                      <div class="signature-container">
+                        <h3 class="text-start">Sign here</h3>
+                        <div class="form-text">
+                            <p>By agreeing to these terms, you acknowledge and accept these conditions:</p>
+                            <ul>
+                                <li>If you retrieve your item before the repair is completed, you must still pay the repair charges.</li>
+                                <li>The company is not responsible for items not collected within 14 days after repair.</li>
+                            </ul>
+                        </div>
+                        <canvas ref="canvas" width="400" height="200" style="border: 1px solid #ccc;"></canvas>
+                        <div class="mt-4">
+                            <button class="btn btn-sm btn-danger" @click="clearSignature">Clear</button>
+                            <button class="btn btn-sm btn-success mx-2" @click="saveSignature">Save</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="modal fade" id="NewSale" tabindex="-1" role="dialog" aria-labelledby="NewSale" aria-hidden="true"
         data-bs-backdrop="static" data-bs-keyboard="false">
         <div class="modal-dialog modal-fullscreen" role="document">
@@ -725,6 +749,7 @@ import { validateName, checkEmpty, validateCountry, validatePhone, getUrlParam, 
 import axios from 'axios';
 import printJS from 'print-js';
 import sale_pos from './sale_pos.vue';
+import SignaturePad from 'signature_pad'
 
 export default {
     props: ['app_url'],
@@ -751,6 +776,7 @@ export default {
             multipleFult: false,
             faultCount: 1,
             selectedFaults: [],
+            signaturePad: null,
         }
     },
     methods: {
@@ -762,6 +788,28 @@ export default {
         },
         loadModal(action) {
             $("#loadingModal").modal(action);
+        },
+        getSignaure(action = 'show', signatureFor = null) {
+            this.signatureFor = signatureFor;
+            $("#signature").modal(action);
+        },
+        saveSignature() {
+            if (this.signaturePad.isEmpty()) {
+                toastr.error("Signature is required!", "Error")
+                return;
+            }
+
+            if (this.signatureFor == 'checkout') {
+                this.proceed()
+            }
+
+            if (this.signatureFor == 'newOrder') {
+                this.PlaceOrder()
+            }
+
+        },
+        clearSignature() {
+            this.signaturePad.clear()
         },
         goTo(location) {
             window.location.href = location;
@@ -1112,15 +1160,19 @@ export default {
                         repair.push(element['bill_no']);
                     });
 
+                    const signDataURL = this.signaturePad.toDataURL('image/png');
+
                     const { data } = await axios.post('/other-pos/checkout', {
                         params: {
                             bill_no: repair,
                             cashin: cashin,
                             delivery: order_delivery,
                             warranty: order_warranty,
+                            signature: signDataURL,
                         }
                     }).catch(function (error) {
                         if (error.response) {
+                            this.getSignaure('hide');
                             this.loadModal("hide");
                         }
                     });
@@ -1132,9 +1184,12 @@ export default {
                         //printJS(data.invoiceURL);
                         this.getRepairs();
                         this.reloadPOS();
+                        this.getSignaure('hide');
+                        this.clearSignature();
                         window.open(data.invoiceURL, '_blank');
                     }
                     else {
+                        this.getSignaure('hide');
                         this.loadModal("hide");
                         toastr.error(data.msg, "Error");
                     }
@@ -1149,6 +1204,7 @@ export default {
                 toastr.error("Please select products", "Error");
             }
             setTimeout(() => {
+                this.getSignaure('hide');
                 this.loadModal('hide');
             }, 1000);
         },
@@ -1255,6 +1311,7 @@ export default {
             var parent_bill_no = this.new_bill == false ? this.$refs.parent_bill_no.value : '';
             var new_order_qty = this.$refs.new_order_qty.value;
             var faults = [];
+            var send_sms = false;
 
             if (cashier_no.trim() == "") {
                 toastr.error("Please enter cashier code", "Error");
@@ -1288,6 +1345,10 @@ export default {
                 }
             }
 
+            if (confirm("Do you want to send SMS notification to customer")) {
+                send_sms = true;
+            }
+
             this.isDisabled = true;
 
             if (this.multipleFult) {
@@ -1295,6 +1356,8 @@ export default {
                     faults.push({ fault: this.$refs['fault_' + (i + 1)][0].value, price: this.$refs['price_' + (i + 1)][0].value });
                 }
             }
+
+            const signDataURL = this.signaturePad.toDataURL('image/png');
 
             const { data } = await axios.post('/other-pos/new_order?source=other-pos', {
                 total: total,
@@ -1311,8 +1374,11 @@ export default {
                 new_order_qty: new_order_qty,
                 has_multiple_faults: this.multipleFult,
                 faults: JSON.stringify(faults),
+                send_sms: send_sms,
+                signature: signDataURL,
             }).catch(function (error) {
                 if (error.response) {
+                    this.getSignaure('hide');
                     this.loadModal("hide");
                 }
             });
@@ -1321,6 +1387,8 @@ export default {
 
             if (data.error == "0") {
                 this.loadModal("hide");
+                this.getSignaure('hide');
+                this.clearSignature();
                 toastr.success(data.msg, "Success");
                 //printJS(data.invoiceURL);
                 this.$refs.bill_type.value = "new-order";
@@ -1354,6 +1422,7 @@ export default {
             }
             else {
                 this.loadModal("hide");
+                this.getSignaure('hide');
                 toastr.error(data.msg, "Error");
                 this.isDisabled = false;
             }
@@ -1592,6 +1661,16 @@ export default {
                 }
             }
         });
+
+        this.signaturePad = new SignaturePad(this.$refs.canvas)
     }
 }
 </script>
+
+<style scoped>
+.signature-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+</style>

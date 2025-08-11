@@ -260,7 +260,7 @@
                     </div>
                     <div class="col">
                         <input type="number" ref="cashin" value="0"
-                            @keyup="$event.key == 'Enter' ? proceed() : updateOrder()" @focus="$event.target.select();">
+                            @keyup="$event.key == 'Enter' ? getSignaure('show','checkout') : updateOrder()" @focus="$event.target.select();">
                     </div>
                 </div>
 
@@ -294,7 +294,7 @@
             <div class="proceed_btn">
                 <div class="row row-cols-1">
                     <div class="col">
-                        <button class="primary-btn submit-btn w-100" @click="getSignaure()">Checkout</button>
+                        <button class="primary-btn submit-btn w-100" @click="getSignaure('show','checkout')">Checkout</button>
                     </div>
                 </div>
             </div>
@@ -529,7 +529,7 @@
                             </div>
 
                             <div class="col-12 mt-3">
-                                <button :disabled="isDisabled" @click="PlaceOrder()"
+                                <button :disabled="isDisabled" @click="getSignaure('show','newOrder')"
                                     class="primary-btn submit-btn">Save</button>
                                 <button @click="getCashierModel('hide')"
                                     style="background: transparent; color: red !important; border: red 1px solid;"
@@ -756,12 +756,19 @@
         </div>
     </div>
 
-    <div class="modal fade" id="signature" tabindex="-1" role="dialog" aria-labelledby="signature" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal fade" id="signature" tabindex="-1" role="dialog" aria-labelledby="signature" aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
             <div class="modal-content">
                 <div class="modal-body">
                       <div class="signature-container">
                         <h3 class="text-start">Sign here</h3>
+                        <div class="form-text">
+                            <p>By agreeing to these terms, you acknowledge and accept these conditions:</p>
+                            <ul>
+                                <li>If you retrieve your item before the repair is completed, you must still pay the repair charges.</li>
+                                <li>The company is not responsible for items not collected within 14 days after repair.</li>
+                            </ul>
+                        </div>
                         <canvas ref="canvas" width="400" height="200" style="border: 1px solid #ccc;"></canvas>
                         <div class="mt-4">
                             <button class="btn btn-sm btn-danger" @click="clearSignature">Clear</button>
@@ -831,6 +838,7 @@ export default {
             faultCount: 1,
             selectedFaults: [],
             signaturePad: null,
+            signatureFor: null,
         }
     },
     methods: {
@@ -843,7 +851,8 @@ export default {
         loadModal(action) {
             $("#loadingModal").modal(action);
         },
-        getSignaure(action = 'show') {
+        getSignaure(action = 'show', signatureFor = null) {
+            this.signatureFor = signatureFor;
             $("#signature").modal(action);
         },
         saveSignature() {
@@ -852,7 +861,14 @@ export default {
                 return;
             }
 
-            this.proceed()
+            if (this.signatureFor == 'checkout') {
+                this.proceed()
+            }
+
+            if (this.signatureFor == 'newOrder') {
+                this.PlaceOrder()
+            }
+
         },
         clearSignature() {
             this.signaturePad.clear()
@@ -1446,6 +1462,8 @@ export default {
 
             note2 += "\n" + note.replace(/\r?\n/g, '\n');
 
+            const signDataURL = this.signaturePad.toDataURL('image/png');
+
             const { data } = await axios.post('/pos/new_order', {
                 total: total,
                 model_no: model_no,
@@ -1462,8 +1480,10 @@ export default {
                 has_multiple_faults: this.multipleFult,
                 faults: JSON.stringify(faults),
                 send_sms: send_sms,
+                signature: signDataURL,
             }).catch(function (error) {
                 if (error.response) {
+                    this.getSignaure('hide');
                     this.loadModal("hide");
                 }
             });
@@ -1472,6 +1492,8 @@ export default {
 
             if (data.error == "0") {
                 this.loadModal("hide");
+                this.getSignaure('hide');
+                this.clearSignature();
                 toastr.success(data.msg, "Success");
 
                 this.$refs.bill_type.value = "new-order";
@@ -1505,6 +1527,7 @@ export default {
                 window.open(data.invoiceURL, '_blank');
             }
             else {
+                this.getSignaure('hide');
                 this.loadModal("hide");
                 toastr.error(data.msg, "Error");
                 this.isDisabled = false;

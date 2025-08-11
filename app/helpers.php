@@ -1098,7 +1098,8 @@ function generateInvoice($order_id, $inName, $bill_type)
                 <table style="width: 100%;">
                     <tr>
                         <td style="padding: 10px; text-align: center; width: 50%;">
-                            <p>_____________________</p>
+                            <img src="' . $orders[0]["signature"] . '" style="margin-bottom: -10px;width: 120px;">
+                            <p style="margin: 0;">_____________________</p>
                             <p style="margin-top: 5px;">Customer Signature</p>
                         </td>
                         <td style="padding: 10px; text-align: center; width: 50%;">
