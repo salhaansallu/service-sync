@@ -2,19 +2,88 @@
     <div class="content-page">
         <div class="container-fluid">
             <div class="sales-filter">
-                <div class="filter_from table-responsive pb-3">
-                    <div class="row row-cols-md-6 align-items-center justify-content-between" style="flex-wrap: nowrap;">
-                        <div class="col">
-                            <div class="input">
-                                <div class="label">Select Customer</div>
-                                <select name="" id="" ref="customer" @change="search()" value="Today's Credits">
-                                    <option value="all">All Customers</option>
-                                    <option :value="customer['id']" v-for="customer in customers">{{ customer['name'] }}</option>
-                                </select>
+                <div class="filter_from pb-3">
+                    <div class="row" v-if="isadmin">
+                        <div class="col-12">
+                            <div class="head">
+                                <h4 class="text-center">Ageing Summary</h4>
+                            </div>
+                            <div class="order_table mt-4">
+                                <div class="table-responsive rounded mb-3">
+                                    <table class="table mb-0 tbl-server-info" style="width: 98%;">
+                                        <thead class="bg-white text-uppercase">
+                                            <tr class="ligth ligth-data">
+                                                <th class="text-start">7 Days</th>
+                                                <th class="text-start">15 Days</th>
+                                                <th class="text-start">30 Days</th>
+                                                <th class="text-start">60 Days</th>
+                                                <th class="text-start">Over 60 Days</th>
+                                                <th class="text-start">Total</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="ligth-body">
+                                            <tr>
+                                                <td class="text-start"><a @click="search('7')"
+                                                        href="javascript:void(0)">{{ currency(summary.days_7, '') }}</a>
+                                                </td>
+                                                <td class="text-start"><a @click="search('15')"
+                                                        href="javascript:void(0)">{{ currency(summary.days_15, '')
+                                                        }}</a></td>
+                                                <td class="text-start"><a @click="search('30')"
+                                                        href="javascript:void(0)">{{ currency(summary.days_30, '')
+                                                        }}</a></td>
+                                                <td class="text-start"><a @click="search('60')"
+                                                        href="javascript:void(0)">{{ currency(summary.days_60, '')
+                                                        }}</a></td>
+                                                <td class="text-start"><a @click="search('60+')"
+                                                        href="javascript:void(0)">{{ currency(summary.over_60_days, '')
+                                                        }}</a></td>
+                                                <td class="text-start"><a @click="search('all')"
+                                                        href="javascript:void(0)">{{ currency(summary.total, '') }}</a>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
                             </div>
                         </div>
-                        <div class="col">
-                            <button class="btn btn-primary" @click="payCredit()">Pay Credit</button>
+                        <hr>
+                    </div>
+                    <div class="row justify-content-between mt-4" style="flex-wrap: nowrap;">
+                        <div class="col-lg-8 d-lg-flex gap-2 justify-content-between">
+                            <div class="input mt-3">
+                                <div class="label">Customer</div>
+                                <select name="" id="" class="select2" ref="customer" @change="search()">
+                                    <option value="">Select Customer</option>
+                                    <option :value="customer['id']" v-for="customer in customers">{{ customer['name'] }}
+                                    </option>
+                                </select>
+                            </div>
+
+                            <div class="input mt-3">
+                                <div class="label">Report Type</div>
+                                <select name="" id="" ref="report_status" @change="search()">
+                                    <option value="pending">Pending Credits</option>
+                                    <option value="paid">Paid Credits</option>
+                                    <option value="all">All Credits</option>
+                                </select>
+                            </div>
+
+                            <div class="input mt-3">
+                                <div class="label">From Date</div>
+                                <input type="date" name="from_date" ref="from_date" id="" @change="search()">
+                            </div>
+                            <div class="input mt-3">
+                                <div class="label">To Date</div>
+                                <input type="date" name="to_date" ref="to_date" id="" @change="search()">
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="input mt-3 text-end">
+                                <a v-if="report_type != null && report_type['type'] == 'customer'"
+                                    class="btn bg-info mr-2" href="javascript:void(0)"
+                                    @click="payCredit(report_type['value'])" title="Pay">Pay Cash</a>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -151,15 +220,21 @@ import toastr from 'toastr';
 import { currency, isNumber } from '../custom';
 
 export default {
-    props: ['credits', 'customers'],
+    props: ['credits', 'customers', 'summary', 'isadmin'],
     data() {
         return {
             name: 'dashboardCredits',
             credit: this.credits,
             histories: [],
             payID: 0,
-            total_bills: 0,
+
+            report_type: null,
             total_amount: 0,
+            total_bills: 0,
+            date_vise_payments: 0,
+            date_vise_cash: 0,
+            date_vise_cheque: 0,
+            date_vise_total: 0,
         }
     },
 
@@ -168,22 +243,19 @@ export default {
         getCustomer(id) {
             return this.customers.filter(item => item['id'] == id)[0];
         },
-        async search() {
+        async search(day = 'none') {
 
             this.credit = [];
             $(".data-table").DataTable().destroy();
             var customer = this.$refs.customer.value;
 
-            if (customer != 'all') {
-                if (this.customers.filter(item => item['id'] == customer).length == 0) {
-                    toastr.error('Invalid Customer', "Error");
-                    return false;
-                }
-            }
-
             const { data } = await axios.post("/dashboard/credits/get-credits", {
                 params: {
                     customer_id: customer,
+                    days: day,
+                    report_status: this.$refs.report_status.value,
+                    from_date: this.$refs.from_date.value,
+                    to_date: this.$refs.to_date.value,
                 }
             });
 
@@ -203,6 +275,24 @@ export default {
             setTimeout(function () {
                 $(".data-table").DataTable().order([3, 'desc']).draw();
             }, 500);
+
+            if (data.length > 0) {
+                if (day == 'none') {
+                    this.report_type = {
+                        type: 'customer',
+                        value: customer,
+                    };
+                }
+                else {
+                    this.report_type = {
+                        type: 'day',
+                        value: day,
+                    };
+                }
+            }
+            else {
+                this.report_type = null;
+            }
 
             return 0;
         },

@@ -21,15 +21,28 @@ class CreditController extends Controller
     {
         login_redirect('/' . request()->path());
 
-        if (Auth::check() && DashboardController::check(true)) {
-            $credits = Credit::where('customer_id', '!=', 0)->where('pos_code', company()->pos_code)->where('ammount', '>', 0)->whereDate('created_at', Carbon::today())->get();
+        if (Auth::check() && isCashier()) {
+            $credits = Credit::where('ammount', '>', 0)->whereDate('created_at', Carbon::today())->get();
             if ($credits) {
                 foreach ($credits as $key => $credit) {
                     $credit['history'] = CreditHistory::where('credit_id', $credit->id)->get();
                 }
             }
-            $customers = customers::where('pos_code', company()->pos_code)->get();
-            return view('pos.credits')->with(['credits' => $credits, 'customers' => $customers]);
+            $ageingSummary = DB::table('credits')
+                ->selectRaw("
+                SUM(CASE WHEN DATEDIFF(CURDATE(), created_at) <= 7 THEN ammount ELSE 0 END) as 'days_7',
+                SUM(CASE WHEN DATEDIFF(CURDATE(), created_at) > 7 AND DATEDIFF(CURDATE(), created_at) <= 15 THEN ammount ELSE 0 END) as 'days_15',
+                SUM(CASE WHEN DATEDIFF(CURDATE(), created_at) > 15 AND DATEDIFF(CURDATE(), created_at) <= 30 THEN ammount ELSE 0 END) as 'days_30',
+                SUM(CASE WHEN DATEDIFF(CURDATE(), created_at) > 30 AND DATEDIFF(CURDATE(), created_at) <= 60 THEN ammount ELSE 0 END) as 'days_60',
+                SUM(CASE WHEN DATEDIFF(CURDATE(), created_at) > 60 THEN ammount ELSE 0 END) as 'over_60_days',
+                SUM(ammount) as total
+            ")
+                ->where('ammount', '>', 0)
+                ->first();
+
+            $customers = customers::all();
+
+            return view('pos.credits')->with(['credits' => $credits, 'customers' => $customers, 'ageingSummary' => json_encode($ageingSummary)]);
         } else {
             return redirect('/signin');
         }
@@ -168,18 +181,87 @@ class CreditController extends Controller
 
     public function getCredits(Request $request)
     {
-        if (Auth::check() && DashboardController::check(true)) {
-            $credits = array();
+        if (Auth::check() && isCashier()) {
+            $credits = [];
 
-            if (sanitize($request->input('params')['customer_id']) == 'all') {
-                $credits = Credit::where('pos_code', company()->pos_code)->where('ammount', '>', 0)->orderBy('id', 'DESC')->get();
+            $days = sanitize($request->input('params')['days']);
+            $fromDate = sanitize($request->input('params')['from_date']);
+            $toDate = sanitize($request->input('params')['to_date']);
+
+            if ($days != 'none') {
+
+                switch ($days) {
+                    case '7':
+                        $credits = DB::table('credits')
+                            ->where('ammount', '>', 0)
+                            ->whereRaw('DATEDIFF(CURDATE(), created_at) <= 7')
+                            ->get();
+                        break;
+                    case '15':
+                        $credits = DB::table('credits')
+                            ->where('ammount', '>', 0)
+                            ->whereRaw('DATEDIFF(CURDATE(), created_at) > 7 AND DATEDIFF(CURDATE(), created_at) <= 15')
+                            ->get();
+                        break;
+                    case '30':
+                        $credits = DB::table('credits')
+                            ->where('ammount', '>', 0)
+                            ->whereRaw('DATEDIFF(CURDATE(), created_at) > 15 AND DATEDIFF(CURDATE(), created_at) <= 30')
+                            ->get();
+                        break;
+                    case '60':
+                        $credits = DB::table('credits')
+                            ->where('ammount', '>', 0)
+                            ->whereRaw('DATEDIFF(CURDATE(), created_at) > 30 AND DATEDIFF(CURDATE(), created_at) <= 60')
+                            ->get();
+                        break;
+                    case '60+':
+                        $credits = DB::table('credits')
+                            ->where('ammount', '>', 0)
+                            ->whereRaw('DATEDIFF(CURDATE(), created_at) > 60')
+                            ->get();
+                        break;
+                    case 'all':
+                        $credits = DB::table('credits')
+                            ->where('ammount', '>', 0)->get();
+                        break;
+                    default:
+                        return response(json_encode([]));
+                }
             } else {
-                $credits = Credit::where('customer_id', sanitize($request->input('params')['customer_id']))->where('pos_code', company()->pos_code)->where('ammount', '>', 0)->orderBy('id', 'DESC')->get();
+                $credits = Credit::query();
+
+                if (!empty($fromDate)) {
+                    $credits = $credits->whereDate('created_at', '>=', Carbon::parse($fromDate));
+                }
+
+                if (!empty($toDate)) {
+                    $credits = $credits->whereDate('created_at', '<=', Carbon::parse($toDate));
+                }
+
+                $reportStatus = sanitize($request->input('params')['report_status']);
+                $customerId = sanitize($request->input('params')['customer_id']);
+
+                if ($reportStatus === 'paid') {
+                    $credits = $credits->where('customer_id', $customerId)->where('ammount', '<=', 0);
+                } elseif ($reportStatus === 'pending') {
+                    $credits = $credits->where('customer_id', $customerId)->where('ammount', '>', 0);
+                } else {
+                    $credits = $credits->where('customer_id', $customerId);
+                }
+
+                $credits = $credits->orderBy('id', 'DESC')->get();
             }
 
             foreach ($credits as $key => $credit) {
-                $credithistory = CreditHistory::where('credit_id', $credit->id)->where('customer_id', sanitize($request->input('params')['customer_id']))->orderBy('id', 'DESC')->get();
-                $credit['history'] = $credithistory;
+                $credit = (array)json_decode(json_encode($credit));
+
+                $credithistory = CreditHistory::where('credit_id', $credit['id'])->orderBy('id', 'DESC')->get();
+                $credit['history'] = $credithistory->map(function ($item) {
+                    return $item->attributesToArray();
+                });
+
+                $credits[$key] = $credit;
             }
 
             return response(json_encode($credits));
