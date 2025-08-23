@@ -69,7 +69,7 @@ class CreditController extends Controller
 
     public function payCredit(Request $request)
     {
-        if (Auth::check() && DashboardController::check(true)) {
+        if (Auth::check() && isCashier()) {
 
             $customerId = sanitize($request->input('params')['credit']);
             $paymentAmount = sanitize($request->input('params')['amount']);

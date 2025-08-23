@@ -86,7 +86,7 @@ class DashboardController extends Controller
     public function dashboard()
     {
         login_redirect('/account/overview');
-        if (Auth::check() && $this->check()) {
+        if (Auth::check() && isCashier()) {
 
             if (company()->expiry_date != 'false' && date('Y-m-d h:i:s', strtotime(company()->expiry_date)) < date('Y-m-d h:i:s')) {
                 return redirect('/account/overview');
@@ -97,7 +97,7 @@ class DashboardController extends Controller
             $sales = array();
             $yearcost = array();
             $yearexpense = array();
-            $company = posData::where('admin_id', Auth::user()->id)->get()[0];
+            $company = isAdmin()? posData::where('admin_id', Auth::user()->id)->get()[0] : company();
             $todaysalesqry = Repairs::where('pos_code', $company->pos_code)->where('status', 'Delivered')->whereDate('paid_at', Carbon::today())->get();
             $low_stock = Products::where('pos_code', $company->pos_code)->where('qty', '<=', 3)->limit(4)->get();
             //$best_selling = DB::table('order_products')->select('*')->where('pos_id', $company->pos_code)->leftJoin('orders', 'order_products.order_id', '=', 'orders.order_number')->where('pos_code', $company->pos_code)->groupBy('sku')->orderByDesc('qty')->limit(3)->get();
@@ -223,7 +223,7 @@ class DashboardController extends Controller
     {
         login_redirect('/' . request()->path());
 
-        if (Auth::check() && $this->check(true)) {
+        if (Auth::check() && isCashier()) {
             $categories = [];
 
             if ($request->path() == 'dashboard/repairs/other-repairs') {
@@ -290,7 +290,7 @@ class DashboardController extends Controller
     {
         login_redirect('/' . request()->path());
 
-        if (Auth::check() && $this->check(true)) {
+        if (Auth::check() && isCashier()) {
             $company = company();
             $results = DB::select('select quotations.total AS quote_total, quotations.bill_no AS quote_bill, quotations.id AS q_id, quotations.*, repairs.* from quotations, repairs WHERE (quotations.bill_no = repairs.bill_no OR quotations.bill_no = "custom") AND quotations.pos_code = "' . $company->pos_code . '" AND repairs.pos_code = "' . $company->pos_code . '" GROUP BY quotations.q_no ORDER BY quotations.id DESC');
             return view('pos.list-quotations')->with(['quotations' => $results]);
@@ -336,7 +336,7 @@ class DashboardController extends Controller
     {
         login_redirect('/' . request()->path());
 
-        if (Auth::check() && $this->check(true)) {
+        if (Auth::check() && isCashier()) {
 
             //$sales = Repairs::where('pos_code', company()->pos_code)->where('status', 'Delivered')->whereDate('created_at', Carbon::today())->orderBy('created_at', 'DESC')->get();
             $customers = customers::where('pos_code', company()->pos_code)->get();
@@ -386,7 +386,7 @@ class DashboardController extends Controller
     public function getSalesProducts(Request $request)
     {
 
-        if (Auth::check() && $this->check(true)) {
+        if (Auth::check() && isCashier()) {
 
             $report = Repairs::where('bill_no', sanitize($request->input('params')['bill_no']))->where('pos_code', company()->pos_code)->get();
             $result = [];
@@ -544,7 +544,7 @@ class DashboardController extends Controller
     public function listCustomers()
     {
         login_redirect('/' . request()->path());
-        if (Auth::check() && $this->check(true)) {
+        if (Auth::check() && isCashier()) {
             $customers = customers::where('pos_code', company()->pos_code)->get();
             return view('pos.list-customers')->with(['customers' => $customers]);
         } else {
@@ -566,7 +566,7 @@ class DashboardController extends Controller
     public function createCustomer()
     {
         login_redirect('/' . request()->path());
-        if (Auth::check() && $this->check(true)) {
+        if (Auth::check() && isCashier()) {
             return view('pos.add-customer');
         } else {
             return redirect('/signin');

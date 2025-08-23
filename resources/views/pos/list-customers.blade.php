@@ -38,8 +38,10 @@
                                         <div class="d-flex align-items-center list-action justify-content-start">
                                             <a class="badge bg-primary mr-2" data-toggle="tooltip" data-placement="top" title="Edit product"
                                                 data-original-title="Edit" href="/dashboard/customer/edit/{{ $item->id }}"><i class="ri-pencil-line mr-0"></i></a>
+                                            @if (isAdmin())
                                             <a class="badge bg-danger mr-2" data-toggle="tooltip" data-placement="top" title="Delete product"
                                                 data-original-title="Delete" href="javascript:void(0)" onclick="deleteProduct('{{ $item->id }}')"><i class="ri-delete-bin-line mr-0"></i></a>
+                                            @endif
                                         </div>
                                     </td>
                                 </tr>

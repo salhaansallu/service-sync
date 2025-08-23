@@ -97,6 +97,8 @@
                                 <span class="ml-4">Dashboards</span>
                             </a>
                         </li>
+
+                        @if (isAdmin())
                         <li class="{{ Request::is('dashboard/products*') ? 'active' : '' }}">
                             <a href="#product" class="collapsed {{ company()->plan == 1 ? 'no-collapsable' : '' }}"
                                 data-toggle="collapse" aria-expanded="false">
@@ -136,6 +138,7 @@
                                 </li>
                             </ul>
                         </li>
+                        @endif
 
                         <li class="{{ Request::is('dashboard/repairs*') ? 'active' : '' }}">
                             <a href="#category" class="collapsed {{ company()->plan == 1 ? 'no-collapsable' : '' }}"
@@ -176,6 +179,7 @@
                             </ul>
                         </li>
 
+                        @if (isAdmin())
                         <li class="{{ Request::is('dashboard/repair-commissions*') ? 'active' : '' }}">
                             <a href="#commission" class="collapsed {{ company()->plan == 1 ? 'no-collapsable' : '' }}"
                                 data-toggle="collapse" aria-expanded="false">
@@ -205,6 +209,7 @@
                                 </li>
                             </ul>
                         </li>
+                        @endif
 
                         <li class="{{ Request::is('dashboard/quotation*') ? 'active' : '' }}">
                             <a href="#quotation" class="collapsed {{ company()->plan == 1 ? 'no-collapsable' : '' }}"
@@ -244,6 +249,7 @@
                             </ul>
                         </li>
 
+                        @if (isAdmin())
                         <li class="{{ Request::is('dashboard/order*') ? 'active' : '' }}">
                             <a href="#orders" class="collapsed {{ company()->plan == 1 ? 'no-collapsable' : '' }}"
                                 data-toggle="collapse" aria-expanded="false">
@@ -281,7 +287,9 @@
                                 </li>
                             </ul>
                         </li>
+                        @endif
 
+                        @if (isAdmin())
                         <li class="{{ Request::is('dashboard/china-order*') ? 'active' : '' }}">
                             <a href="#chinaOrders"
                                 class="collapsed {{ company()->plan == 1 ? 'no-collapsable' : '' }}"
@@ -320,6 +328,7 @@
                                 </li>
                             </ul>
                         </li>
+                        @endif
 
                         <li class="{{ Request::is('dashboard/sales-report*') ? 'active' : '' }}">
                             <a href="#reports" class="collapsed {{ company()->plan == 1 ? 'no-collapsable' : '' }}"
@@ -355,6 +364,7 @@
                                         <i class="fa-solid fa-minus"></i><span>Sales report</span>
                                     </a>
                                 </li>
+                                @if (isAdmin())
                                 <li class="{{ Request::is('dashboard/spare-report') ? 'active' : '' }}">
                                     <a href="/dashboard/spare-report">
                                         <i class="fa-solid fa-minus"></i><span>Spare parts report</span>
@@ -375,9 +385,11 @@
                                         <i class="fa-solid fa-minus"></i><span>Stock report</span>
                                     </a>
                                 </li>
+                                @endif
                             </ul>
                         </li>
 
+                        @if (isAdmin())
                         <li class="{{ Request::is('dashboard/petty-cash*') ? 'active' : '' }}">
                             <a href="#petty-cash"
                                 class="collapsed {{ company()->plan == 1 ? 'no-collapsable' : '' }}"
@@ -416,7 +428,9 @@
                                 </li>
                             </ul>
                         </li>
+                        @endif
 
+                        @if (isAdmin())
                         <li class="{{ Request::is('dashboard/purchase*') ? 'active' : '' }}">
                             <a href="#purchase" class="collapsed {{ company()->plan == 1 ? 'no-collapsable' : '' }}"
                                 data-toggle="collapse" aria-expanded="false">
@@ -456,6 +470,8 @@
                                 </li>
                             </ul>
                         </li>
+                        @endif
+
                         <li class="{{ Request::is('dashboard/expense*') ? 'active' : '' }}">
                             <a href="#expenses" class="collapsed" data-toggle="collapse" aria-expanded="false">
                                 <svg class="svg-icon" id="p-dash5" stroke="currentColor" stroke-width="50" stroke-linecap="round" fill="none" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 576 512">
@@ -474,7 +490,7 @@
                                 class="iq-submenu collapse {{ Request::is('dashboard/expense*') ? 'show' : '' }}"
                                 data-parent="#iq-sidebar-toggle">
                                 <li
-                                    class="{{ isAdmin() ? '' : 'd-none' }} {{ Request::is('dashboard/expenses') ? 'active' : '' }}">
+                                    class="{{ Request::is('dashboard/expenses') ? 'active' : '' }}">
                                     <a href="/dashboard/expenses">
                                         <i class="fa-solid fa-minus"></i><span>List Expenses</span>
                                     </a>
@@ -492,6 +508,8 @@
                                 </li>
                             </ul>
                         </li>
+
+                        @if (isAdmin())
                         <li class="{{ Request::is('dashboard/product-purchase*') ? 'active' : '' }}">
                             <a href="#productPurchase" class="collapsed" data-toggle="collapse" aria-expanded="false">
                                 <svg class="svg-icon" width="20" height="20" fill="currentColor" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M234.5 5.7c13.9-5 29.1-5 43.1 0l192 68.6C495 83.4 512 107.5 512 134.6l0 242.9c0 27-17 51.2-42.5 60.3l-192 68.6c-13.9 5-29.1 5-43.1 0l-192-68.6C17 428.6 0 404.5 0 377.4L0 134.6c0-27 17-51.2 42.5-60.3l192-68.6zM256 66L82.3 128 256 190l173.7-62L256 66zm32 368.6l160-57.1 0-188L288 246.6l0 188z"/></svg>
@@ -520,6 +538,8 @@
                                 </li>
                             </ul>
                         </li>
+                        @endif
+
                         <li class="{{ Request::is('dashboard/credits') ? 'active' : '' }}">
                             <a href="{{ company()->plan == 1 ? '#' : '/dashboard/credits' }}" class="">
                                 <svg class="svg-icon" id="p-dash7" width="20" height="20"
@@ -538,6 +558,8 @@
                                 @endif
                             </a>
                         </li>
+
+                        @if (isAdmin())
                         <li class="{{ Request::is('dashboard/partner-credits') ? 'active' : '' }}">
                             <a href="{{ company()->plan == 1 ? '#' : '/dashboard/partner-credits' }}" class="">
                                 <svg class="svg-icon" id="p-dash7" width="20" height="20"
@@ -556,6 +578,9 @@
                                 @endif
                             </a>
                         </li>
+                        @endif
+
+                        @if (isAdmin())
                         <li class="{{ Request::is('dashboard/personal-credit*') ? 'active' : '' }}">
                             <a href="#personalCredit" class="collapsed {{ company()->plan == 1 ? 'no-collapsable' : '' }}"
                                 data-toggle="collapse" aria-expanded="false">
@@ -595,6 +620,9 @@
                                 </li>
                             </ul>
                         </li>
+                        @endif
+
+                        @if (isAdmin())
                         <li class="{{ Request::is('dashboard/invoice-settings') ? 'active' : '' }}">
                             <a href="{{ company()->plan == 1 ? '#' : '/dashboard/invoice-settings' }}"
                                 class="">
@@ -613,6 +641,8 @@
                                 @endif
                             </a>
                         </li>
+                        @endif
+
                         {{-- <li class="">
                             <a href="#return" class="collapsed {{ company()->plan ==1? 'no-collapsable' : '' }}" data-toggle="collapse" aria-expanded="false">
                                 <svg class="svg-icon" id="p-dash6" width="20" height="20"
@@ -646,6 +676,7 @@
                                 </li>
                             </ul>
                         </li> --}}
+
                         <li
                             class="{{ Request::is('dashboard/customer*') || Request::is('dashboard/users*') || Request::is('dashboard/supplier*') ? 'active' : '' }}">
                             <a href="#people" class="collapsed {{ company()->plan == 1 ? 'no-collapsable' : '' }}"
@@ -685,6 +716,7 @@
                                         <i class="fa-solid fa-minus"></i><span>Add Customers</span>
                                     </a>
                                 </li>
+                                @if (isAdmin())
                                 <li class="{{ Request::is('dashboard/partners') ? 'active' : '' }}">
                                     <a href="/dashboard/partners">
                                         <i class="fa-solid fa-minus"></i><span>Partners</span>
@@ -726,9 +758,11 @@
                                         <i class="fa-solid fa-minus"></i><span>Add Shippers</span>
                                     </a>
                                 </li>
+                                @endif
                             </ul>
                         </li>
 
+                        @if (isAdmin())
                         <li class="{{ Request::is('dashboard/user/update') ? 'active' : '' }}">
                             <a href="/dashboard/user/update">
                                 <svg class="svg-icon" id="p-dash10" width="20" height="20"
@@ -742,7 +776,9 @@
                                 <span class="ml-4">User Details</span>
                             </a>
                         </li>
+                        @endif
 
+                        @if (isAdmin())
                         <li class="{{ Request::is('dashboard/sms') ? 'active' : '' }}">
                             <a href="/dashboard/sms">
                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512" class="svg-icon"
@@ -753,7 +789,9 @@
                                 <span class="ml-4">Send SMS</span>
                             </a>
                         </li>
+                        @endif
 
+                        @if (isAdmin())
                         <li class="{{ Request::is('dashboard/hr') ? 'active' : '' }}">
                             <a href="/dashboard/hr">
                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" class="svg-icon"
@@ -763,6 +801,7 @@
                                 <span class="ml-4">Employee Expenses</span>
                             </a>
                         </li>
+                        @endif
 
                         {{-- <li class="{{ Request::is('dashboard/request-features') ? 'active' : '' }}">
                             <a href="/dashboard/request-features">

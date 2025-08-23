@@ -28,7 +28,9 @@
                                     <th class="text-start">Supplier</th>
                                     <th class="text-start">By</th>
                                     <th class="text-start">Purchase date</th>
+                                    @if (isAdmin())
                                     <th class="text-start">Action</th>
+                                    @endif
                                 </tr>
                             </thead>
                             <tbody class="ligth-body">
@@ -42,15 +44,19 @@
                                     <td class="text-start">{{ getSupplier($item->supplier_id)->name }}</td>
                                     <td class="text-start">{{ getUser($item->user)->fname }}</td>
                                     <td class="text-start">{{ $item->created_at }}</td>
+                                    @if (isAdmin())
                                     <td class="text-start">
                                         <div class="d-flex align-items-center list-action justify-content-start">
+
                                             <a class="badge bg-primary mr-2" data-toggle="tooltip" data-placement="top" title="Edit expense"
                                                 data-original-title="Edit" href="/dashboard/expense/edit/{{ $item->id }}"><i class="ri-pencil-line mr-0"></i></a>
 
                                             <a class="badge bg-danger mr-2" data-toggle="tooltip" data-placement="top" title="Delete expense"
                                                 data-original-title="Delete" href="javascript:void(0)" onclick="deleteProduct('{{ $item->id }}')"><i class="fa-solid fa-trash-can"></i></a>
+
                                         </div>
                                     </td>
+                                    @endif
                                 </tr>
                                 @endforeach
                                 @endif

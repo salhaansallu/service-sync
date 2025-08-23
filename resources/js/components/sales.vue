@@ -103,7 +103,7 @@
                             </tr>
                         </thead>
                         <tbody class="ligth-body text-start">
-                            
+
                         </tbody>
                     </table>
                 </div>
@@ -117,7 +117,7 @@ import { currency } from '../custom';
 import printJS from 'print-js';
 
 export default {
-    props: ['bladesales', 'customers', 'cahiers'],
+    props: ['bladesales', 'customers', 'cahiers', 'isadmin'],
     data() {
         return {
             name: 'dashboardSales',

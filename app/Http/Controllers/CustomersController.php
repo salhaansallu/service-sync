@@ -115,7 +115,7 @@ class CustomersController extends Controller
      */
     public function store(Request $request)
     {
-        if (Auth::check() && DashboardController::check(true)) {
+        if (Auth::check() && isCashier()) {
             $name = sanitize($request->input('name'));
             $address = sanitize($request->input('address'));
             $phone = sanitize($request->input('phone'));
@@ -158,7 +158,7 @@ class CustomersController extends Controller
      */
     public function edit($id)
     {
-        if (!Auth::check() && DashboardController::check(true)) {
+        if (!Auth::check() || !isCashier()) {
             return redirect('/signin');
         }
 
@@ -176,7 +176,7 @@ class CustomersController extends Controller
      */
     public function update(Request $request, customers $customers)
     {
-        if (Auth::check() && DashboardController::check(true)) {
+        if (Auth::check() && isCashier()) {
             $id = sanitize($request->input('modelid'));
             $name = sanitize($request->input('name'));
             $address = sanitize($request->input('address'));

@@ -22,9 +22,10 @@ class QuotationsController extends Controller
      */
     public function create()
     {
-        if (!Auth::check() && DashboardController::check(true)) {
+        if (!Auth::check() && isCashier()) {
             return redirect('/signin');
         }
+
         $product = Repairs::where('pos_code', company()->pos_code)->get();
         return view('pos.add-quotation')->with(['bills' => $product]);
     }
@@ -34,7 +35,7 @@ class QuotationsController extends Controller
      */
     public function store(Request $request)
     {
-        if (Auth::check() && DashboardController::check(true)) {
+        if (Auth::check() && isCashier()) {
             $q_no = 10001;
             $bill_no = sanitize($request->input('bill_no'));
             $total = sanitize($request->input('total'));
@@ -114,7 +115,7 @@ class QuotationsController extends Controller
      */
     public function edit($id)
     {
-        if (!Auth::check() || !DashboardController::check(true)) {
+        if (!Auth::check() || !isCashier()) {
             return redirect('/signin');
         }
 
@@ -133,7 +134,7 @@ class QuotationsController extends Controller
      */
     public function update(Request $request, quotations $quotations)
     {
-        if (Auth::check() && DashboardController::check(true)) {
+        if (Auth::check() && isCashier()) {
             $id = sanitize($request->input('modelid'));
 
             $bill_no = sanitize($request->input('bill_no'));
@@ -196,7 +197,7 @@ class QuotationsController extends Controller
      */
     public function destroy(Request $request, Repairs $repairs)
     {
-        if (Auth::check() && DashboardController::check(true)) {
+        if (Auth::check() && isCashier()) {
             $id = sanitize($request->input('id'));
             $verify = quotations::where('id', $id)->where('pos_code', company()->pos_code);
             if ($verify && $verify->get()->count() > 0) {

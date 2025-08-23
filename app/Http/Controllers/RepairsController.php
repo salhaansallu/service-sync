@@ -267,7 +267,7 @@ class RepairsController extends Controller
      */
     public function store(Request $request)
     {
-        if (Auth::check() && DashboardController::check(true)) {
+        if (Auth::check() && isCashier()) {
 
             try {
                 $bill_no = 1001;
