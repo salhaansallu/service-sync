@@ -120,7 +120,7 @@ class PosDataController extends Controller
 
     public function checkout(Request $request)
     {
-        if (Auth::check() && $this->check()) {
+        if (Auth::check() && isCashier()) {
             $request = filter_var_array($request->input('params'), FILTER_SANITIZE_STRING);
             $cashin = sanitize($request['cashin']);
             $bill_no = filter_var_array($request["bill_no"], FILTER_SANITIZE_STRING);

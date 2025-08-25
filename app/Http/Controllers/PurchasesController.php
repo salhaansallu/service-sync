@@ -21,7 +21,7 @@ class PurchasesController extends Controller
 
     public function pettyCashes($id, $args = array())
     {
-        if (Auth::check() && DashboardController::check()) {
+        if (Auth::check() && isCashier()) {
             $id = sanitize($id);
 
             if (!empty($id) && verifyDepartment($id)) {
@@ -39,7 +39,7 @@ class PurchasesController extends Controller
 
     public function transferPattyCash(Request $request)
     {
-        if (Auth::check() && DashboardController::check()) {
+        if (Auth::check() && isCashier()) {
             $amount = sanitize($request->input('amount'));
             $dep = sanitize($request->input('department'));
             $id = sanitize($request->input('model_id'));
@@ -94,7 +94,7 @@ class PurchasesController extends Controller
 
     public function listPettyCash($id)
     {
-        if (Auth::check() && DashboardController::check()) {
+        if (Auth::check() && isCashier()) {
             $id = sanitize($id);
 
             if (!empty($id) && verifyDepartment($id)) {
@@ -109,7 +109,7 @@ class PurchasesController extends Controller
 
     public function addPattyCash(Request $request)
     {
-        if (Auth::check() && DashboardController::check()) {
+        if (Auth::check() && isCashier()) {
             $amount = sanitize($request->input('amount'));
             $note = sanitize($request->input('note'));
             $id = sanitize($request->input('model_id'));
@@ -141,7 +141,7 @@ class PurchasesController extends Controller
 
     public function payDepartmentCredit(Request $request)
     {
-        if (Auth::check() && DashboardController::check()) {
+        if (Auth::check() && isCashier()) {
             $amount = sanitize($request->input('amount'));
             $id = sanitize($request->input('id'));
             $dep = sanitize($request->input('from_dep'));
@@ -191,7 +191,7 @@ class PurchasesController extends Controller
      */
     public function store(Request $request)
     {
-        if (Auth::check() && DashboardController::check(true)) {
+        if (Auth::check() && isCashier()) {
             $purchase_number = sanitize($request->input('purchase_number'));
             $purchase_number = str_replace(' ', '', $purchase_number);
             (float)$price = sanitize($request->input('price'));

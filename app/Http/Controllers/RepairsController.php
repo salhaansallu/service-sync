@@ -124,7 +124,7 @@ class RepairsController extends Controller
 
     public function orderUpdate(Request $request)
     {
-        if (Auth::check() && DashboardController::check(true)) {
+        if (Auth::check() && isCashier()) {
             $bills = $request->input('bill_no');
             $total = sanitize($request->input('total'));
             $note = sanitize($request->input('note'));

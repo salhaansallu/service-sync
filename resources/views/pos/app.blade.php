@@ -389,7 +389,6 @@
                             </ul>
                         </li>
 
-                        @if (isAdmin())
                         <li class="{{ Request::is('dashboard/petty-cash*') ? 'active' : '' }}">
                             <a href="#petty-cash"
                                 class="collapsed {{ company()->plan == 1 ? 'no-collapsable' : '' }}"
@@ -428,7 +427,6 @@
                                 </li>
                             </ul>
                         </li>
-                        @endif
 
                         @if (isAdmin())
                         <li class="{{ Request::is('dashboard/purchase*') ? 'active' : '' }}">
