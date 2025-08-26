@@ -12,7 +12,7 @@ class hrController extends Controller
     {
         login_redirect('/' . request()->path());
 
-        if (isAdmin()) {
+        if (isCashier()) {
             return view('pos.hr');
         }
 
@@ -21,14 +21,14 @@ class hrController extends Controller
 
     public function getUsers()
     {
-        if (isAdmin()) {
+        if (isCashier()) {
             return response(json_encode(User::all()));
         }
     }
 
     public function getReport(Request $request)
     {
-        if (isAdmin()) {
+        if (isCashier()) {
             $fromdate = sanitize($request->input('fromdate'));
             $todate = sanitize($request->input('todate'));
             $cashier = sanitize($request->input('cashier'));
@@ -50,7 +50,7 @@ class hrController extends Controller
 
     public function addExpense(Request $request)
     {
-        if (isAdmin()) {
+        if (isCashier()) {
             $user = sanitize($request->input('user'));
             $date = sanitize($request->input('date'));
             $note = sanitize($request->input('note'));
@@ -78,7 +78,7 @@ class hrController extends Controller
 
     public function printExpense(Request $request)
     {
-        if (isAdmin()) {
+        if (isCashier()) {
             $fromdate = sanitize($request->input('fromdate'));
             $todate = sanitize($request->input('todate'));
             $cashier = sanitize($request->input('cashier'));
@@ -122,7 +122,7 @@ class hrController extends Controller
 
     public function payExpense(Request $request)
     {
-        if (isAdmin()) {
+        if (isCashier()) {
             $id = sanitize($request->input('id'));
             $all = sanitize($request->input('all'));
 
@@ -144,7 +144,7 @@ class hrController extends Controller
 
     public function getLoanBalance(Request $request)
     {
-        if (isAdmin()) {
+        if (isCashier()) {
             $id = sanitize($request->input('id'));
             return json_encode(['error' => 0, 'balance' => employee_expenses::where('user', $id)->where('type', 'Loan')->where(function ($q) {
                 $q->where('status', '!=', 'paid')->orWhereNull('status');

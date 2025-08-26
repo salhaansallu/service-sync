@@ -1,6 +1,6 @@
 @extends('pos.app')
 @section('dashboard')
 <div id="hrComp">
-    <hr-componenet />
+    <hr-componenet v-bind:isadmin="{{ isAdmin() }}" />
 </div>
 @endsection

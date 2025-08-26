@@ -209,7 +209,7 @@ class PurchasesController extends Controller
             } elseif (!is_numeric($price)) {
                 return response(json_encode(array("error" => 1, "msg" => "Please Use Only Numbers For Price")));
             } elseif (!is_numeric($shipping_charge)) {
-                return response(json_encode(array("error" => 1, "msg" => "Please Use Only Numbers For Shippiing Charge")));
+                return response(json_encode(array("error" => 1, "msg" => "Please Use Only Numbers For Shipping Charge")));
             } elseif (!is_numeric($stock)) {
                 return response(json_encode(array("error" => 1, "msg" => "Please Use Only Numbers For Stock")));
             } elseif (empty($purchase_number) || empty($price) || empty($stock) || empty($supplier)) {

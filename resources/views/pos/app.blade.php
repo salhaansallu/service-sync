@@ -789,7 +789,6 @@
                         </li>
                         @endif
 
-                        @if (isAdmin())
                         <li class="{{ Request::is('dashboard/hr') ? 'active' : '' }}">
                             <a href="/dashboard/hr">
                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" class="svg-icon"
@@ -799,7 +798,6 @@
                                 <span class="ml-4">Employee Expenses</span>
                             </a>
                         </li>
-                        @endif
 
                         {{-- <li class="{{ Request::is('dashboard/request-features') ? 'active' : '' }}">
                             <a href="/dashboard/request-features">

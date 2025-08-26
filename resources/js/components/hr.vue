@@ -90,7 +90,7 @@
                                             class="badge bg-success mr-2" href="javascript:void(0)" title="Pay Expense"
                                             @click="payExpense(expense['id'])">Pay</a>
 
-                                        <a class="badge bg-danger mr-2" href="javascript:void(0)" title="Remove"
+                                        <a v-if="isadmin" class="badge bg-danger mr-2" href="javascript:void(0)" title="Remove"
                                             @click="removeExpense(expense['id'])"><i
                                                 class="fa-solid fa-trash-can"></i></a>
                                     </div>
@@ -246,6 +246,7 @@ import { currency } from '../custom';
 import printJS from 'print-js';
 
 export default {
+    props: ['isadmin'],
     data() {
         return {
             name: 'hr',
