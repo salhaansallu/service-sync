@@ -64,12 +64,10 @@
                                                 {{ $item->status }}</td>
                                             <td class="text-start">
                                                 <div class="d-flex align-items-center list-action justify-content-start">
-                                                    @if (isAdmin())
-                                                        <a class="badge bg-primary mr-2" data-toggle="tooltip"
+                                                    <a class="badge bg-primary mr-2" data-toggle="tooltip"
                                                         data-placement="top" title="Edit product" data-original-title="Edit"
                                                         href="/dashboard/repairs/edit/{{ $item->id }}"><i
                                                             class="ri-pencil-line mr-0"></i></a>
-                                                    @endif
 
                                                     <a class="badge bg-secondary mr-2" data-toggle="tooltip"
                                                         data-placement="top" title="View Invoice"

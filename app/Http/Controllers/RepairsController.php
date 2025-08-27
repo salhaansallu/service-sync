@@ -438,7 +438,7 @@ class RepairsController extends Controller
      */
     public function edit($id)
     {
-        if (!Auth::check() && DashboardController::check(true)) {
+        if (!Auth::check() || !isCashier()) {
             return redirect('/signin');
         }
 
@@ -460,7 +460,7 @@ class RepairsController extends Controller
      */
     public function update(Request $request, Repairs $repairs)
     {
-        if (Auth::check() && DashboardController::check(true)) {
+        if (Auth::check() && isCashier()) {
             $id = sanitize($request->input('modelid'));
             $model_no = sanitize($request->input('model_no'));
             $serial_no = sanitize($request->input('serial_no'));
