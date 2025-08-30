@@ -764,7 +764,7 @@ class DashboardController extends Controller
 
     public function generateInvoice(Request $request)
     {
-        if (Auth::check() && $this->check()) {
+        if (Auth::check() && isCashier()) {
             $tempBill = 'temp-bulk-invoice';
             $invoice = generateThermalInvoice($request->input('invoice'), $tempBill, 'newOrder');
 

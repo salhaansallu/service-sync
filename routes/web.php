@@ -142,19 +142,19 @@ Route::get('/pos-dashboard/{id}', [DashboardController::class, 'index']);
 Route::get('/dashboard', [DashboardController::class, 'dashboard'])->name('dashboard');
 Route::get('/', [DashboardController::class, 'dashboard']);
 
-Route::get('/format-number', function() {
-    if (Auth::check() && DashboardController::check()) {
-        $customers = customers::all();
+// Route::get('/format-number', function() {
+//     if (Auth::check() && DashboardController::check()) {
+//         $customers = customers::all();
 
-        foreach ($customers as $key => $customer) {
-            customers::where('id', $customer->id)->update([
-                "phone" => formatOriginalPhoneNumber($customer->phone) != null ? formatOriginalPhoneNumber($customer->phone) : $customer->phone,
-            ]);
-        }
+//         foreach ($customers as $key => $customer) {
+//             customers::where('id', $customer->id)->update([
+//                 "phone" => formatOriginalPhoneNumber($customer->phone) != null ? formatOriginalPhoneNumber($customer->phone) : $customer->phone,
+//             ]);
+//         }
 
-        echo 'done';
-    }
-});
+//         echo 'done';
+//     }
+// });
 
 Route::prefix('dashboard')->group(function () {
     Route::get('products', [DashboardController::class, 'listProducts']);

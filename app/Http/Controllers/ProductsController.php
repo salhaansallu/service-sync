@@ -305,7 +305,7 @@ class ProductsController extends Controller
 
     public function sync(Request $request)
     {
-        if ($request->key == env('WEBSITE_KEY')) {
+        if (sanitize($request->key) == env('WEBSITE_KEY')) {
             $products = Products::all(['pro_name', 'price', 'qty', 'sku', 'pro_image']);
             $results = [];
 

@@ -75,7 +75,7 @@ class RepairsController extends Controller
     public function getRepairs(Request $request)
     {
         $response = [];
-        if (PosDataController::check()) {
+        if (isCashier()) {
             $fromDate = date("Y-m-d") . " 00:00:00";
             $toDate = date("Y-m-d") . " 23:59:59";
             $status = $request->has('status') ? sanitize($request->input('status')) : '';
@@ -235,7 +235,7 @@ class RepairsController extends Controller
 
     public function getInvoicePDF(Request $request)
     {
-        if (Auth::check() && DashboardController::check(true)) {
+        if (Auth::check() && isCashier()) {
             $bill_no = sanitize($request->input('bill_no'));
 
             $bill =  Repairs::where('bill_no', $bill_no)->where('pos_code', company()->pos_code)->get();
