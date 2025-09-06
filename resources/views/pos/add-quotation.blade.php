@@ -145,6 +145,11 @@
 
                 $('#save_btn').prop('disabled', true);
                 var formData = new FormData(this);
+
+                var email = prompt("Please enter customer email for sending quotation", "@isset($quotation){{ getCustomer($quotation->customer)->email }}@endisset");
+
+                formData.append('email', email);
+
                 $.ajax({
                     type: "post",
                     url: '/dashboard/quotations/edit',
@@ -175,6 +180,11 @@
                 $('#save_btn').prop('disabled', true);
 
                 var formData = new FormData(this);
+
+                var email = prompt("Please enter customer email for sending quotation", "@isset($quotation){{ getCustomer($quotation->customer)->email }}@endisset");
+
+                formData.append('email', email);
+
                 $.ajax({
                     type: "post",
                     url: '/dashboard/quotations/create',
@@ -204,7 +214,7 @@
 
     <script>
         $('#quotation_bill_selector').change(function (e) {
-            console.log(e.target.value);
+            //console.log(e.target.value);
             if (e.target.value == 'custom') {
                 $('#custom_products').show();
             }

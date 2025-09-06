@@ -49,7 +49,7 @@ class QuotationsController extends Controller
             if (empty($q_no)) {
                 return response(json_encode(array("error" => 1, "msg" => "Please Fill All Fields")));
             }
-            if (quotations::where('q_no', $q_no)->where('pos_code', company()->pos_code)->get()->count() > 0) {
+            if (quotations::where('q_no', $q_no)->get()->count() > 0) {
                 return response(json_encode(array("error" => 1, "msg" => "Quotation number already exists")));
             }
             if (empty($bill_no)) {
@@ -94,7 +94,19 @@ class QuotationsController extends Controller
             $partner->pos_code = company()->pos_code;
 
             if ($partner->save()) {
-                generateQuotation($q_no);
+                $path = '/quotations/' . str_replace([' ', '.', "'", '"'], ['', '', "", ''], $q_no) . '.pdf';
+                generateQuotation($q_no, $path);
+
+                if (!empty(sanitize($request->input('email'))) && sanitize($request->input('email')) != "null") {
+                    $mail = new Mail();
+                    $mail->to = sanitize($request->input('email'));
+                    $mail->toName = $bill_no=='custom'? sanitize($request->input('customer_name')) : 'WeFix Customer';
+                    $mail->subject = 'New Quotation Created';
+                    $mail->body = 'Please find the attached quotation requested from us';
+                    $mail->attachments = [public_path($path)=>'Quotation'];
+                    $mail->sendMail();
+                }
+
                 return response(json_encode(array("error" => 0, "msg" => "Quotation Created Successfully")));
             }
 
@@ -174,7 +186,7 @@ class QuotationsController extends Controller
                 ]
             ]);
 
-            $update = quotations::where('id', $id)->where('pos_code', company()->pos_code)->update([
+            $update = quotations::where('id', $id)->update([
                 'bill_no' => $bill_no,
                 'products' => $data,
                 'cargo_type' => $cargo_type,
@@ -184,7 +196,20 @@ class QuotationsController extends Controller
             ]);
 
             if ($update) {
-                generateQuotation(quotations::where('id', $id)->get()[0]->q_no);
+                $q_no = quotations::where('id', $id)->get()[0]->q_no;
+                $path = '/quotations/' . str_replace([' ', '.', "'", '"'], ['', '', "", ''], $q_no) . '.pdf';
+                generateQuotation($q_no, $path);
+
+                if (!empty(sanitize($request->input('email'))) && sanitize($request->input('email')) != "null") {
+                    $mail = new Mail();
+                    $mail->to = sanitize($request->input('email'));
+                    $mail->toName = $bill_no=='custom'? sanitize($request->input('customer_name')) : 'WeFix Customer';
+                    $mail->subject = 'New Quotation Created';
+                    $mail->body = 'Please find the attached quotation requested from us';
+                    $mail->attachments = [public_path($path)=>'Quotation'];
+                    $mail->sendMail();
+                }
+
                 return response(json_encode(array("error" => 0, "msg" => "Quotation Updated Successfully")));
             }
 

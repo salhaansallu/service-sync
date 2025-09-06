@@ -2582,7 +2582,7 @@ function generateParterCreditPay($totalDue, $paid, $partner, $datetime, $bill_na
     return true;
 }
 
-function generateQuotation($q_no)
+function generateQuotation($q_no, $filename = null)
 {
     $company = PosDataController::company();
     $quotation = quotations::where('q_no', $q_no)->where('pos_code', $company->pos_code)->first();
@@ -2849,13 +2849,17 @@ function generateQuotation($q_no)
     // $connector = new FilePrintConnector("/dev/usb/lp0");
     // $printer = new Printer($connector);
 
+    if ($filename == null) {
+        $filename = '/quotations/' . str_replace([' ', '.', "'", '"'], ['', '', "", ''], $q_no) . '-' . $company->pos_code . '.pdf';
+    }
+
     $pdf = new Dompdf();
     $pdf->setPaper("A4", "portrait");
     $pdf->loadHtml($html, 'UTF-8');
     $pdf->render();
-    $path = public_path('quotations/' . str_replace([' ', '.', "'", '"'], ['', '', "", ''], $q_no) . '-' . $company->pos_code . '.pdf');
+    $path = public_path($filename);
     file_put_contents($path, $pdf->output());
-    return (object)array('generated' => true, 'url' => '/quotations/' . str_replace([' ', '.', "'", '"'], ['', '', "", ''], $q_no) . '-' . $company->pos_code . '.pdf');
+    return (object)array('generated' => true, 'url' => $filename);
 }
 
 function generateEmployeeExpenses($datas, $inName = 'employee-expenses.pdf')
