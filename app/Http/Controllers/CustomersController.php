@@ -119,6 +119,7 @@ class CustomersController extends Controller
             $name = sanitize($request->input('name'));
             $address = sanitize($request->input('address'));
             $phone = sanitize($request->input('phone'));
+            $email = sanitize($request->input('email'));
 
             if (empty($name)) {
                 return response(json_encode(array("error" => 1, "msg" => "Please Fill All Required Fields Marked In '*'")));
@@ -136,6 +137,7 @@ class CustomersController extends Controller
             $customer->pos_code = company()->pos_code;
             $customer->address = $address;
             $customer->phone = $phone;
+            $customer->email = $email;
 
             if ($customer->save()) {
                 return response(json_encode(array("error" => 0, "msg" => "Customer Created Successfully")));
@@ -181,6 +183,7 @@ class CustomersController extends Controller
             $name = sanitize($request->input('name'));
             $address = sanitize($request->input('address'));
             $phone = sanitize($request->input('phone'));
+            $email = sanitize($request->input('email'));
 
             if (empty($name)) {
                 return response(json_encode(array("error" => 1, "msg" => "Please Fill All Required Fields Marked In '*'")));
@@ -202,6 +205,7 @@ class CustomersController extends Controller
                 "name" => $name,
                 "address" => $address,
                 "phone" => $phone,
+                "email" => $email,
             ]);
 
             if ($customer) {

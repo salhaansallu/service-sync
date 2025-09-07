@@ -15,7 +15,7 @@
                             <form id="CategoryCreate" action="" data-toggle="validator" onsubmit="return false;">
                                 @csrf
 
-                                @isset($customer)  
+                                @isset($customer)
                                 <input type="hidden" name="modelid" value="{{ $customer->id }}">
                                 @endisset
 
@@ -45,6 +45,15 @@
                                             <input type="number" class="form-control" placeholder="Enter Phone Number"
                                                 name="phone"
                                                 value="@isset($customer){{ $customer->phone }}@endisset">
+                                            <div class="help-block with-errors"></div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label>Email</label>
+                                            <input type="email" class="form-control" placeholder="Enter Email"
+                                                name="email"
+                                                value="@isset($customer){{ $customer->email }}@endisset">
                                             <div class="help-block with-errors"></div>
                                         </div>
                                     </div>

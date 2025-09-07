@@ -687,6 +687,13 @@
 
                             <div class="col-6 mt-3">
                                 <div class="input">
+                                    <label for="" class="mb-1">Customer Email</label>
+                                    <input ref="cus_email" type="text" placeholder="Customer Email" value="">
+                                </div>
+                            </div>
+
+                            <div class="col-6 mt-3">
+                                <div class="input">
                                     <label for="" class="mb-1">Customer Address</label>
                                     <input ref="cus_address" type="text" placeholder="Customer Address" value="">
                                 </div>
@@ -1538,6 +1545,7 @@ export default {
         async createCustomer() {
             var name = this.$refs.cus_name.value;
             var mobile = this.$refs.cus_mobile.value;
+            var email = this.$refs.cus_email.value;
             var address = this.$refs.cus_address.value;
 
             if (name.trim() == "") {
@@ -1553,7 +1561,8 @@ export default {
             const { data } = await axios.post('/dashboard/customer/create', {
                 name: name,
                 phone: mobile,
-                address: address
+                address: address,
+                email: email
             }).catch(function (error) {
                 if (error.response) {
                     this.loadModal("hide");
@@ -1565,6 +1574,7 @@ export default {
                 this.loadModal("hide");
                 this.$refs.cus_name.value = "";
                 this.$refs.cus_mobile.value = "";
+                this.$refs.cus_email.value = "";
                 this.$refs.cus_address.value = "";
                 this.getCustomers();
                 this.newOrder('hide');

@@ -35,7 +35,7 @@ class Mail extends Controller
             $mail->addAddress($this->to, $this->toName);
 
             // Handle file attachment
-            if (isset($this->attachments) && is_array($this->attachments) && count($this->attachments) > 0) {
+            if (is_array($this->attachments) && count($this->attachments) > 0) {
                 foreach ($this->attachments as $filePath => $fileName) {
                     $mail->addAttachment($filePath, $fileName);
                 }
@@ -50,7 +50,8 @@ class Mail extends Controller
             $mail->send();
             return (object)['error' => false, 'message' => "Mail sent successfully"];
         } catch (Exception $e) {
-            return (object)['error' => true, 'message' => "Error: {$mail->ErrorInfo}"];
+            echo "Mailer Error: {$e->getMessage()}";
+            return (object)['error' => true, 'message' => "Error: {$e->getMessage()}"];
         }
 
         return (object)['error' => true, 'message' => "Error sending email"];

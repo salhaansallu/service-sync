@@ -179,6 +179,16 @@ class PosDataController extends Controller
             $generate_thermal_invoice = generateThermalInvoice($bill_no, $ThermalinName, 'checkout');
 
             if ($generate_invoice->generated == true) {
+                $customer = customers::where('id', $repairs->customer)->first();
+                if ($customer && !empty($customer->email)) {
+                    $mail = new Mail();
+                    $mail->to = $customer->email;
+                    $mail->toName = $customer->name;
+                    $mail->subject = "Invoice - " . company()->company_name;
+                    $mail->body = "Dear Customer,<br><br>Please find the invoice attached for your repair.<br><br>Thank you!<br>" . company()->company_name;
+                    $mail->attachments = [public_path(($generate_invoice->url)) => 'Invoice.pdf'];
+                    $mail->sendMail();
+                }
                 return response(json_encode(array("error" => 0, "msg" => "Checkout successful", "invoiceURL" => $generate_thermal_invoice->url)));
             } else {
                 return response(json_encode(array("error" => 0, "msg" => "Checkout successful, Couldn't print invoice: " . $generate_thermal_invoice->msg)));

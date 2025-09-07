@@ -1,5 +1,33 @@
 @extends('pos.app')
 
+@php
+    use Carbon\Carbon;
+
+    // Get values from .env
+    $serverCreated = env('SERVER_CREATED', 'now');
+    $domainCreated = env('DOMAIN_CREATED', 'now');
+    $serverDuration = env('SERVER_DURATION', ($serverCreated == 'now'? '0 days' : '+1 year'));
+    $domainDuration = env('DOMAIN_DURATION', ($domainCreated == 'now'? '0 days' : '+1 year'));
+
+    // Calculate end dates
+    $serverEndDate = date('Y-m-d', strtotime($serverCreated . ' ' . $serverDuration));
+    $domainEndDate = date('Y-m-d', strtotime($domainCreated . ' ' . $domainDuration));
+
+    // Calculate time differences
+    $now = Carbon::now();
+    $serverDiff = $now->diff(Carbon::parse($serverEndDate));
+    $domainDiff = $now->diff(Carbon::parse($domainEndDate));
+
+    // Calculate progress percentages
+    $serverTotalDays = Carbon::parse($serverCreated)->diffInDays(Carbon::parse($serverEndDate));
+    $serverDaysPassed = Carbon::parse($serverCreated)->diffInDays($now);
+    $serverProgress = $serverCreated != 'now'? (($serverTotalDays - $serverDaysPassed) / $serverTotalDays) * 100 : 0;
+
+    $domainTotalDays = Carbon::parse($domainCreated)->diffInDays(Carbon::parse($domainEndDate));
+    $domainDaysPassed = Carbon::parse($domainCreated)->diffInDays($now);
+    $domainProgress = $domainCreated != 'now'? (($domainTotalDays - $domainDaysPassed) / $domainTotalDays) * 100 : 0;
+@endphp
+
 @section('dashboard')
     <div class="content-page">
         <div class="container-fluid">
@@ -160,6 +188,75 @@
                             </div>
                         </div>
                     </div>
+                    <div class="col-lg-12">
+                        <div class="row py-5 pt-3">
+                            <div class="col-lg-6">
+                                <div class="countdown-container">
+                                    <h3>Server Expiring In</h3>
+                                    <div class="row mt-4">
+                                        <div class="col-3 countdown-item d-flex align-items-center justify-content-between">
+                                            <div class="timer text-center">
+                                                <span class="countdown-value fs-2">{{ $serverDiff->y }}</span>
+                                                <div class="countdown-label form-text">Years</div>
+                                            </div>
+                                            <div class="colon fs-2 mx-5">:</div>
+                                        </div>
+                                        <div class="col-3 countdown-item d-flex align-items-center justify-content-between">
+                                            <div class="timer text-center">
+                                                <span class="countdown-value fs-2">{{ $serverDiff->m }}</span>
+                                                <div class="countdown-label form-text">Months</div>
+                                            </div>
+                                            <div class="colon fs-2 mx-5">:</div>
+                                        </div>
+                                        <div class="col-3 countdown-item d-flex align-items-center">
+                                            <div class="timer text-center">
+                                                <span class="countdown-value fs-2">{{ $serverDiff->d }}</span>
+                                                <div class="countdown-label form-text">Days</div>
+                                            </div>
+                                        </div>
+                                        <div class="col-10 mt-4">
+                                            <div class="progress-section" style="height: 10px; width: 100%;background-color: #e7e7e7;">
+                                                <div class="progress-bar {{ abs($serverProgress) > 50 ? 'bg-success' : (abs($serverProgress) > 25? 'bg-warning' : 'bg-danger') }}" style="width: {{ abs($serverProgress) }}%;height: 10px;"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-lg-6">
+                                <div class="countdown-container">
+                                    <h3>Domain Expiring In</h3>
+                                    <div class="row mt-4">
+                                        <div class="col-3 countdown-item d-flex align-items-center justify-content-between">
+                                            <div class="timer text-center">
+                                                <span class="countdown-value fs-2">{{ $domainDiff->y }}</span>
+                                                <div class="countdown-label form-text">Years</div>
+                                            </div>
+                                            <div class="colon fs-2 mx-5">:</div>
+                                        </div>
+                                        <div class="col-3 countdown-item d-flex align-items-center justify-content-between">
+                                            <div class="timer text-center">
+                                                <span class="countdown-value fs-2">{{ $domainDiff->m }}</span>
+                                                <div class="countdown-label form-text">Months</div>
+                                            </div>
+                                            <div class="colon fs-2 mx-5">:</div>
+                                        </div>
+                                        <div class="col-3 countdown-item d-flex align-items-center">
+                                            <div class="timer text-center">
+                                                <span class="countdown-value fs-2">{{ $domainDiff->d }}</span>
+                                                <div class="countdown-label form-text">Days</div>
+                                            </div>
+                                        </div>
+                                        <div class="col-10 mt-4">
+                                            <div class="progress-section" style="height: 10px; width: 100%;background-color: #d2d2d2;">
+                                                <div class="progress-bar {{ abs($domainProgress) > 50 ? 'bg-success' : (abs($domainProgress) > 25? 'bg-warning' : 'bg-danger') }}" style="width: {{ abs($domainProgress) }}%;height: 10px;"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                     <div class="col-lg-6">
                         <div class="card card-block card-stretch card-height">
                             <div class="card-header d-flex justify-content-between">
@@ -282,8 +379,78 @@
                         </div>
                     </div>
                 @else
-                    <div class="fs-2 fw-bold text-center mt-5 text-secondary">
+                    <div class="fs-2 fw-bold text-center my-5 text-secondary">
                         Welcome to your dashboard
+                    </div>
+
+                    <div class="col-lg-12">
+                        <div class="row py-5">
+                            <div class="col-lg-6">
+                                <div class="countdown-container">
+                                    <h3>Server Expiring In</h3>
+                                    <div class="row mt-4">
+                                        <div class="col-3 countdown-item d-flex align-items-center justify-content-between">
+                                            <div class="timer text-center">
+                                                <span class="countdown-value fs-2">{{ $serverDiff->y }}</span>
+                                                <div class="countdown-label form-text">Years</div>
+                                            </div>
+                                            <div class="colon fs-2 mx-5">:</div>
+                                        </div>
+                                        <div class="col-3 countdown-item d-flex align-items-center justify-content-between">
+                                            <div class="timer text-center">
+                                                <span class="countdown-value fs-2">{{ $serverDiff->m }}</span>
+                                                <div class="countdown-label form-text">Months</div>
+                                            </div>
+                                            <div class="colon fs-2 mx-5">:</div>
+                                        </div>
+                                        <div class="col-3 countdown-item d-flex align-items-center">
+                                            <div class="timer text-center">
+                                                <span class="countdown-value fs-2">{{ $serverDiff->d }}</span>
+                                                <div class="countdown-label form-text">Days</div>
+                                            </div>
+                                        </div>
+                                        <div class="col-10 mt-4">
+                                            <div class="progress-section" style="height: 10px; width: 100%;background-color: #e7e7e7;">
+                                                <div class="progress-bar {{ abs($serverProgress) > 50 ? 'bg-success' : (abs($serverProgress) > 25? 'bg-warning' : 'bg-danger') }}" style="width: {{ abs($serverProgress) }}%;height: 10px;"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-lg-6">
+                                <div class="countdown-container">
+                                    <h3>Domain Expiring In</h3>
+                                    <div class="row mt-4">
+                                        <div class="col-3 countdown-item d-flex align-items-center justify-content-between">
+                                            <div class="timer text-center">
+                                                <span class="countdown-value fs-2">{{ $domainDiff->y }}</span>
+                                                <div class="countdown-label form-text">Years</div>
+                                            </div>
+                                            <div class="colon fs-2 mx-5">:</div>
+                                        </div>
+                                        <div class="col-3 countdown-item d-flex align-items-center justify-content-between">
+                                            <div class="timer text-center">
+                                                <span class="countdown-value fs-2">{{ $domainDiff->m }}</span>
+                                                <div class="countdown-label form-text">Months</div>
+                                            </div>
+                                            <div class="colon fs-2 mx-5">:</div>
+                                        </div>
+                                        <div class="col-3 countdown-item d-flex align-items-center">
+                                            <div class="timer text-center">
+                                                <span class="countdown-value fs-2">{{ $domainDiff->d }}</span>
+                                                <div class="countdown-label form-text">Days</div>
+                                            </div>
+                                        </div>
+                                        <div class="col-10 mt-4">
+                                            <div class="progress-section" style="height: 10px; width: 100%;background-color: #d2d2d2;">
+                                                <div class="progress-bar {{ abs($domainProgress) > 50 ? 'bg-success' : (abs($domainProgress) > 25? 'bg-warning' : 'bg-danger') }}" style="width: {{ abs($domainProgress) }}%;height: 10px;"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 @endif
             </div>
