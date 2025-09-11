@@ -811,3 +811,25 @@ $theme-darkblue: #06468e;
 .cursor-pointer {
     cursor: pointer;
 }
+
+
+.customer_list {
+    position: absolute;
+    width: 95%;
+    padding: 10px;
+    background-color: #fff;
+    border: 1px solid #c9c9c9;
+    margin-top: 10px;
+    z-index: 2;
+    height: 200px;
+    overflow-y: auto;
+
+    table {
+        width: 100%;
+
+        tr:hover {
+            background-color: #f0f0f0;
+            cursor: pointer;
+        }
+    }
+}

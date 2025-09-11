@@ -415,28 +415,54 @@
                                 </div>
                             </div>
 
-                            <div class="col-6 mt-3">
+                            <div class="col-3 mt-3">
                                 <div class="input">
                                     <label for="" class="mb-1">Total</label>
                                     <input ref="total" type="text" placeholder="Total" value="0">
                                 </div>
                             </div>
 
-                            <div class="col-6 mt-3">
+                            <div class="col-3 mt-3">
                                 <div class="input">
                                     <label for="" class="mb-1">QTY</label>
                                     <input ref="new_order_qty" type="text" placeholder="Quantity" value="1">
                                 </div>
                             </div>
 
-                            <div class="col-6 mt-3" v-if="new_bill">
-                                <div class="input">
-                                    <label for="" class="mb-1">Customer</label>
-                                    <select ref="customer" name="" class="select2-multiple">
-                                        <option value=""></option>
-                                        <option v-for="customer in users" :value="customer.id">{{ customer.name }} ({{
-                                            customer.phone }})</option>
-                                    </select>
+                            <div class="col-12 border pb-3 my-5" v-if="new_bill">
+                                <label class="form-text text-secondary fs-6" for="" style="margin-top: -15px;position: absolute; background-color: #fff;">Customer Details</label>
+                                <div class="row">
+                                    <div class="col-6 mt-3">
+                                        <div class="input">
+                                            <label for="" class="mb-1">Customer Name</label>
+                                            <input ref="new_bill_customer_name" @keyup="filterCustomer($event, 'name')" type="text" placeholder="Customer Name">
+                                        </div>
+                                    </div>
+
+                                    <div class="col-6 mt-3">
+                                        <div class="input">
+                                            <label for="" class="mb-1">Customer Phone</label>
+                                            <input ref="new_bill_customer_phone" @keyup="filterCustomer($event, 'phone')" type="text" placeholder="Customer Phone">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <input type="hidden" name="customer" ref="customer">
+
+                                <div class="customer_list" style="display: none;">
+                                    <div class="close_list text-end fs-5"><i style="cursor: pointer;" class="fa-solid fa-xmark bg-danger p-1 text-light" @click="closeCustomerList()"></i></div>
+                                    <table>
+                                        <thead>
+                                            <th>Name</th>
+                                            <th>Phone</th>
+                                        </thead>
+                                        <tbody>
+                                            <tr v-for="customer in selectedCustomerList" @click="selectCustomer(customer.id, customer.name, customer.phone)">
+                                                <td>{{ customer.name }}</td>
+                                                <td>{{ customer.phone }}</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
                                 </div>
                             </div>
 
@@ -837,6 +863,34 @@ export default {
             })
         },
         getCashierModel(action) {
+            if (action == 'show' && this.new_bill) {
+                var model_no = this.new_bill == true ? this.$refs.model_no.value : '';
+                var customer = this.new_bill == true ? this.$refs.customer.value : '';
+                var customer_name = this.new_bill == true ? this.$refs.new_bill_customer_name.value : '';
+                var customer_phone = this.new_bill == true ? this.$refs.new_bill_customer_phone.value : '';
+                var parent_bill_no = this.new_bill == false ? this.$refs.parent_bill_no.value : '';
+
+                if (this.new_bill) {
+                    if (model_no.trim() == "") {
+                        toastr.error("Please enter model number", "Error");
+                        return;
+                    }
+
+                    if (customer.trim() == "") {
+                        if (customer_name.trim() == '' || customer_phone.trim() == '') {
+                            toastr.error("Please select customer or enter customer name and phone number", "Error");
+                            return;
+                        }
+                    }
+                }
+                else {
+                    if (parent_bill_no.trim() == "") {
+                        toastr.error("Please enter old bill number", "Error");
+                        return;
+                    }
+                }
+            }
+
             $("#getCashier").modal(action);
         },
         newCustomer(action) {
@@ -919,6 +973,31 @@ export default {
         async getSpares() {
             const { data } = await axios.post("/other-pos/get_spares");
             this.Spares = data;
+        },
+        filterCustomer(e, field) {
+            var key = e.target.value;
+            if (key.trim() != "") {
+                $('.customer_list').show();
+                this.selectedCustomerList = this.users.filter(item =>
+                    item[field] && item[field].toLowerCase().includes(key.toLowerCase())
+                );
+
+                if (this.selectedCustomerList.length > 0) {
+                    $('.customer_list').show();
+                    return;
+                }
+            }
+
+            $('.customer_list').hide();
+        },
+        selectCustomer(id, name, phone) {
+            this.$refs.customer.value = id;
+            this.$refs.new_bill_customer_phone.value = phone;
+            this.$refs.new_bill_customer_name.value = name;
+            $('.customer_list').hide();
+        },
+        closeCustomerList() {
+            $('.customer_list').hide();
         },
         Enter(e, target) {
             if (e.key == 'Enter') {
@@ -1317,6 +1396,8 @@ export default {
             var bill_type = this.$refs.bill_type.value;
             var parent_bill_no = this.new_bill == false ? this.$refs.parent_bill_no.value : '';
             var new_order_qty = this.$refs.new_order_qty.value;
+            var customer_name = this.new_bill == true ? this.$refs.new_bill_customer_name.value : '';
+            var customer_phone = this.new_bill == true ? this.$refs.new_bill_customer_phone.value : '';
             var faults = [];
             var send_sms = false;
 
@@ -1374,6 +1455,8 @@ export default {
                 advance: advance,
                 note: note.replace(/\r?\n/g, '\n'),
                 customer: customer,
+                customer_name: customer_name,
+                customer_phone: customer_phone,
                 partner: partner,
                 cashier_no: cashier_no,
                 bill_type: bill_type,
@@ -1406,7 +1489,8 @@ export default {
                     this.$refs.model_no.value = "";
                     this.$refs.serial_no.value = "";
                     this.$refs.customer.value = "";
-                    $(this.$refs.customer).val("").trigger("change");
+                    this.$refs.new_bill_customer_name.value = "";
+                    this.$refs.new_bill_customer_phone.value = "";
                 }
                 this.$refs.partner.value = "";
                 $(this.$refs.partner).val("").trigger("change");

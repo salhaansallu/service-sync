@@ -307,6 +307,8 @@ class RepairsController extends Controller
                 $fault = sanitize($request->input('fault'));
                 $advance = sanitize($request->input('advance'));
                 $customer = sanitize($request->input('customer'));
+                $customer_name = sanitize($request->input('customer_name'));
+                $customer_phone = sanitize($request->input('customer_phone'));
                 $partner = sanitize($request->input('partner'));
                 $cashier_no = sanitize($request->input('cashier_no'));
                 $bill_type = sanitize($request->input('bill_type'));
@@ -319,10 +321,18 @@ class RepairsController extends Controller
                 $billData = [];
 
                 if ($bill_type == 'new-order') {
-                    $customerData = customers::where('id', $customer)->get();
+                    $customerData = customers::where('name', $customer_name)->where('phone', $customer_phone)->first();
+                    if (!$customerData) {
 
-                    if ($customerData->count() == 0) {
-                        return response(json_encode(array("error" => 1, "msg" => "Invalid customer")));
+                        if (empty($customer_name) || $customer_phone == "") {
+                            return response(json_encode(array("error" => 1, "msg" => "Invalid customer")));
+                        }
+
+                        $customerData = new customers();
+                        $customerData->name = $customer_name;
+                        $customerData->phone = $customer_phone;
+                        $customerData->pos_code = company()->pos_code;
+                        $customerData->save();
                     }
                 } else {
                     $billData = Repairs::where('bill_no', $parent_bill_no)->where('status', 'Delivered')->get();
@@ -336,6 +346,8 @@ class RepairsController extends Controller
                     $customer = $billData[0]->customer;
                     $partner = $billData[0]->partner;
                     $model_no = $billData[0]->bill_no;
+
+                    $customerData = customers::where('id', $customer)->first();
                 }
 
                 if (!is_numeric($total)) {
@@ -381,7 +393,7 @@ class RepairsController extends Controller
                             $repair->note = $note;
                             $repair->advance = $advance;
                             $repair->total = $has_multiple_faults ? $totalAmount : $total;
-                            $repair->customer = $customer;
+                            $repair->customer = $customerData->id;
                             $repair->partner = $partner == "" ? 0 : $partner;
                             $repair->cashier = $cashier_no;
                             $repair->techie = '';
@@ -403,13 +415,13 @@ class RepairsController extends Controller
                                 if (($partner == "" || $partner == 0) && $repair->type == 'repair' && $bill_type == 'new-order' && $request->has('send_sms') && sanitize($request->input('send_sms')) == true) {
                                     $sms = new SMS();
                                     $sms->contact = array(array(
-                                        "fname" => $customerData[0]["name"],
+                                        "fname" => $customerData->name,
                                         "lname" => "",
                                         "group" => "",
-                                        "number" => $customerData[0]["phone"],
-                                        "email" => $customerData[0]["email"],
+                                        "number" => $customerData->phone,
+                                        "email" => $customerData->email,
                                     ));
-                                    $sms->message = "Dear Customer, your  " . company()->company_name . " account is created. We've received your product and will notify you when the repair is done. Track it at https://wefixservers.xyz/customer-portal?phone=" . $customerData[0]["phone"] . ". Thank you!";
+                                    $sms->message = "Dear Customer, your  " . company()->company_name . " account is created. We've received your product and will notify you when the repair is done. Track it at https://wefixservers.xyz/customer-portal?phone=" . $customerData->phone . ". Thank you!";
                                 }
 
                                 $rand = date('d-m-Y-h-i-s') . '-' . rand(0, 9999999) . '.pdf';
@@ -447,12 +459,12 @@ class RepairsController extends Controller
                     }
 
                     if ($partner == "" || $partner == 0) {
-                        if (!empty($customerData[0]["email"])) {
+                        if (!empty($customerData->email)) {
                             $mail = new Mail();
-                            $mail->to = $customerData[0]["email"];
-                            $mail->toName = $customerData[0]["name"];
+                            $mail->to = $customerData->email;
+                            $mail->toName = $customerData->name;
                             $mail->subject = "Account Created - " . company()->company_name;
-                            $mail->body = "Dear Customer,<br><br>We've received your product and will notify you when the repair is done.<br>Track it at <a href='https://wefixservers.xyz/customer-portal?phone=" . $customerData[0]["phone"] . "'>Customer Portal</a>.<br><br>Thank you!<br>" . company()->company_name;
+                            $mail->body = "Dear Customer,<br><br>We've received your product and will notify you when the repair is done.<br>Track it at <a href='https://wefixservers.xyz/customer-portal?phone=" . $customerData->phone . "'>Customer Portal</a>.<br><br>Thank you!<br>" . company()->company_name;
 
                             if ($new_order_qty > 1) {
                                 $mail->attachments = [public_path(($generate_temp_thermal_invoice->url)) => 'Invoice-' . $bill_no . '.pdf'];
@@ -463,9 +475,12 @@ class RepairsController extends Controller
                             $mail->sendMail();
                         }
                     }
+
+                    return response(json_encode(array("error" => $new_order_qty != $success_count, "msg" => $success_count . " out of " . $new_order_qty . " orders placed", "invoiceURL" => $generate_temp_thermal_invoice->url, 'sticker' => $generate_temp_sticker)));
                 }
 
-                return response(json_encode(array("error" => $new_order_qty != $success_count, "msg" => $success_count . " out of " . $new_order_qty . " orders placed", "invoiceURL" => $generate_temp_thermal_invoice->url, 'sticker' => $generate_temp_sticker)));
+                return response(json_encode(array("error" => 1, "msg" => "QTY must be atleast 1")));
+
             } catch (Exception $e) {
                 return response(json_encode(array("error" => 1, "msg" => "Error: " . $e->getMessage())));
             }

@@ -30,7 +30,7 @@ class CustomersController extends Controller
     public function getCustomers() {
         $response = [];
         if (PosDataController::check()) {
-            return response(json_encode(customers::where('pos_code', PosDataController::company()->pos_code)->get()));
+            return response(json_encode(customers::all()));
         }
         else {
             $response ['error'] = 1;
