@@ -803,6 +803,8 @@ export default {
             spareCount: 1,
             finishOrderNo: 0,
             isDisabled: false,
+            selectedCustomer: 0,
+            selectedCustomerList: [],
             cashiers: [],
             new_bill: true,
             bulkInvoiceList: [],
