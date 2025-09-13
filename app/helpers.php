@@ -1291,9 +1291,9 @@ function generateThermalInvoice($order_id, $inName, $bill_type)
             <title>Receive Note</title>
             <style>
                 @page {
-                    margin: 10px;
+                    margin: 5px;
                     height: auto;
-                    width: 80mm;
+                    width: 67mm;
                  }
                 body { margin: 10px; }
             </style>
@@ -1341,10 +1341,10 @@ function generateThermalInvoice($order_id, $inName, $bill_type)
 
             <table style="width: 100%; border-collapse: collapse; margin-bottom: 10px; margin-top: 5px; border-top: 1px solid #000;">
                 <tr style="">
-                    <th style="color: #000;padding: 5px; text-align: left;">Order</th>
-                    <th style="color: #000;padding: 5px; text-align: left;">Total</th>
-                    <th style="color: #000;padding: 5px; text-align: left;">Advance</th>
-                    <th style="color: #000;padding: 5px; text-align: left;">Balance</th>
+                    <th style="color: #000;padding: 5px; text-align: left; font-size: 13px;">Order</th>
+                    <th style="color: #000;padding: 5px; text-align: left; font-size: 13px;">Total</th>
+                    <th style="color: #000;padding: 5px; text-align: left; font-size: 13px;">Advance</th>
+                    <th style="color: #000;padding: 5px; text-align: left; font-size: 13px;">Balance</th>
                 </tr>
             ';
 
@@ -1571,7 +1571,7 @@ function generateThermalInvoice($order_id, $inName, $bill_type)
     ';
 
     $pdf = new Dompdf();
-    $pdf->setPaper([0, 0, 227, 800]);
+    $pdf->setPaper([0, 0, 189, 800]);
     $pdf->loadHtml($html, 'UTF-8');
 
     $GLOBALS['bodyHeight'] = 0;
@@ -1595,7 +1595,7 @@ function generateThermalInvoice($order_id, $inName, $bill_type)
     $docHeight = $GLOBALS['bodyHeight'] + 30;
 
     $pdf = new Dompdf();
-    $pdf->setPaper([0, 0, 230, $docHeight]);
+    $pdf->setPaper([0, 0, 189, $docHeight]);
     $pdf->loadHtml($html, 'UTF-8');
     $pdf->render();
     $path = public_path('invoice/' . $bill_type . '/' . $inName);
