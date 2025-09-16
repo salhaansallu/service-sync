@@ -741,7 +741,7 @@ function getDeliveryStatus($bill)
     return "N/A";
 }
 
-function getQuotationURL($q_no, $pos_code)
+function getQuotationURL($q_no)
 {
     return asset('quotations/' . str_replace([' ', '.', "'", '"'], ['', '', "", ''], $q_no) .'.pdf');
 }
