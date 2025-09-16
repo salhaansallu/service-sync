@@ -52,7 +52,7 @@
                                                     <a class="badge bg-secondary mr-2" data-toggle="tooltip"
                                                         data-placement="top" title="View Quotation"
                                                         data-original-title="View Quotation" href="javascript:void(0)"
-                                                        onclick="ViewInvoice('{{ getQuotationURL($item->q_no, $item->pos_code) }}')">
+                                                        onclick="ViewInvoice('{{ getQuotationURL($item->q_no) }}')">
                                                         <i class="fa-solid fa-file-invoice-dollar"></i>
                                                     </a>
                                                     <a class="badge bg-danger mr-2" data-toggle="tooltip"

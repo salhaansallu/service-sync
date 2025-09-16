@@ -743,7 +743,7 @@ function getDeliveryStatus($bill)
 
 function getQuotationURL($q_no, $pos_code)
 {
-    return asset('quotations/' . str_replace([' ', '.', "'", '"'], ['', '', "", ''], $q_no) . '-' . $pos_code . '.pdf');
+    return asset('quotations/' . str_replace([' ', '.', "'", '"'], ['', '', "", ''], $q_no) .'.pdf');
 }
 
 function partner()

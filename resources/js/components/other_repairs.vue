@@ -1424,8 +1424,10 @@ export default {
                 }
 
                 if (customer.trim() == "") {
-                    toastr.error("Please select customer", "Error");
-                    return;
+                    if (this.$refs.new_bill_customer_name.value.trim() == '' || this.$refs.new_bill_customer_phone.value.trim() == '') {
+                        toastr.error("Please select customer or enter customer name and phone number", "Error");
+                        return;
+                    }
                 }
             }
             else {
