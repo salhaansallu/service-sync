@@ -111,7 +111,7 @@ class ProductsController extends Controller
      */
     public function store(Request $request)
     {
-        if (Auth::check() && DashboardController::check(true)) {
+        if (isCashier()) {
             $name = sanitize($request->input('name'));
             $code = sanitize($request->input('code'));
             $code = str_replace(' ', '', $code);
@@ -186,11 +186,11 @@ class ProductsController extends Controller
      */
     public function edit($id)
     {
-        if (!Auth::check() && DashboardController::check(true)) {
+        if (!isCashier()) {
             return redirect('/signin');
         }
 
-        $product = Products::where('sku', sanitize($id))->where('pos_code', company()->pos_code)->get();
+        $product = Products::where('sku', sanitize($id))->get();
 
         if ($product && $product->count() > 0) {
             return view('pos.add-product')->with('product', $product[0]);
@@ -204,7 +204,7 @@ class ProductsController extends Controller
      */
     public function update(Request $request, Products $products)
     {
-        if (Auth::check() && DashboardController::check(true)) {
+        if (isCashier()) {
             $id = sanitize($request->input('modelid'));
             $name = sanitize($request->input('name'));
             $code = sanitize($request->input('code'));
@@ -290,9 +290,9 @@ class ProductsController extends Controller
      */
     public function destroy(Request $request)
     {
-        if (Auth::check() && DashboardController::check(true)) {
+        if (isCashier()) {
             $sku = sanitize($request->input('sku'));
-            $verify = Products::where('sku', $sku)->where('pos_code', company()->pos_code);
+            $verify = Products::where('sku', $sku);
             if ($verify && $verify->get()->count() > 0) {
                 if ($verify->delete()) {
                     return response(json_encode(array("error" => 0, "msg" => "Product deleted successfully")));

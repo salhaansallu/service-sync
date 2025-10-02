@@ -763,7 +763,7 @@
                                 <button @click="newSale('hide')"
                                     style="background: transparent; color: red !important; border: red 1px solid;"
                                     class="primary-btn submit-btn mx-4"><i class="fa-solid fa-arrow-left-long mx-2"></i>
-                                    Back To POS</button>
+                                    Back To Repairs</button>
                             </div>
                         </div>
                     </div>

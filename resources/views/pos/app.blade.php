@@ -98,7 +98,6 @@
                             </a>
                         </li>
 
-                        @if (isAdmin())
                         <li class="{{ Request::is('dashboard/products*') ? 'active' : '' }}">
                             <a href="#product" class="collapsed {{ company()->plan == 1 ? 'no-collapsable' : '' }}"
                                 data-toggle="collapse" aria-expanded="false">
@@ -138,7 +137,6 @@
                                 </li>
                             </ul>
                         </li>
-                        @endif
 
                         <li class="{{ Request::is('dashboard/repairs*') ? 'active' : '' }}">
                             <a href="#category" class="collapsed {{ company()->plan == 1 ? 'no-collapsable' : '' }}"

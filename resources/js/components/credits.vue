@@ -3,7 +3,7 @@
         <div class="container-fluid">
             <div class="sales-filter">
                 <div class="filter_from pb-3">
-                    <div class="row" v-if="isadmin">
+                    <div class="row">
                         <div class="col-12">
                             <div class="head">
                                 <h4 class="text-center">Ageing Summary</h4>

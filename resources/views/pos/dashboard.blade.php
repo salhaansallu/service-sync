@@ -379,6 +379,33 @@
                         </div>
                     </div>
                 @else
+                <div class="col-lg-9">
+                        <div class="row">
+                            <div class="col-lg-3 col-md-3">
+                                <div class="card card-block card-stretch card-height">
+                                    <div class="card-body">
+                                        <div class="d-flex align-items-center card-total-sale">
+                                            <div class="icon iq-icon-box-2 bg-warning-light">
+                                                <i class="fa-solid fa-comment-sms"></i>
+                                            </div>
+                                            <div>
+                                                <p class="mb-2">SMS Balance</p>
+                                                <h4 id="smsBalance">
+                                                    <div class="spinner-border text-warning" role="status">
+                                                        <span class="sr-only">Loading...</span>
+                                                    </div>
+                                                </h4>
+                                            </div>
+                                        </div>
+                                        {{-- <div class="iq-progress-bar mt-2">
+                                    <span class="bg-success iq-progress progress-1" data-percent="75">
+                                    </span>
+                                </div> --}}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                     <div class="fs-2 fw-bold text-center my-5 text-secondary">
                         Welcome to your dashboard
                     </div>

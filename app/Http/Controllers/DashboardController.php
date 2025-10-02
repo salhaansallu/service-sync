@@ -159,8 +159,8 @@ class DashboardController extends Controller
     {
         login_redirect('/' . request()->path());
 
-        if (Auth::check() && $this->check(true)) {
-            $products = Products::where('pos_code', company()->pos_code)->get();
+        if (isCashier()) {
+            $products = Products::all();
             return view('pos.list-product')->with(['products' => $products]);
         } else {
             return redirect('/signin');
@@ -169,7 +169,7 @@ class DashboardController extends Controller
 
     public function createProduct()
     {
-        if (Auth::check() && $this->check(true)) {
+        if (isCashier()) {
             return view('pos.add-product');
         } else {
             return redirect('/signin');

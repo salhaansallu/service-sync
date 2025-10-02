@@ -225,12 +225,12 @@ class PosDataController extends Controller
                     $stock->qty = (float)$stock->qty - (float)$value['qty'];
                     $stock->save();
                     $cost += (float)$stock->cost * (float)$value['qty'];
-                    $total += (float)$stock->price * (float)$value['qty'];
+                    $total += (float)$value['price'] * (float)$value['qty'];
                     $parts[] = $stock->id;
 
                     $invoice_pro[] = array(
                         "name" => $stock->pro_name,
-                        "unit" => $stock->price,
+                        "unit" => $value['price'],
                         "cost" => $stock->cost,
                         "qty" => $value['qty'],
                         "sku" => $stock->sku,

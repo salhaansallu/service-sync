@@ -42,12 +42,9 @@
                                 <img :src="'/assets/images/products/' + order['pro_image']" alt="">
                                 <div class="dtl">
                                     <div class="name">{{ order['pro_name'] }}</div>
-                                    <div class="price" v-if="order['discount'] == 0">{{
-                                        currency(parseFloat(order['price'])
-                                            * parseFloat(order['qty']), posData.currency) }}</div>
-                                    <div class="price" v-if="order['discount'] > 0">{{
-                                        currency(parseFloat(order['discounted_price']) * parseFloat(order['qty']),
-                                            posData.currency) }}</div>
+                                    <div class="price"><input type="text" class="price border-0 w-100 text-primary" @change="productPriceChange($event, order['sku'])" style="background: none; outline: none;" :value="currency(parseFloat(order['price']), '')"></div>
+                                    <!-- <div class="price" v-if="order['discount'] == 0">{{ currency(parseFloat(order['price']) * parseFloat(order['qty']), posData.currency) }}</div>
+                                    <div class="price" v-if="order['discount'] > 0">{{ currency(parseFloat(order['discounted_price']) * parseFloat(order['qty']), posData.currency) }}</div> -->
                                 </div>
                                 <div class="qty">
                                     <i class="fa-solid fa-minus" @click="updateQTY(order['sku'], '-')"></i>
@@ -245,6 +242,17 @@ export default {
                 this.updateProductDetails()
             }
         },
+        productPriceChange(e, sku) {
+            var newPrice = e.target.value;
+
+            if (!isNaN(newPrice) && !isNaN(parseFloat(newPrice))) {
+                this.updateOrder(sku, 'price', parseFloat(newPrice))
+                this.updateProductDetails();
+            }
+            else {
+                toastr.error('Invalid price format', 'Error');
+            }
+        },
         discount(sku) {
             // var mod = this.$refs['dis_mod' + sku][0].value;
             // var price = this.$refs['dis' + sku][0].value;
@@ -274,6 +282,9 @@ export default {
                     return false;
                 }
             });
+
+            this.updateProductDetails();
+
         },
         searchProducts(e) {
             var pro = this.tempProducts;
@@ -501,6 +512,7 @@ export default {
                     product.push({
                         id: arr['sku'],
                         qty: arr['qty'],
+                        price: arr['price'],
                     });
                 });
 
