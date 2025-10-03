@@ -32,14 +32,14 @@
     "src": "node_modules/@fortawesome/fontawesome-free/webfonts/fa-v4compatibility.woff2"
   },
   "resources/js/app.css": {
-    "file": "assets/app-2dcc1474.css",
+    "file": "assets/app-fe3c5052.css",
     "src": "resources/js/app.css"
   },
   "resources/js/app.js": {
     "css": [
-      "assets/app-2dcc1474.css"
+      "assets/app-fe3c5052.css"
     ],
-    "file": "assets/app-c0b3a1c9.js",
+    "file": "assets/app-710eb74f.js",
     "imports": [
       "resources/views/pos/js/pos.js"
     ],
@@ -47,22 +47,22 @@
     "src": "resources/js/app.js"
   },
   "resources/sass/app.scss": {
-    "file": "assets/app-ff7bc7c5.css",
+    "file": "assets/app-ac17d2cb.css",
     "isEntry": true,
     "src": "resources/sass/app.scss"
   },
   "resources/views/pos/js/pos.js": {
-    "file": "assets/pos-d0054412.js",
+    "file": "assets/pos-0de3abfb.js",
     "isEntry": true,
     "src": "resources/views/pos/js/pos.js"
   },
   "resources/views/pos/sass/app.scss": {
-    "file": "assets/app-d862549d.css",
+    "file": "assets/app-47a70861.css",
     "isEntry": true,
     "src": "resources/views/pos/sass/app.scss"
   },
   "resources/views/pos/sass/pos.scss": {
-    "file": "assets/pos-00e6ceb9.css",
+    "file": "assets/pos-467a07ef.css",
     "isEntry": true,
     "src": "resources/views/pos/sass/pos.scss"
   }
