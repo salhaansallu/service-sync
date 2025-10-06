@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Credit;
 use App\Models\customers;
+use App\Models\employee_expenses;
 use App\Models\orderProducts;
 use App\Models\orders;
 use App\Models\partners;
@@ -149,7 +150,7 @@ class PosDataController extends Controller
                     "signature" => $signature,
                 ]);
 
-                $rp = Repairs::where('bill_no', $id)->get(['techie', 'total', 'cost']);
+                $rp = Repairs::where('bill_no', $id)->get(['techie', 'total', 'cost', 'commission', 'bill_no']);
                 if ($rp->count() > 0) {
                     $com = new repairCommissions();
                     $com->user = $rp[0]->techie;
@@ -157,11 +158,22 @@ class PosDataController extends Controller
                     $com->status = "pending";
                     $com->note = $id;
                     $com->save();
+
+                    employee_expenses::insert([
+                        "user" => $rp[0]->techie,
+                        "note" => 'Commission of bill no '.$rp[0]->bill_no,
+                        "amount" => $rp[0]->commission,
+                        "type" => 'Commission',
+                        "created_at" => Carbon::now(),
+                        "updated_at" => Carbon::now(),
+                    ]);
                 }
 
                 personalCredits::where('bill_no', $id)->update([
                     'status' => 'Delivered',
                 ]);
+
+
             }
 
             $repairs = Repairs::where('bill_no', $bill_no[0])->where('pos_code', $company->pos_code)->get('customer')[0];

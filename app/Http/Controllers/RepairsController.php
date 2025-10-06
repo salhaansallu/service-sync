@@ -132,6 +132,7 @@ class RepairsController extends Controller
             $service_cost = $request->input('service_cost');
             $status = sanitize($request->input('status'));
             $techie = sanitize($request->input('techie'));
+            $commission = sanitize($request->input('commission'));
             $parts = [];
             $customerData = [];
             $cost = 0;
@@ -208,7 +209,7 @@ class RepairsController extends Controller
 
                 $update =  Repairs::where('bill_no', $bill_no);
 
-                if ($update->update(["note" => $note, "techie" => $techie, "status" => $status, "total" => $total, "cost" => $cost, "spares" => json_encode($parts), "repaired_date" => date('Y-m-d H:i:s')])) {
+                if ($update->update(["note" => $note, "techie" => $techie, "commission" => (is_numeric($commission)? $commission : 0), "status" => $status, "total" => $total, "cost" => $cost, "spares" => json_encode($parts), "repaired_date" => date('Y-m-d H:i:s')])) {
 
                     $customerData = customers::where('id', $update->get()[0]["customer"])->get();
 
@@ -534,6 +535,7 @@ class RepairsController extends Controller
             $customer = sanitize($request->input('customer'));
             $partner = sanitize($request->input('partner'));
             $techie = sanitize($request->input('techie'));
+            $commission = sanitize($request->input('commission'));
             $cashier = sanitize($request->input('cashier'));
             $warranty = sanitize($request->input('warranty'));
             $spares = [];
@@ -574,6 +576,7 @@ class RepairsController extends Controller
                 "delivery" => $delivery,
                 "customer" => $customer,
                 "techie" => $techie,
+                "commission" => $commission,
                 "cashier" => $cashier,
                 "partner" => $partner,
                 "spares" => json_encode($spares),

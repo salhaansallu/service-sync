@@ -105,7 +105,7 @@
 
     <div class="modal fade" id="addExpense" tabindex="-1" role="dialog" aria-labelledby="addExpense" aria-hidden="true"
         data-bs-backdrop="static" data-bs-keyboard="false">
-        <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+        <div :class="'modal-dialog '+ (loadby == 'accounts'? 'modal-fullscreen' : 'modal-lg') +' modal-dialog-centered'" role="document">
             <div class="modal-content">
                 <div class="modal-body d-flex" style="justify-content: center;">
                     <div class="product-wrp mt-1">
@@ -229,7 +229,7 @@
 
                             <div class="col-12 mt-5">
                                 <button @click="addExpense()" class="primary-btn submit-btn">Save</button>
-                                <button @click="openModal('addExpense', 'hide')"
+                                <button @click="openModal('addExpense', 'hide')" v-if="loadby != 'accounts'"
                                     style="background: transparent; color: red !important; border: red 1px solid;"
                                     class="primary-btn submit-btn mx-4">Close</button>
                             </div>
@@ -246,7 +246,7 @@ import { currency } from '../custom';
 import printJS from 'print-js';
 
 export default {
-    props: ['isadmin'],
+    props: ['isadmin', 'loadby'],
     data() {
         return {
             name: 'hr',
@@ -396,6 +396,8 @@ export default {
 
                 toastr.success(data.message, 'Success');
                 this.openModal('addExpense', 'hide');
+
+                window.parent.postMessage({ action: 'closeEmployeeExpensesModal' }, '*');
             }
             else {
                 toastr.error(data.message, 'Error');
@@ -496,6 +498,10 @@ export default {
         const localDate = new Date(now.getTime() - offset * 60000); // Adjust for timezone offset
         const formatted = localDate.toISOString().slice(0, 16); // "YYYY-MM-DDTHH:MM"
         this.$refs.date.value = formatted;
+
+        if (this.loadby == 'accounts') {
+            this.openModal('addExpense', 'show')
+        }
     }
 }
 </script>

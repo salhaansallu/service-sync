@@ -66,7 +66,7 @@
                                         </div>
                                     </div>
 
-                                    <div class="col-md-6">
+                                    <div class="col-md-3">
                                         <div class="form-group">
                                             <label>Technician</label>
                                             <select name="techie" class="form-control">
@@ -75,6 +75,13 @@
                                                     <option @if($user->user_id == $repairs->techie) selected @endif value="{{ $user->user_id }}">{{ $user->fname }}</option>
                                                 @endforeach
                                             </select>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-3">
+                                        <div class="form-group">
+                                            <label>Commission</label>
+                                            <input type="text" name="commission" class="form-control" value="{{ $repairs->commission }}">
                                         </div>
                                     </div>
 

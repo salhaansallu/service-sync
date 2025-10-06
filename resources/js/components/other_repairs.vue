@@ -534,7 +534,7 @@
             <div class="modal-content">
                 <div class="modal-body d-flex" style="justify-content: center;">
                     <div class="product-wrp mt-1">
-                        <div class="row justify-content-between">
+                        <div class="row">
                             <div class="col-6 mt-3">
                                 <div class="input">
                                     <label for="" class="mb-1">Bill No</label>
@@ -602,14 +602,20 @@
                                 </div>
                             </div>
 
-                            <div class="col-6 mt-3">
+                            <div class="col-3 mt-3">
                                 <div class="input">
                                     <label for="" class="mb-1">Technician</label>
                                     <select ref="techie" name="" class="select2-multiple">
                                         <option value=""></option>
-                                        <option v-for="cashier in cashiers" :value="cashier.user_id">{{
-                                            cashier.fname }}</option>
+                                        <option v-for="cashier in cashiers" :value="cashier.user_id">{{ cashier.fname }}</option>
                                     </select>
+                                </div>
+                            </div>
+
+                            <div class="col-3 mt-3">
+                                <div class="input">
+                                    <label for="" class="mb-1">Commission</label>
+                                    <input type="number" ref="commission" name="" placeholder="Commission" value="0">
                                 </div>
                             </div>
 
@@ -1135,6 +1141,7 @@ export default {
             this.faultCount = 1;
             this.multipleFult = false;
             this.$refs.faultCheckbox.checked = false;
+            this.$refs.commission.value = 0;
 
             this.$refs["cashin"].value = '0';
             this.$refs["total"].innerText = "LKR 0.00";
@@ -1303,6 +1310,7 @@ export default {
                 var note = this.$refs.finish_note.value;
                 var status = this.$refs.finish_status.value;
                 var techie = this.$refs.techie.value;
+                var commission = this.$refs.commission.value;
                 var sparePro = [];
                 var service_cost = 0;
 
@@ -1357,6 +1365,7 @@ export default {
                     spares: sparePro,
                     service_cost: service_cost,
                     techie: techie,
+                    commission: commission,
                     status: status,
 
                 }).catch(function (error) {

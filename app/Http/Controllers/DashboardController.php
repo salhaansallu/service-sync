@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Categories;
 use App\Models\customers;
+use App\Models\employee_expenses;
+use App\Models\expenses;
 use App\Models\orderProducts;
 use App\Models\orders;
 use App\Models\partners;
@@ -774,5 +776,99 @@ class DashboardController extends Controller
         }
 
         return response(json_encode(array("error" => 1, "msg" => "Error generating invoice")));
+    }
+
+    public function accounts(Request $request)
+    {
+        if (Auth::check() && isCashier()) {
+            $fromdate = sanitize($request->input('fromdate'));
+            $todate = sanitize($request->input('todate'));
+
+            $tvRepairSales = 0;
+            $otherRepairSales = 0;
+
+            $tvSpareCost = 0;
+            $otherSpareCost = 0;
+
+            $tvCommission = 0;
+            $otherCommission = 0;
+
+            if (!$request->has('fromdate') || !$request->has('todate')) {
+                $fromdate = Carbon::now()->format('Y-m-d');
+                $todate = Carbon::now()->format('Y-m-d');
+            }
+
+            $staffCommission = employee_expenses::where('type', 'Commission')->whereDate('created_at', '>=', $fromdate)->whereDate('created_at', '<=', $todate)->sum('amount');
+            $staffFood = employee_expenses::where('type', 'Food')->whereDate('created_at', '>=', $fromdate)->whereDate('created_at', '<=', $todate)->sum('amount');
+            $staffSalary = employee_expenses::where('type', 'Salary')->whereDate('created_at', '>=', $fromdate)->whereDate('created_at', '<=', $todate)->sum('amount');
+            $staffTransport = employee_expenses::where('type', 'Transport')->whereDate('created_at', '>=', $fromdate)->whereDate('created_at', '<=', $todate)->sum('amount');
+            $staffBonus = employee_expenses::where('type', 'Bonus')->whereDate('created_at', '>=', $fromdate)->whereDate('created_at', '<=', $todate)->sum('amount');
+            $staffMedical = employee_expenses::where('type', 'Medical')->whereDate('created_at', '>=', $fromdate)->whereDate('created_at', '<=', $todate)->sum('amount');
+            $staffAccommodation = employee_expenses::where('type', 'Accommodation')->whereDate('created_at', '>=', $fromdate)->whereDate('created_at', '<=', $todate)->sum('amount');
+            $staffOT = employee_expenses::where('type', 'OT')->whereDate('created_at', '>=', $fromdate)->whereDate('created_at', '<=', $todate)->sum('amount');
+            $staffLoan = employee_expenses::where('type', 'Loan')->whereDate('created_at', '>=', $fromdate)->whereDate('created_at', '<=', $todate)->sum('amount');
+            $rent = expenses::where('payment', 'Cash')->where('item', 'Rent & Sadaqah')
+            ->whereDate('created_at', '>=', $fromdate)
+            ->whereDate('created_at', '<=', $todate)
+            ->selectRaw('SUM(CASE WHEN qty > 0 THEN amount * qty ELSE amount END) as total')
+            ->value('total');
+            $fbCash = expenses::where('payment', 'Cash')->where('item', 'FB Cash')
+            ->whereDate('created_at', '>=', $fromdate)
+            ->whereDate('created_at', '<=', $todate)
+            ->selectRaw('SUM(CASE WHEN qty > 0 THEN amount * qty ELSE amount END) as total')
+            ->value('total');
+
+            $tvRepairs = Repairs::where('type', 'repair')->where('status', 'Delivered')
+            ->when($fromdate, function ($query) use ($fromdate){
+                $query->whereDate('paid_at', '>=', Carbon::parse($fromdate)->format('Y-m-d'));
+            })
+            ->when($todate, function ($query) use ($todate){
+                $query->whereDate('paid_at', '<=', Carbon::parse($todate)->format('Y-m-d'));
+            })->get();
+
+            $otherRepairs = Repairs::where('type', 'other')->where('status', 'Delivered')
+            ->when($fromdate, function ($query) use ($fromdate){
+                $query->whereDate('paid_at', '>=', Carbon::parse($fromdate)->format('Y-m-d'));
+            })
+            ->when($todate, function ($query) use ($todate){
+                $query->whereDate('paid_at', '<=', Carbon::parse($todate)->format('Y-m-d'));
+            })->get();
+
+            foreach ($tvRepairs as $key => $repair) {
+                $tvRepairSales += $repair->total;
+                $tvSpareCost += $repair->cost;
+                $tvCommission += $repair->commission;
+            }
+
+            foreach ($otherRepairs as $key => $repair) {
+                $otherRepairSales += $repair->total;
+                $otherSpareCost += $repair->cost;
+                $otherCommission += $repair->commission;
+            }
+
+            return view('pos.accounts', compact([
+                'tvRepairSales',
+                'otherRepairSales',
+                'tvSpareCost',
+                'otherSpareCost',
+                'tvCommission',
+                'otherCommission',
+                'staffCommission',
+                'staffFood',
+                'staffSalary',
+                'staffTransport',
+                'staffBonus',
+                'staffMedical',
+                'staffAccommodation',
+                'staffOT',
+                'staffLoan',
+                'rent',
+                'fbCash',
+                'tvRepairs',
+                'otherRepairs',
+            ]));
+        }
+
+        return redirect('/signin');
     }
 }
