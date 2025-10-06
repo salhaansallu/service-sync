@@ -33,8 +33,8 @@ class hrController extends Controller
             $todate = sanitize($request->input('todate'));
             $cashier = sanitize($request->input('cashier'));
             $type = sanitize($request->input('type'));
-            $fromdate = date('Y-m-d ', strtotime($fromdate)).' 00:00:00';
-            $todate = date('Y-m-d ', strtotime($todate)).' 23:59:59';
+            $fromdate = date('Y-m-d ', strtotime($fromdate)) . ' 00:00:00';
+            $todate = date('Y-m-d ', strtotime($todate)) . ' 23:59:59';
             $qry = employee_expenses::whereBetween('created_at', [$fromdate, $todate]);
             if ($cashier != '') {
                 $qry->where('user', $cashier);
@@ -83,16 +83,25 @@ class hrController extends Controller
             $todate = sanitize($request->input('todate'));
             $cashier = sanitize($request->input('cashier'));
             $type = sanitize($request->input('type'));
-            $fromdate = date('Y-m-d ', strtotime($fromdate)).' 00:00:00';
-            $todate = date('Y-m-d ', strtotime($todate)).' 23:59:59';
-            $qry = employee_expenses::whereBetween('created_at', [$fromdate, $todate]);
+            $fromdate = $fromdate ? date('Y-m-d 00:00:00', strtotime($fromdate)) : null;
+            $todate   = $todate ? date('Y-m-d 23:59:59', strtotime($todate)) : null;
+
+            $qry = employee_expenses::query();
+
+            if ($fromdate && $todate) {
+                $qry->whereBetween('created_at', [$fromdate, $todate]);
+            }
+
             if ($cashier != '') {
                 $qry->where('user', $cashier);
             }
+
             if ($type != '') {
                 $qry->where('type', $type);
             }
+
             $qry->orderBy('created_at', 'desc');
+
             $data = $qry->get();
 
             if ($data->count() > 0) {
@@ -127,14 +136,14 @@ class hrController extends Controller
             $all = sanitize($request->input('all'));
 
             if ($all) {
-                $data = employee_expenses::where('user', $id)->where('type', 'Loan')->update(['status'=> 'paid']);
+                $data = employee_expenses::where('user', $id)->where('type', 'Loan')->update(['status' => 'paid']);
                 if ($data) {
                     return response(json_encode(['error' => 0, 'message' => 'All loans paid successfully.']));
                 }
                 return response(json_encode(['error' => 1, 'message' => 'Error paying all loans.']));
             }
 
-            if (employee_expenses::where('id', $id)->update(['status'=> 'paid'])) {
+            if (employee_expenses::where('id', $id)->update(['status' => 'paid'])) {
                 return response(json_encode(['error' => 0, 'message' => 'Expense paid successfully.']));
             }
 
