@@ -30,8 +30,8 @@
                         </form>
                     </div>
 
-                    <div class="table-responsive rounded mb-3 border-bottom">
-                        <table class="table mb-0 tbl-server-info" style="max-height: 500px;">
+                    <div class="table-responsive rounded mb-3 border-bottom" style="overflow-y: auto;max-height: 300px;">
+                        <table class="table mb-0 tbl-server-info">
                             <thead class="bg-white text-uppercase">
                                 <tr class="ligth ligth-data">
                                     <th class="text-start">Order No</th>
@@ -56,6 +56,13 @@
                                     <td class="text-start">{{ currency($item->cost + $item->commission, '') }}</td>
                                 </tr>
                                 @endforeach
+                                <tr>
+                                    <td class="text-start fw-bold" colspan="3">Total:</td>
+                                    <td class="text-start fw-bold">{{ currency($tvRepairSales + $otherRepairSales, '') }}</td>
+                                    <td class="text-start fw-bold">{{ currency($tvSpareCost + $otherSpareCost, '') }}</td>
+                                    <td class="text-start fw-bold">{{ currency($staffCommission, '') }}</td>
+                                    <td class="text-start fw-bold">{{ currency($tvSpareCost + $otherSpareCost + $staffCommission, '') }}</td>
+                                </tr>
                                 @endif
                             </tbody>
                         </table>
