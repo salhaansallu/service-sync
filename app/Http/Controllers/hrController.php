@@ -88,15 +88,15 @@ class hrController extends Controller
 
             $qry = employee_expenses::query();
 
-            if ($fromdate && $todate) {
+            if (!empty($fromdate) && !empty($todate)) {
                 $qry->whereBetween('created_at', [$fromdate, $todate]);
             }
 
-            if ($cashier != '') {
+            if (!empty($cashier)) {
                 $qry->where('user', $cashier);
             }
 
-            if ($type != '') {
+            if (!empty($type)) {
                 $qry->where('type', $type);
             }
 
