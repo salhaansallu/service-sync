@@ -606,9 +606,9 @@ class RepairsController extends Controller
      */
     public function destroy(Request $request, Repairs $repairs)
     {
-        if (Auth::check() && DashboardController::check(true)) {
+        if (Auth::check() && isCashier()) {
             $id = sanitize($request->input('id'));
-            $verify = Repairs::where('id', $id)->where('pos_code', company()->pos_code);
+            $verify = Repairs::where('id', $id);
             if ($verify && $verify->get()->count() > 0) {
                 if ($verify->delete()) {
                     return response(json_encode(array("error" => 0, "msg" => "Order deleted successfully")));

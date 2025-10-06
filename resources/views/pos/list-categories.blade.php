@@ -83,13 +83,11 @@
                                                                 class="fa-solid fa-award"></i></a>
                                                     @endif
 
-                                                    @if (isAdmin())
                                                     <a class="badge bg-danger mr-2" data-toggle="tooltip"
                                                         data-placement="top" title="Delete product"
                                                         data-original-title="Delete" href="javascript:void(0)"
                                                         onclick="deleteProduct('{{ $item->id }}')"><i
                                                             class="ri-delete-bin-line mr-0"></i></a>
-                                                    @endif
                                                 </div>
                                             </td>
                                         </tr>

@@ -191,9 +191,9 @@ class ProductPurchasesController extends Controller
 
             $product = [];
 
-            $stock_updated = 'N';
-
             $purchase = ProductPurchases::where('id', $id)->first();
+
+            $stock_updated = $purchase != null? $purchase->stock_updated : 'N';
 
             for ($i=0; $i < $product_count; $i++) {
                 if (!empty(sanitize($request->input('product_'.$i)))) {
@@ -222,13 +222,16 @@ class ProductPurchasesController extends Controller
                         if ($status == 'approved' && $purchase != null && $purchase->stock_updated != 'Y') {
                             $stock_updated = 'Y';
                             $temp->qty = $temp->qty + sanitize($request->input('qty_'.$i));
-                            $temp->cost = divide(($total+$cbm_price+$shipping_charge), $total_in_currency) * sanitize($request->input('price_'.$i));
-                            $temp->save();
                         }
+
+                        if ($status == 'approved') {
+                            $temp->cost = divide(($total+$cbm_price+$shipping_charge), $total_in_currency) * sanitize($request->input('price_'.$i));
+                        }
+
+                        $temp->save();
                     }
                 }
             }
-
 
             $purchase = ProductPurchases::where('id', $id)->update([
                 "products" => json_encode($product),
