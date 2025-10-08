@@ -827,6 +827,22 @@ class DashboardController extends Controller
                 $query->whereDate('paid_at', '<=', Carbon::parse($todate)->format('Y-m-d'));
             })->get();
 
+            $tvRepairs = Repairs::where('type','repair')->where('status', 'Delivered')
+            ->when($fromdate, function ($query) use ($fromdate){
+                $query->whereDate('paid_at', '>=', Carbon::parse($fromdate)->format('Y-m-d'));
+            })
+            ->when($todate, function ($query) use ($todate){
+                $query->whereDate('paid_at', '<=', Carbon::parse($todate)->format('Y-m-d'));
+            })->get();
+
+            $otherRepairs = Repairs::where('type','other')->where('status', 'Delivered')
+            ->when($fromdate, function ($query) use ($fromdate){
+                $query->whereDate('paid_at', '>=', Carbon::parse($fromdate)->format('Y-m-d'));
+            })
+            ->when($todate, function ($query) use ($todate){
+                $query->whereDate('paid_at', '<=', Carbon::parse($todate)->format('Y-m-d'));
+            })->get();
+
             foreach ($repairs as $key => $repair) {
                 $repairSales += $repair->total;
                 $spareCost += $repair->cost;
@@ -834,6 +850,8 @@ class DashboardController extends Controller
             }
 
             return view('pos.accounts', compact([
+                'tvRepairs',
+                'otherRepairs',
                 'repairSales',
                 'spareCost',
                 'commission',

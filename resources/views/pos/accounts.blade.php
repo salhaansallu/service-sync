@@ -68,77 +68,101 @@
                         </table>
                     </div>
 
-                    <div class="mt-5">
-                        <div class="row m-0 fw-semibold">
-                            <div class="col-4 col-lg-2 border-bottom py-2 text-success">Repair Sales:</div>
-                            <div class="col-4 col-lg-2 border-bottom py-2 text-success text-end">{{ currency($repairSales, '') }}</div>
+                    <div class="row">
+                        <div class="col-lg-6">
+                            <div class="mt-5">
+                                <div class="row m-0 fw-semibold">
+                                    <div class="col-4 col-lg-4 border-bottom py-2 text-success">Repair Sales:</div>
+                                    <div class="col-4 col-lg-4 border-bottom py-2 text-success text-end">{{ currency($repairSales, '') }}</div>
+                                </div>
+                                <div class="row m-0 fw-semibold">
+                                    <div class="col-4 col-lg-4 border-bottom py-2 text-danger">Service Parts Cost:</div>
+                                    <div class="col-4 col-lg-4 border-bottom py-2 text-end text-danger">{{ currency($spareCost, '') }}</div>
+                                </div>
+                                <div class="row m-0 fw-semibold">
+                                    <div class="col-4 col-lg-4 border-bottom py-2 text-danger">Commission:</div>
+                                    <div class="col-4 col-lg-4 border-bottom py-2 text-end text-danger">{{ currency($commission, '') }}</div>
+                                </div>
+                                <div class="row m-0 fw-semibold">
+                                    <div class="col-4 col-lg-4 border-bottom py-2 text-danger">Total Staff Commission:</div>
+                                    <div class="col-4 col-lg-4 border-bottom py-2 text-end text-danger">{{ currency($staffCommission, '') }}</div>
+                                    <div class="col-4 col-lg-3 py-2 text-start"><a href="javascript:void(0)" data-expense="Staff Commission" class="expense-btn primary-btn submit-btn border-only py-1" style="font-size: 13px;">Add New</a></div>
+                                </div>
+                                <div class="row m-0 fw-semibold">
+                                    <div class="col-4 col-lg-4 border-bottom py-2 text-danger">Food Expenses:</div>
+                                    <div class="col-4 col-lg-4 border-bottom py-2 text-end text-danger">{{ currency($staffFood, '') }}</div>
+                                    <div class="col-4 col-lg-3 py-2 text-start"><a href="javascript:void(0)" data-expense="Food Expenses" class="expense-btn primary-btn submit-btn border-only py-1" style="font-size: 13px;">Add New</a></div>
+                                </div>
+                                <div class="row m-0 fw-semibold">
+                                    <div class="col-4 col-lg-4 border-bottom py-2 text-danger">Staff Salary:</div>
+                                    <div class="col-4 col-lg-4 border-bottom py-2 text-end text-danger">{{ currency($staffSalary, '') }}</div>
+                                    <div class="col-4 col-lg-3 py-2 text-start"><a href="javascript:void(0)" data-expense="Staff Salary" class="expense-btn primary-btn submit-btn border-only py-1" style="font-size: 13px;">Add New</a></div>
+                                </div>
+                                <div class="row m-0 fw-semibold">
+                                    <div class="col-4 col-lg-4 border-bottom py-2 text-danger">Staff Transport:</div>
+                                    <div class="col-4 col-lg-4 border-bottom py-2 text-end text-danger">{{ currency($staffTransport, '') }}</div>
+                                    <div class="col-4 col-lg-3 py-2 text-start"><a href="javascript:void(0)" data-expense="Staff Transport" class="expense-btn primary-btn submit-btn border-only py-1" style="font-size: 13px;">Add New</a></div>
+                                </div>
+                                <div class="row m-0 fw-semibold">
+                                    <div class="col-4 col-lg-4 border-bottom py-2 text-danger">Staff Bonus:</div>
+                                    <div class="col-4 col-lg-4 border-bottom py-2 text-end text-danger">{{ currency($staffBonus, '') }}</div>
+                                    <div class="col-4 col-lg-3 py-2 text-start"><a href="javascript:void(0)" data-expense="Staff Bonus" class="expense-btn primary-btn submit-btn border-only py-1" style="font-size: 13px;">Add New</a></div>
+                                </div>
+                                <div class="row m-0 fw-semibold">
+                                    <div class="col-4 col-lg-4 border-bottom py-2 text-danger">Staff Medical:</div>
+                                    <div class="col-4 col-lg-4 border-bottom py-2 text-end text-danger">{{ currency($staffMedical, '') }}</div>
+                                    <div class="col-4 col-lg-3 py-2 text-start"><a href="javascript:void(0)" data-expense="Staff Medical" class="expense-btn primary-btn submit-btn border-only py-1" style="font-size: 13px;">Add New</a></div>
+                                </div>
+                                <div class="row m-0 fw-semibold">
+                                    <div class="col-4 col-lg-4 border-bottom py-2 text-danger">Staff Accommodation:</div>
+                                    <div class="col-4 col-lg-4 border-bottom py-2 text-end text-danger">{{ currency($staffAccommodation, '') }}</div>
+                                    <div class="col-4 col-lg-3 py-2 text-start"><a href="javascript:void(0)" data-expense="Staff Accommodation" class="expense-btn primary-btn submit-btn border-only py-1" style="font-size: 13px;">Add New</a></div>
+                                </div>
+                                <div class="row m-0 fw-semibold">
+                                    <div class="col-4 col-lg-4 border-bottom py-2 text-danger">Staff OT:</div>
+                                    <div class="col-4 col-lg-4 border-bottom py-2 text-end text-danger">{{ currency($staffOT, '') }}</div>
+                                    <div class="col-4 col-lg-3 py-2 text-start"><a href="javascript:void(0)" data-expense="Staff OT" class="expense-btn primary-btn submit-btn border-only py-1" style="font-size: 13px;">Add New</a></div>
+                                </div>
+                                <div class="row m-0 fw-semibold">
+                                    <div class="col-4 col-lg-4 border-bottom py-2 text-danger">Staff Loan:</div>
+                                    <div class="col-4 col-lg-4 border-bottom py-2 text-end text-danger">{{ currency($staffLoan, '') }}</div>
+                                    <div class="col-4 col-lg-3 py-2 text-start"><a href="javascript:void(0)" data-expense="Staff Loan" class="expense-btn primary-btn submit-btn border-only py-1" style="font-size: 13px;">Add New</a></div>
+                                </div>
+                                <div class="row m-0 fw-semibold">
+                                    <div class="col-4 col-lg-4 border-bottom py-2 text-danger">Rent & Sadaqah:</div>
+                                    <div class="col-4 col-lg-4 border-bottom py-2 text-end text-danger">{{ currency($rent, '') }}</div>
+                                    <div class="col-4 col-lg-3 py-2 text-start"><a href="javascript:void(0)" data-expense="Rent & Sadaqah" class="expense-btn primary-btn submit-btn border-only py-1" style="font-size: 13px;">Add New</a></div>
+                                </div>
+                                <div class="row m-0 fw-semibold">
+                                    <div class="col-4 col-lg-4 border-bottom py-2 text-danger">FB Cash:</div>
+                                    <div class="col-4 col-lg-4 border-bottom py-2 text-end text-danger">{{ currency($fbCash, '') }}</div>
+                                    <div class="col-4 col-lg-3 py-2 text-start"><a href="javascript:void(0)" data-expense="FB Cash" class="expense-btn primary-btn submit-btn border-only py-1" style="font-size: 13px;">Add New</a></div>
+                                </div>
+                                <div class="row m-0 fw-semibold">
+                                    <div class="col-4 col-lg-4 border-bottom py-2 bg-success">Final Profit:</div>
+                                    <div class="col-4 col-lg-4 border-bottom py-2 text-end bg-success">{{ currency((($repairSales) - $spareCost - $staffCommission - $staffFood - $staffSalary - $staffTransport - $staffBonus - $staffMedical - $staffAccommodation - $staffOT - $staffLoan - $rent - $fbCash), 'LKR') }}</div>
+                                </div>
+                            </div>
                         </div>
-                        <div class="row m-0 fw-semibold">
-                            <div class="col-4 col-lg-2 border-bottom py-2 text-danger">Service Parts Cost:</div>
-                            <div class="col-4 col-lg-2 border-bottom py-2 text-end text-danger">{{ currency($spareCost, '') }}</div>
-                        </div>
-                        <div class="row m-0 fw-semibold">
-                            <div class="col-4 col-lg-2 border-bottom py-2 text-danger">Commission:</div>
-                            <div class="col-4 col-lg-2 border-bottom py-2 text-end text-danger">{{ currency($commission, '') }}</div>
-                        </div>
-                        <div class="row m-0 fw-semibold">
-                            <div class="col-4 col-lg-2 border-bottom py-2 text-danger">Total Staff Commission:</div>
-                            <div class="col-4 col-lg-2 border-bottom py-2 text-end text-danger">{{ currency($staffCommission, '') }}</div>
-                            <div class="col-4 col-lg-2 py-2 text-start"><a href="javascript:void(0)" data-expense="Staff Commission" class="expense-btn primary-btn submit-btn border-only py-1" style="font-size: 13px;">Add New</a></div>
-                        </div>
-                        <div class="row m-0 fw-semibold">
-                            <div class="col-4 col-lg-2 border-bottom py-2 text-danger">Food Expenses:</div>
-                            <div class="col-4 col-lg-2 border-bottom py-2 text-end text-danger">{{ currency($staffFood, '') }}</div>
-                            <div class="col-4 col-lg-2 py-2 text-start"><a href="javascript:void(0)" data-expense="Food Expenses" class="expense-btn primary-btn submit-btn border-only py-1" style="font-size: 13px;">Add New</a></div>
-                        </div>
-                        <div class="row m-0 fw-semibold">
-                            <div class="col-4 col-lg-2 border-bottom py-2 text-danger">Staff Salary:</div>
-                            <div class="col-4 col-lg-2 border-bottom py-2 text-end text-danger">{{ currency($staffSalary, '') }}</div>
-                            <div class="col-4 col-lg-2 py-2 text-start"><a href="javascript:void(0)" data-expense="Staff Salary" class="expense-btn primary-btn submit-btn border-only py-1" style="font-size: 13px;">Add New</a></div>
-                        </div>
-                        <div class="row m-0 fw-semibold">
-                            <div class="col-4 col-lg-2 border-bottom py-2 text-danger">Staff Transport:</div>
-                            <div class="col-4 col-lg-2 border-bottom py-2 text-end text-danger">{{ currency($staffTransport, '') }}</div>
-                            <div class="col-4 col-lg-2 py-2 text-start"><a href="javascript:void(0)" data-expense="Staff Transport" class="expense-btn primary-btn submit-btn border-only py-1" style="font-size: 13px;">Add New</a></div>
-                        </div>
-                        <div class="row m-0 fw-semibold">
-                            <div class="col-4 col-lg-2 border-bottom py-2 text-danger">Staff Bonus:</div>
-                            <div class="col-4 col-lg-2 border-bottom py-2 text-end text-danger">{{ currency($staffBonus, '') }}</div>
-                            <div class="col-4 col-lg-2 py-2 text-start"><a href="javascript:void(0)" data-expense="Staff Bonus" class="expense-btn primary-btn submit-btn border-only py-1" style="font-size: 13px;">Add New</a></div>
-                        </div>
-                        <div class="row m-0 fw-semibold">
-                            <div class="col-4 col-lg-2 border-bottom py-2 text-danger">Staff Medical:</div>
-                            <div class="col-4 col-lg-2 border-bottom py-2 text-end text-danger">{{ currency($staffMedical, '') }}</div>
-                            <div class="col-4 col-lg-2 py-2 text-start"><a href="javascript:void(0)" data-expense="Staff Medical" class="expense-btn primary-btn submit-btn border-only py-1" style="font-size: 13px;">Add New</a></div>
-                        </div>
-                        <div class="row m-0 fw-semibold">
-                            <div class="col-4 col-lg-2 border-bottom py-2 text-danger">Staff Accommodation:</div>
-                            <div class="col-4 col-lg-2 border-bottom py-2 text-end text-danger">{{ currency($staffAccommodation, '') }}</div>
-                            <div class="col-4 col-lg-2 py-2 text-start"><a href="javascript:void(0)" data-expense="Staff Accommodation" class="expense-btn primary-btn submit-btn border-only py-1" style="font-size: 13px;">Add New</a></div>
-                        </div>
-                        <div class="row m-0 fw-semibold">
-                            <div class="col-4 col-lg-2 border-bottom py-2 text-danger">Staff OT:</div>
-                            <div class="col-4 col-lg-2 border-bottom py-2 text-end text-danger">{{ currency($staffOT, '') }}</div>
-                            <div class="col-4 col-lg-2 py-2 text-start"><a href="javascript:void(0)" data-expense="Staff OT" class="expense-btn primary-btn submit-btn border-only py-1" style="font-size: 13px;">Add New</a></div>
-                        </div>
-                        <div class="row m-0 fw-semibold">
-                            <div class="col-4 col-lg-2 border-bottom py-2 text-danger">Staff Loan:</div>
-                            <div class="col-4 col-lg-2 border-bottom py-2 text-end text-danger">{{ currency($staffLoan, '') }}</div>
-                            <div class="col-4 col-lg-2 py-2 text-start"><a href="javascript:void(0)" data-expense="Staff Loan" class="expense-btn primary-btn submit-btn border-only py-1" style="font-size: 13px;">Add New</a></div>
-                        </div>
-                        <div class="row m-0 fw-semibold">
-                            <div class="col-4 col-lg-2 border-bottom py-2 text-danger">Rent & Sadaqah:</div>
-                            <div class="col-4 col-lg-2 border-bottom py-2 text-end text-danger">{{ currency($rent, '') }}</div>
-                            <div class="col-4 col-lg-2 py-2 text-start"><a href="javascript:void(0)" data-expense="Rent & Sadaqah" class="expense-btn primary-btn submit-btn border-only py-1" style="font-size: 13px;">Add New</a></div>
-                        </div>
-                        <div class="row m-0 fw-semibold">
-                            <div class="col-4 col-lg-2 border-bottom py-2 text-danger">FB Cash:</div>
-                            <div class="col-4 col-lg-2 border-bottom py-2 text-end text-danger">{{ currency($fbCash, '') }}</div>
-                            <div class="col-4 col-lg-2 py-2 text-start"><a href="javascript:void(0)" data-expense="FB Cash" class="expense-btn primary-btn submit-btn border-only py-1" style="font-size: 13px;">Add New</a></div>
-                        </div>
-                        <div class="row m-0 fw-semibold">
-                            <div class="col-4 col-lg-2 border-bottom py-2 bg-success">Final Profit:</div>
-                            <div class="col-4 col-lg-2 border-bottom py-2 text-end bg-success">{{ currency((($repairSales) - $spareCost - $staffCommission - $staffFood - $staffSalary - $staffTransport - $staffBonus - $staffMedical - $staffAccommodation - $staffOT - $staffLoan - $rent - $fbCash), 'LKR') }}</div>
+                        <div class="col-lg-4">
+                            <div class="mt-5">
+                                <div class="row m-0 fw-semibold">
+                                    <div class="col-4 col-lg-4 border-bottom py-2 text-success">TV Repair Sales:</div>
+                                    <div class="col-4 col-lg-4 border-bottom py-2 text-success text-end"><input type="number" name="" id="tvSales" class="w-100 form-control form-control-sm text-end" value="{{ $tvRepairs->sum('total') }}"></div>
+                                </div>
+                                <div class="row m-0 fw-semibold">
+                                    <div class="col-4 col-lg-4 border-bottom py-2 text-success">Other Repair Sales:</div>
+                                    <div class="col-4 col-lg-4 border-bottom py-2 text-success text-end"><input type="number" name="" id="otherSales" class="w-100 form-control form-control-sm text-end" value="{{ $otherRepairs->sum('total') }}"></div>
+                                </div>
+                                <div class="row m-0 fw-semibold">
+                                    <div class="col-4 col-lg-4 border-bottom py-2 text-danger">Refund Money:</div>
+                                    <div class="col-4 col-lg-4 border-bottom py-2 text-end text-danger"><input type="number" name="" id="refundMoney" class="w-100 form-control form-control-sm text-end" value="0"></div>
+                                </div>
+                                <div class="row m-0 fw-semibold">
+                                    <div class="col-4 col-lg-4 border-bottom py-2 bg-success">Result:</div>
+                                    <div class="col-4 col-lg-4 border-bottom py-2 text-end bg-success" id="calculatedResult">0.00</div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -187,6 +211,34 @@
                     $("#item").val(type);
                     $('#generalExpensesModal').modal('show');
                 }
+            });
+
+            $('#refundMoney, #tvSales, #otherSales').change(function (e) {
+                if ($('#tvSales').val().toString() == "") {
+                    $('#tvSales').val('0');
+                }
+
+                if ($('#otherSales').val().toString() == "") {
+                    $('#otherSales').val('0');
+                }
+
+                if ($('#refundMoney').val().toString() == "") {
+                    $('#refundMoney').val('0');
+                }
+
+                let tvAmount = parseFloat($('#tvSales').val());
+                let otherAmount = parseFloat($('#otherSales').val());
+                let refund = parseFloat($('#refundMoney').val());
+
+                $('#calculatedResult').text((tvAmount+otherAmount) - refund);
+            });
+
+            $('#refundMoney, #tvSales, #otherSales').keyup(function (e) {
+                let tvAmount = parseFloat($('#tvSales').val());
+                let otherAmount = parseFloat($('#otherSales').val());
+                let refund = parseFloat($('#refundMoney').val());
+
+                $('#calculatedResult').text((tvAmount+otherAmount) - refund);
             });
 
         });
