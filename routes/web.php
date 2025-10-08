@@ -324,7 +324,7 @@ Route::prefix('dashboard')->group(function () {
     Route::post('hr/pay-expense', [hrController::class, 'payExpense']);
     Route::post('hr/get-loan-balance', [hrController::class, 'getLoanBalance']);
 
-    Route::get('accounts', [DashboardController::class, 'accounts']);
+    Route::get('accounts/{type}', [DashboardController::class, 'accounts']);
 });
 
 

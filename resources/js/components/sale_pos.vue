@@ -8,6 +8,12 @@
                 </div>
             </div>
             <div class="product-wrap">
+                <div class="product add-product" @click="ProductModal('show')">
+                    <div class="img">
+                        <i class="fa-solid fa-plus"></i>
+                    </div>
+                    <div class="name text-center">Add product</div>
+                </div>
                 <div :class="'product ' + pro['status']" v-for="pro in products" :ref="pro['sku']">
                     <div class="img" @click="selectProduct(pro['sku'])">
                         <img :src="'/assets/images/products/' + pro['pro_image']" alt="">
@@ -176,6 +182,58 @@
                     <div class="spinner-border text-primary" style="width: 4rem; height: 4rem;" role="status">
                         <span class="visually-hidden">Loading...</span>
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="addProduct" tabindex="-1" role="dialog" aria-labelledby="addProductLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addProductLabel">Add temporary product</h5>
+                </div>
+                <div class="modal-body">
+                    <form action="" class="product_form" onsubmit="return false;">
+                        <!-- <label for="pro_img">
+                            <i class="fa-solid fa-upload"></i><br>
+                            <i>Click here to Upload product image</i>
+                            <input type="file" name="" id="pro_img" class="d-none">
+                        </label> -->
+
+                        <div class="row row-cols-2 mt-4">
+                            <div class="col">
+                                <div class="input">
+                                    <div class="label">Product name</div>
+                                    <input type="text" placeholder="Product name" ref="pro_name"
+                                        @keyup="Enter($event, 'price')">
+                                </div>
+                            </div>
+
+                            <div class="col">
+                                <div class="input">
+                                    <div class="label">Product price</div>
+                                    <input type="number" placeholder="Product price" value="0" ref="price"
+                                        @keyup="Enter($event, 'cost')">
+                                </div>
+                            </div>
+
+                            <div class="col mt-3">
+                                <div class="input">
+                                    <div class="label">Product cost</div>
+                                    <input type="number" placeholder="Product price" value="0" ref="cost"
+                                        @keyup="$event.key == 'Enter' ? createProduct() : ''">
+                                </div>
+                            </div>
+
+                        </div>
+                        <div class="btns">
+                            <button type="button" class="btn btn-secondary" @click="ProductModal('hide')">Close</button>
+                            <button type="button" class="primary-btn submit-btn" @click="createProduct()">Save
+                                changes</button>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>
@@ -410,9 +468,11 @@ export default {
             var cost = this.$refs['cost'].value;
             if (!checkEmpty(pro_name) && !checkEmpty(price) && !checkEmpty(cost)) {
                 var temp_pro = [];
+                var rand = Math.floor(Math.random() * 1000);
+                temp_pro['id'] = 'id-'+rand;
                 temp_pro['pro_name'] = pro_name;
                 temp_pro['pro_image'] = 'placeholder.svg';
-                temp_pro['sku'] = "temp";
+                temp_pro['sku'] = "temp-"+rand;
                 temp_pro['price'] = parseFloat(price);
                 temp_pro['cost'] = parseFloat(cost);
                 temp_pro['qty'] = 1;
@@ -511,8 +571,11 @@ export default {
                     parseFloat(cost += arr['cost'] * arr['qty']);
                     product.push({
                         id: arr['sku'],
-                        qty: arr['qty'],
+                        pro_name: arr['pro_name'],
+                        sku: arr['sku'],
                         price: arr['price'],
+                        cost: arr['cost'],
+                        qty: arr['qty'],
                     });
                 });
 

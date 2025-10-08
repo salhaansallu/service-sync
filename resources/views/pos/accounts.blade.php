@@ -13,7 +13,7 @@
                 </div>
                 <div class="col-lg-12">
                     <div class="filters mb-4">
-                        <form action="/dashboard/accounts" method="get">
+                        <form action="/{{ request()->path() }}" method="get">
                             <div class="row m-0 align-items-end">
                                 <div class="col-lg-2">
                                     <label for="">From:</label>
@@ -44,8 +44,8 @@
                                 </tr>
                             </thead>
                             <tbody class="ligth-body">
-                                @if (isset($tvRepairs) && $tvRepairs->count() > 0)
-                                @foreach ($tvRepairs as $item)
+                                @if (isset($repairs) && $repairs->count() > 0)
+                                @foreach ($repairs as $item)
                                 <tr>
                                     <td class="text-start">{{ $item->bill_no }}</td>
                                     <td class="text-start">{{ $item->model_no }}</td>
@@ -58,10 +58,10 @@
                                 @endforeach
                                 <tr>
                                     <td class="text-start fw-bold" colspan="3">Total:</td>
-                                    <td class="text-start fw-bold">{{ currency($tvRepairSales + $otherRepairSales, '') }}</td>
-                                    <td class="text-start fw-bold">{{ currency($tvSpareCost + $otherSpareCost, '') }}</td>
-                                    <td class="text-start fw-bold">{{ currency($staffCommission, '') }}</td>
-                                    <td class="text-start fw-bold">{{ currency($tvSpareCost + $otherSpareCost + $staffCommission, '') }}</td>
+                                    <td class="text-start fw-bold">{{ currency($repairSales, '') }}</td>
+                                    <td class="text-start fw-bold">{{ currency($spareCost, '') }}</td>
+                                    <td class="text-start fw-bold">{{ currency($commission, '') }}</td>
+                                    <td class="text-start fw-bold">{{ currency($spareCost + $commission, '') }}</td>
                                 </tr>
                                 @endif
                             </tbody>
@@ -70,36 +70,16 @@
 
                     <div class="mt-5">
                         <div class="row m-0 fw-semibold">
-                            <div class="col-4 col-lg-2 border-bottom py-2">TV Repair Sales:</div>
-                            <div class="col-4 col-lg-2 border-bottom py-2 text-end">{{ currency($tvRepairSales, '') }}</div>
+                            <div class="col-4 col-lg-2 border-bottom py-2 text-success">Repair Sales:</div>
+                            <div class="col-4 col-lg-2 border-bottom py-2 text-success text-end">{{ currency($repairSales, '') }}</div>
                         </div>
                         <div class="row m-0 fw-semibold">
-                            <div class="col-4 col-lg-2 border-bottom py-2">Other Repair Sales:</div>
-                            <div class="col-4 col-lg-2 border-bottom py-2 text-end">{{ currency($otherRepairSales, '') }}</div>
+                            <div class="col-4 col-lg-2 border-bottom py-2 text-danger">Service Parts Cost:</div>
+                            <div class="col-4 col-lg-2 border-bottom py-2 text-end text-danger">{{ currency($spareCost, '') }}</div>
                         </div>
                         <div class="row m-0 fw-semibold">
-                            <div class="col-4 col-lg-2 border-bottom py-2 text-success">Total Sales:</div>
-                            <div class="col-4 col-lg-2 border-bottom py-2 text-end text-success">{{ currency($tvRepairSales + $otherRepairSales, '') }}</div>
-                        </div>
-                        <div class="row m-0 fw-semibold">
-                            <div class="col-4 col-lg-2 border-bottom py-2 text-danger">Service Parts Cost (TV):</div>
-                            <div class="col-4 col-lg-2 border-bottom py-2 text-end text-danger">{{ currency($tvSpareCost, '') }}</div>
-                        </div>
-                        <div class="row m-0 fw-semibold">
-                            <div class="col-4 col-lg-2 border-bottom py-2 text-danger">Service Parts Cost (Other):</div>
-                            <div class="col-4 col-lg-2 border-bottom py-2 text-end text-danger">{{ currency($otherSpareCost, '') }}</div>
-                        </div>
-                        <div class="row m-0 fw-semibold">
-                            <div class="col-4 col-lg-2 border-bottom py-2 text-danger">Total Service Parts Cost:</div>
-                            <div class="col-4 col-lg-2 border-bottom py-2 text-end text-danger">{{ currency($tvSpareCost + $otherSpareCost, '') }}</div>
-                        </div>
-                        <div class="row m-0 fw-semibold">
-                            <div class="col-4 col-lg-2 border-bottom py-2 text-danger">Commission (TV):</div>
-                            <div class="col-4 col-lg-2 border-bottom py-2 text-end text-danger">{{ currency($tvCommission, '') }}</div>
-                        </div>
-                        <div class="row m-0 fw-semibold">
-                            <div class="col-4 col-lg-2 border-bottom py-2 text-danger">Commission (Other):</div>
-                            <div class="col-4 col-lg-2 border-bottom py-2 text-end text-danger">{{ currency($otherCommission, '') }}</div>
+                            <div class="col-4 col-lg-2 border-bottom py-2 text-danger">Commission:</div>
+                            <div class="col-4 col-lg-2 border-bottom py-2 text-end text-danger">{{ currency($commission, '') }}</div>
                         </div>
                         <div class="row m-0 fw-semibold">
                             <div class="col-4 col-lg-2 border-bottom py-2 text-danger">Total Staff Commission:</div>
@@ -158,7 +138,7 @@
                         </div>
                         <div class="row m-0 fw-semibold">
                             <div class="col-4 col-lg-2 border-bottom py-2 bg-success">Final Profit:</div>
-                            <div class="col-4 col-lg-2 border-bottom py-2 text-end bg-success">{{ currency((($tvRepairSales+$otherRepairSales) - $tvSpareCost - $otherSpareCost - $staffCommission - $staffFood - $staffSalary - $staffTransport - $staffBonus - $staffMedical - $staffAccommodation - $staffOT - $staffLoan - $rent - $fbCash), 'LKR') }}</div>
+                            <div class="col-4 col-lg-2 border-bottom py-2 text-end bg-success">{{ currency((($repairSales) - $spareCost - $staffCommission - $staffFood - $staffSalary - $staffTransport - $staffBonus - $staffMedical - $staffAccommodation - $staffOT - $staffLoan - $rent - $fbCash), 'LKR') }}</div>
                         </div>
                     </div>
                 </div>

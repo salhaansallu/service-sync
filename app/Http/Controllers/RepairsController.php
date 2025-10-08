@@ -183,22 +183,37 @@ class RepairsController extends Controller
             foreach ($bills as $key => $bill_no) {
 
                 foreach ($spares as $key => $value) {
-                    $stock = Products::where('id', $value['id'])->get();
-                    if ($stock->count() > 0) {
-                        Products::where('id', $value['id'])->update([
-                            "qty" => (float)$stock[0]['qty'] - $value['qty']
-                        ]);
+                    if (!str_contains($value['id'], 'temp')) {
+                        $stock = Products::where('id', $value['id'])->get();
+                        if ($stock->count() > 0) {
+                            Products::where('id', $value['id'])->update([
+                                "qty" => (float)$stock[0]['qty'] - $value['qty']
+                            ]);
 
+                            $sale = new spareSaleHistory();
+                            $sale->spare_name = $stock[0]['pro_name'];
+                            $sale->spare_id = $stock[0]['id'];
+                            $sale->cost = $stock[0]['cost'];
+                            $sale->qty = $value['qty'];
+                            $sale->bill_no = $bill_no;
+                            $sale->pos_code = company()->pos_code;
+                            $sale->save();
+
+                            $cost += (float)$stock[0]['cost'] * (float)$value['qty'];
+                            $parts[] = $value['id'];
+                        }
+                    }
+                    else {
                         $sale = new spareSaleHistory();
-                        $sale->spare_name = $stock[0]['pro_name'];
-                        $sale->spare_id = $stock[0]['id'];
-                        $sale->cost = $stock[0]['cost'];
+                        $sale->spare_name = $value['pro_name'];
+                        $sale->spare_id = $value['id'];
+                        $sale->cost = $value['cost'];
                         $sale->qty = $value['qty'];
                         $sale->bill_no = $bill_no;
                         $sale->pos_code = company()->pos_code;
                         $sale->save();
 
-                        $cost += (float)$stock[0]['cost'] * (float)$value['qty'];
+                        $cost += (float)$value['cost'] * (float)$value['qty'];
                         $parts[] = $value['id'];
                     }
                 }

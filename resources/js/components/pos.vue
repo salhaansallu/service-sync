@@ -606,6 +606,9 @@
                                     <span class="d-flex w-100 justify-content-between">
                                         <span @click="spareCountUpdate('-')" class="form-text mt-3"
                                             style="cursor: pointer;">- Remove spare</span>
+                                        <span @click="temporaryProduct()" class="form-text mt-3"
+                                            style="cursor: pointer;">+
+                                            Add temp product</span>
                                         <span @click="spareCountUpdate('+')" class="form-text mt-3"
                                             style="cursor: pointer;">+
                                             Add spare</span>
@@ -741,6 +744,43 @@
         </div>
     </div>
 
+    <div class="modal fade" id="newProduct" tabindex="-1" role="dialog" aria-labelledby="newProduct"
+        aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+        <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-body d-flex" style="justify-content: center;">
+                    <div class="product-wrp mt-1">
+                        <div class="row justify-content-between">
+                            <div class="col-12">
+                                <div class="fs-5 mb-1">Create Temporary Product</div>
+                            </div>
+                            <div class="col-6 mt-3">
+                                <div class="input">
+                                    <label for="" class="mb-1">Product Name</label>
+                                    <input ref="temp_pro_name" type="text" placeholder="Product Name" value="">
+                                </div>
+                            </div>
+
+                            <div class="col-6 mt-3">
+                                <div class="input">
+                                    <label for="" class="mb-1">Product Cost</label>
+                                    <input ref="temp_pro_cost" type="text" placeholder="Product Cost" value="">
+                                </div>
+                            </div>
+
+                            <div class="col-12 mt-4">
+                                <button @click="createTemporaryProduct()" class="primary-btn submit-btn">Save</button>
+                                <button @click="temporaryProduct('hide')"
+                                    style="background: transparent; color: red !important; border: red 1px solid;"
+                                    class="primary-btn submit-btn mx-4">Close</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="modal fade" id="NewSale" tabindex="-1" role="dialog" aria-labelledby="NewSale" aria-hidden="true"
         data-bs-backdrop="static" data-bs-keyboard="false">
         <div class="modal-dialog modal-fullscreen" role="document">
@@ -839,7 +879,7 @@
 
 import { ref } from 'vue';
 import toastr from 'toastr';
-import { validateName, checkEmpty, validateCountry, validatePhone, getUrlParam, currency, reformatPhoneNumbers } from '../custom';
+import { validateName, checkEmpty, validateCountry, validatePhone, getUrlParam, currency, reformatPhoneNumbers, isNumber } from '../custom';
 import axios from 'axios';
 import printJS from 'print-js';
 import sale_pos from './sale_pos.vue';
@@ -882,11 +922,46 @@ export default {
         currency,
         printJS,
         reformatPhoneNumbers,
+        isNumber,
         openMenu(menuID) {
             $('#' + menuID).toggle();
         },
         loadModal(action) {
             $("#loadingModal").modal(action);
+        },
+        temporaryProduct(action = 'show') {
+            $("#newProduct").modal(action);
+        },
+        createTemporaryProduct() {
+            if (this.$refs.temp_pro_name.value.trim() != "" && this.$refs.temp_pro_cost.value.trim() != "") {
+                if (!isNumber(this.$refs.temp_pro_cost.value.trim())) {
+                    toastr.error('Please enter only numbers for cost', 'Error');
+                    return;
+                }
+                var rand = Math.floor(Math.random() * 1000);
+                this.Spares.push({
+                    "id": "temp-"+rand,
+                    "sku": "sku-"+rand,
+                    "pro_name": this.$refs.temp_pro_name.value,
+                    "price": 0,
+                    "cost": this.$refs.temp_pro_cost.value,
+                    "qty": 10000,
+                    "category": 0,
+                    "pro_image": 0,
+                    "pos_code": 0,
+                    "supplier": 0,
+                    "created_at": 0,
+                    "updated_at": 0,
+                });
+
+                this.$refs.temp_pro_name.value = "";
+                this.$refs.temp_pro_cost.value = "0";
+
+                this.temporaryProduct('hide');
+            }
+            else {
+                toastr.error('Please enter product name and cost', 'Error');
+            }
         },
         getSignaure(action = 'show', signatureFor = null) {
             this.signatureFor = signatureFor;
@@ -1414,7 +1489,18 @@ export default {
                 if (this.spareCount > 0) {
                     for (let i = 1; i <= this.spareCount; i++) {
                         if (this.$refs["finish_spare_" + i][0].value != "") {
+                            var name = '';
+                            var cost = '';
+
+                            var pro = this.Spares.filter(item => item['id'] == this.$refs["finish_spare_" + i][0].value);
+                            if (pro.length > 0) {
+                                name = pro[0]['pro_name'];
+                                cost = pro[0]['cost'];
+                            }
+
                             sparePro.push({
+                                pro_name: name,
+                                cost: cost,
                                 id: this.$refs["finish_spare_" + i][0].value,
                                 qty: this.$refs["qty_finish_spare_" + i][0].value,
                             });

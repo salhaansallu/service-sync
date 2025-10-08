@@ -778,20 +778,21 @@ class DashboardController extends Controller
         return response(json_encode(array("error" => 1, "msg" => "Error generating invoice")));
     }
 
-    public function accounts(Request $request)
+    public function accounts(Request $request, $type)
     {
         if (Auth::check() && isCashier()) {
             $fromdate = sanitize($request->input('fromdate'));
             $todate = sanitize($request->input('todate'));
 
-            $tvRepairSales = 0;
-            $otherRepairSales = 0;
+            $repairSales = 0;
 
-            $tvSpareCost = 0;
-            $otherSpareCost = 0;
+            $spareCost = 0;
 
-            $tvCommission = 0;
-            $otherCommission = 0;
+            $commission = 0;
+
+            if (!in_array(sanitize($type), ['repair', 'other'])) {
+                abort(404);
+            }
 
             if (!$request->has('fromdate') || !$request->has('todate')) {
                 $fromdate = Carbon::now()->format('Y-m-d');
@@ -818,7 +819,7 @@ class DashboardController extends Controller
             ->selectRaw('SUM(CASE WHEN qty > 0 THEN amount * qty ELSE amount END) as total')
             ->value('total');
 
-            $tvRepairs = Repairs::where('type', 'repair')->where('status', 'Delivered')
+            $repairs = Repairs::where('type', sanitize($type))->where('status', 'Delivered')
             ->when($fromdate, function ($query) use ($fromdate){
                 $query->whereDate('paid_at', '>=', Carbon::parse($fromdate)->format('Y-m-d'));
             })
@@ -826,33 +827,16 @@ class DashboardController extends Controller
                 $query->whereDate('paid_at', '<=', Carbon::parse($todate)->format('Y-m-d'));
             })->get();
 
-            $otherRepairs = Repairs::where('type', 'other')->where('status', 'Delivered')
-            ->when($fromdate, function ($query) use ($fromdate){
-                $query->whereDate('paid_at', '>=', Carbon::parse($fromdate)->format('Y-m-d'));
-            })
-            ->when($todate, function ($query) use ($todate){
-                $query->whereDate('paid_at', '<=', Carbon::parse($todate)->format('Y-m-d'));
-            })->get();
-
-            foreach ($tvRepairs as $key => $repair) {
-                $tvRepairSales += $repair->total;
-                $tvSpareCost += $repair->cost;
-                $tvCommission += $repair->commission;
-            }
-
-            foreach ($otherRepairs as $key => $repair) {
-                $otherRepairSales += $repair->total;
-                $otherSpareCost += $repair->cost;
-                $otherCommission += $repair->commission;
+            foreach ($repairs as $key => $repair) {
+                $repairSales += $repair->total;
+                $spareCost += $repair->cost;
+                $commission += $repair->commission;
             }
 
             return view('pos.accounts', compact([
-                'tvRepairSales',
-                'otherRepairSales',
-                'tvSpareCost',
-                'otherSpareCost',
-                'tvCommission',
-                'otherCommission',
+                'repairSales',
+                'spareCost',
+                'commission',
                 'staffCommission',
                 'staffFood',
                 'staffSalary',
@@ -864,8 +848,7 @@ class DashboardController extends Controller
                 'staffLoan',
                 'rent',
                 'fbCash',
-                'tvRepairs',
-                'otherRepairs',
+                'repairs',
             ]));
         }
 

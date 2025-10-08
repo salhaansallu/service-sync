@@ -249,6 +249,19 @@ class PosDataController extends Controller
                         "id" => $stock->id,
                     );
                 }
+                else {
+                    $cost += (float)$value['cost'] * (float)$value['qty'];
+                    $total += (float)$value['price'] * (float)$value['qty'];
+                    $parts[] = $value['id'];
+                    $invoice_pro[] = array(
+                        "name" => $value['pro_name'],
+                        "unit" => $value['price'],
+                        "cost" => $value['cost'],
+                        "qty" => $value['qty'],
+                        "sku" => $value['sku'],
+                        "id" => $value['id'],
+                    );
+                }
             }
 
             if ($cashin < $total) {
