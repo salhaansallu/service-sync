@@ -220,6 +220,7 @@ class UserDataController extends Controller
             $food = sanitize($request->input('food'));
             $transport = sanitize($request->input('transport'));
             $accommodation = sanitize($request->input('accommodation'));
+            $type = sanitize($request->input('type'));
 
             $code_verify = posUsers::where('cashier_code', $code)->where('user_id', '!=', $id)->get();
 
@@ -254,6 +255,7 @@ class UserDataController extends Controller
                 "food" => $food,
                 "transport" => $transport,
                 "accommodation" => $accommodation,
+                "type" => $type,
             ]);
 
             if ($user) {
@@ -279,6 +281,7 @@ class UserDataController extends Controller
             $email = sanitize($request->input('email'));
             $password = sanitize($request->input('password'));
             $code = sanitize($request->input('code'));
+            $type = sanitize($request->input('type'));
 
             $email_verify = User::where('email', $email)->get();
             $code_verify = posUsers::where('cashier_code', $code)->get();
@@ -315,6 +318,7 @@ class UserDataController extends Controller
             $user->food = $food;
             $user->transport = $transport;
             $user->accommodation = $accommodation;
+            $user->type = $type;
             $user->password = Hash::make($password);
 
             if ($user->save()) {
@@ -362,8 +366,9 @@ class UserDataController extends Controller
     {
         if (Auth::check() && DashboardController::check(true)) {
             $id = sanitize($request->input('id'));
-            $id_verify = posUsers::where('user_id', sanitize($request->input('id')))->where('pos_code', company()->pos_code)->whereNot('user_id', Auth::user()->id);
+            $id_verify = posUsers::where('user_id', sanitize($request->input('id')))->whereNot('user_id', Auth::user()->id);
             if ($id_verify && $id_verify->count() > 0 && $id_verify->delete()) {
+                User::where('id', sanitize($request->input('id')))->whereNot('id', Auth::user()->id)->delete();
                 return response(json_encode(array("error" => 0, "msg" => "User terminated successfully")));
             }
             return response(json_encode(array("error" => 1, "msg" => "Sorry! something went wrong")));

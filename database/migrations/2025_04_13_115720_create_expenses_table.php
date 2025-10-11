@@ -20,6 +20,7 @@ return new class extends Migration
             $table->string("payment")->nullable();
             $table->integer("user")->nullable();
             $table->text("note");
+            $table->text("type")->nullable();
             $table->timestamps();
         });
     }

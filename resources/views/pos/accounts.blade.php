@@ -41,6 +41,7 @@
                                     <th class="text-start">Spare Cost</th>
                                     <th class="text-start">Commission</th>
                                     <th class="text-start">Total Cost</th>
+                                    <th class="text-start">Total Cash</th>
                                 </tr>
                             </thead>
                             <tbody class="ligth-body">
@@ -54,6 +55,7 @@
                                     <td class="text-start">{{ currency($item->cost, '') }}</td>
                                     <td class="text-start">{{ currency($item->commission, '') }}</td>
                                     <td class="text-start">{{ currency($item->cost + $item->commission, '') }}</td>
+                                    <td class="text-start">{{ currency($item->finaltotal, '') }}</td>
                                 </tr>
                                 @endforeach
                                 <tr>
@@ -62,6 +64,7 @@
                                     <td class="text-start fw-bold">{{ currency($spareCost, '') }}</td>
                                     <td class="text-start fw-bold">{{ currency($commission, '') }}</td>
                                     <td class="text-start fw-bold">{{ currency($spareCost + $commission, '') }}</td>
+                                    <td class="text-start fw-bold">{{ currency($repairs->sum('finaltotal'), '') }}</td>
                                 </tr>
                                 @endif
                             </tbody>
@@ -148,11 +151,11 @@
                             <div class="mt-5">
                                 <div class="row m-0 fw-semibold">
                                     <div class="col-4 col-lg-4 border-bottom py-2 text-success">TV Repair Sales:</div>
-                                    <div class="col-4 col-lg-4 border-bottom py-2 text-success text-end"><input type="number" name="" id="tvSales" class="w-100 form-control form-control-sm text-end" value="{{ $tvRepairs->sum('total') }}"></div>
+                                    <div class="col-4 col-lg-4 border-bottom py-2 text-success text-end"><input type="number" name="" id="tvSales" class="w-100 form-control form-control-sm text-end" value="{{ $tvRepairs->sum('finaltotal') }}"></div>
                                 </div>
                                 <div class="row m-0 fw-semibold">
                                     <div class="col-4 col-lg-4 border-bottom py-2 text-success">Other Repair Sales:</div>
-                                    <div class="col-4 col-lg-4 border-bottom py-2 text-success text-end"><input type="number" name="" id="otherSales" class="w-100 form-control form-control-sm text-end" value="{{ $otherRepairs->sum('total') }}"></div>
+                                    <div class="col-4 col-lg-4 border-bottom py-2 text-success text-end"><input type="number" name="" id="otherSales" class="w-100 form-control form-control-sm text-end" value="{{ $otherRepairs->sum('finaltotal') }}"></div>
                                 </div>
                                 <div class="row m-0 fw-semibold">
                                     <div class="col-4 col-lg-4 border-bottom py-2 text-danger">Refund Money:</div>
@@ -160,7 +163,7 @@
                                 </div>
                                 <div class="row m-0 fw-semibold">
                                     <div class="col-4 col-lg-4 border-bottom py-2 bg-success">Result:</div>
-                                    <div class="col-4 col-lg-4 border-bottom py-2 text-end bg-success" id="calculatedResult">0.00</div>
+                                    <div class="col-4 col-lg-4 border-bottom py-2 text-end bg-success" id="calculatedResult">{{ $tvRepairs->sum('finaltotal') + $otherRepairs->sum('finaltotal') }}</div>
                                 </div>
                             </div>
                         </div>

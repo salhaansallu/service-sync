@@ -65,6 +65,7 @@ class ExpensesController extends Controller
             $user = sanitize($request->input('user'));
             $payment = sanitize($request->input('payment'));
             $note = sanitize($request->input('note'));
+            $type = sanitize($request->input('type'));
 
 
             if (!is_numeric($amount)) {
@@ -81,6 +82,7 @@ class ExpensesController extends Controller
             $purchase->payment = $payment;
             $purchase->user = $user;
             $purchase->note = $note;
+            $purchase->type = $type;
 
             if ($purchase->save()) {
                 return response(json_encode(array("error" => 0, "msg" => "Expense Added Successfully")));
@@ -130,6 +132,7 @@ class ExpensesController extends Controller
             $user = sanitize($request->input('user'));
             $payment = sanitize($request->input('payment'));
             $note = sanitize($request->input('note'));
+            $type = sanitize($request->input('type'));
 
             if (!is_numeric($amount)) {
                 return response(json_encode(array("error" => 1, "msg" => "Please Use Only Numbers For Price")));
@@ -145,6 +148,7 @@ class ExpensesController extends Controller
                 "payment" => $payment,
                 "user" => $user,
                 "note" => $note,
+                "type" => $type,
             ]);
 
             if ($purchase) {

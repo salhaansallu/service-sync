@@ -86,6 +86,18 @@
                                         </div>
                                     </div>
 
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label>Incharge Of </label>
+                                            <select name="type" id="" class="form-control">
+                                                @foreach (getDepartments() as $item)
+                                                    <option value="{{ $item['slug'] }}" @isset($user){{ $user->type==$item['slug']? 'selected':'' }}@endisset>{{ $item['name'] }}</option>
+                                                @endforeach
+                                            </select>
+                                            <div class="help-block with-errors"></div>
+                                        </div>
+                                    </div>
+
                                     @isset($user)
                                     <div class="col-md-6">
                                         <div class="form-group">

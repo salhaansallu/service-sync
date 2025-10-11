@@ -74,13 +74,26 @@
                                         </div>
                                     </div>
 
-                                    <div class="col-md-6">
+                                    <div class="col-md-3">
                                         <div class="form-group">
                                             <label>QTY <span class="text-danger">*</span></label>
                                             <input type="text" class="form-control" placeholder="Enter QTY"
                                                 name="qty"
                                                 value="@isset($purchase){{ $purchase->qty }}@else{{ '0' }}@endisset"
                                                 required>
+                                            <div class="help-block with-errors"></div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-3">
+                                        <div class="form-group">
+                                            <label>Type <span class="text-danger">*</span></label>
+                                            <select name="type" id="" class="form-control" required>
+                                                <option value="">-- Select Type --</option>
+                                                @foreach (getDepartments() as $item)
+                                                    <option @isset($purchase){{ $purchase->type == $item['slug'] ? 'selected' : '' }}@endisset value="{{ $item['slug'] }}">{{ $item['name'] }}</option>
+                                                @endforeach
+                                            </select>
                                             <div class="help-block with-errors"></div>
                                         </div>
                                     </div>

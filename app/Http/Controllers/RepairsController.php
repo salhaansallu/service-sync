@@ -224,6 +224,16 @@ class RepairsController extends Controller
 
                 $update =  Repairs::where('bill_no', $bill_no);
 
+                if ($update->first() && $update->first()->type == 'other') {
+                    $commissionPer = is_numeric($commission)? $commission : 0;
+                    if ($commissionPer > 0) {
+                        $commission = ($commissionPer / 100) * ($total - $cost);
+                    }
+                    else {
+                        $commission = 0;
+                    }
+                }
+
                 if ($update->update(["note" => $note, "techie" => $techie, "commission" => (is_numeric($commission)? $commission : 0), "status" => $status, "total" => $total, "cost" => $cost, "spares" => json_encode($parts), "repaired_date" => date('Y-m-d H:i:s')])) {
 
                     $customerData = customers::where('id', $update->get()[0]["customer"])->get();

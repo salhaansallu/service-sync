@@ -8,4 +8,9 @@ use Illuminate\Database\Eloquent\Model;
 class Repairs extends Model
 {
     use HasFactory;
+
+    public function credit()
+    {
+        return $this->belongsTo(Credit::class, 'bill_no', 'order_id');
+    }
 }

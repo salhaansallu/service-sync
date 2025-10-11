@@ -176,15 +176,21 @@ class PosDataController extends Controller
 
             }
 
-            $repairs = Repairs::where('bill_no', $bill_no[0])->where('pos_code', $company->pos_code)->get('customer')[0];
+            $repairs = Repairs::where('bill_no', $bill_no[0])->get('customer')[0];
 
             if ($cashin < $total) {
-                $credit = new Credit();
-                $credit->customer_id = $repairs->customer;
-                $credit->ammount = ($total - $advance) - $cashin;
-                $credit->pos_code = $company->pos_code;
-                $credit->order_id = implode(',', $bill_no);
-                $credit->save();
+                $minusAmt = count($bill_no) > 0? ($cashin / count($bill_no)) : 0;
+                foreach ($bill_no as $key => $id) {
+                    $repair = Repairs::where('bill_no', $id)->first(['customer', 'total', 'advance']);
+                    if ($repair) {
+                        $credit = new Credit();
+                        $credit->customer_id = $repair->customer;
+                        $credit->ammount = ($repair->total - $repair->advance) - $minusAmt;
+                        $credit->pos_code = $company->pos_code;
+                        $credit->order_id = $id;
+                        $credit->save();
+                    }
+                }
             }
 
             $generate_invoice = generateInvoice($bill_no, $inName, 'checkout');

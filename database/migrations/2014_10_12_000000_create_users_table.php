@@ -22,6 +22,7 @@ return new class extends Migration
             $table->float('accommodation', 15, 2)->nullable();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
+            $table->string('type')->nullable();
             $table->rememberToken();
             $table->timestamps();
         });

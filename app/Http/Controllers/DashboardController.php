@@ -610,7 +610,7 @@ class DashboardController extends Controller
     {
         login_redirect('/' . request()->path());
         if (Auth::check() && $this->check(true)) {
-            $users = DB::table('users')->select('pos_users.*', 'users.fname', 'users.lname', 'users.id', 'users.email')->leftJoin('pos_users', 'users.id', '=', 'pos_users.user_id')->whereNot('user_id', Auth::user()->id)->where('pos_code', company()->pos_code)->get();
+            $users = DB::table('users')->select('pos_users.*', 'users.fname', 'users.lname', 'users.id', 'users.email')->leftJoin('pos_users', 'users.id', '=', 'pos_users.user_id')->whereNot('user_id', Auth::user()->id)->get();
             return view('pos.list-users')->with(['users' => $users]);
         } else {
             return redirect('/signin');
@@ -799,27 +799,29 @@ class DashboardController extends Controller
                 $todate = Carbon::now()->format('Y-m-d');
             }
 
-            $staffCommission = employee_expenses::where('type', 'Commission')->whereDate('created_at', '>=', $fromdate)->whereDate('created_at', '<=', $todate)->sum('amount');
-            $staffFood = employee_expenses::where('type', 'Food')->whereDate('created_at', '>=', $fromdate)->whereDate('created_at', '<=', $todate)->sum('amount');
-            $staffSalary = employee_expenses::where('type', 'Salary')->whereDate('created_at', '>=', $fromdate)->whereDate('created_at', '<=', $todate)->sum('amount');
-            $staffTransport = employee_expenses::where('type', 'Transport')->whereDate('created_at', '>=', $fromdate)->whereDate('created_at', '<=', $todate)->sum('amount');
-            $staffBonus = employee_expenses::where('type', 'Bonus')->whereDate('created_at', '>=', $fromdate)->whereDate('created_at', '<=', $todate)->sum('amount');
-            $staffMedical = employee_expenses::where('type', 'Medical')->whereDate('created_at', '>=', $fromdate)->whereDate('created_at', '<=', $todate)->sum('amount');
-            $staffAccommodation = employee_expenses::where('type', 'Accommodation')->whereDate('created_at', '>=', $fromdate)->whereDate('created_at', '<=', $todate)->sum('amount');
-            $staffOT = employee_expenses::where('type', 'OT')->whereDate('created_at', '>=', $fromdate)->whereDate('created_at', '<=', $todate)->sum('amount');
-            $staffLoan = employee_expenses::where('type', 'Loan')->whereDate('created_at', '>=', $fromdate)->whereDate('created_at', '<=', $todate)->sum('amount');
+            $staffCommission = employee_expenses::with('user')->whereHas('user', function ($query) use ($type) {$query->where('type', str_replace(['repair', 'other'], ['tv-repairs', 'other-repairs'], sanitize($type)));})->where('type', 'Commission')->whereDate('created_at', '>=', $fromdate)->whereDate('created_at', '<=', $todate)->sum('amount');
+            $staffFood = employee_expenses::with('user')->whereHas('user', function ($query) use ($type) {$query->where('type', str_replace(['repair', 'other'], ['tv-repairs', 'other-repairs'], sanitize($type)));})->where('type', 'Food')->whereDate('created_at', '>=', $fromdate)->whereDate('created_at', '<=', $todate)->sum('amount');
+            $staffSalary = employee_expenses::with('user')->whereHas('user', function ($query) use ($type) {$query->where('type', str_replace(['repair', 'other'], ['tv-repairs', 'other-repairs'], sanitize($type)));})->where('type', 'Salary')->whereDate('created_at', '>=', $fromdate)->whereDate('created_at', '<=', $todate)->sum('amount');
+            $staffTransport = employee_expenses::with('user')->whereHas('user', function ($query) use ($type) {$query->where('type', str_replace(['repair', 'other'], ['tv-repairs', 'other-repairs'], sanitize($type)));})->where('type', 'Transport')->whereDate('created_at', '>=', $fromdate)->whereDate('created_at', '<=', $todate)->sum('amount');
+            $staffBonus = employee_expenses::with('user')->whereHas('user', function ($query) use ($type) {$query->where('type', str_replace(['repair', 'other'], ['tv-repairs', 'other-repairs'], sanitize($type)));})->where('type', 'Bonus')->whereDate('created_at', '>=', $fromdate)->whereDate('created_at', '<=', $todate)->sum('amount');
+            $staffMedical = employee_expenses::with('user')->whereHas('user', function ($query) use ($type) {$query->where('type', str_replace(['repair', 'other'], ['tv-repairs', 'other-repairs'], sanitize($type)));})->where('type', 'Medical')->whereDate('created_at', '>=', $fromdate)->whereDate('created_at', '<=', $todate)->sum('amount');
+            $staffAccommodation = employee_expenses::with('user')->whereHas('user', function ($query) use ($type) {$query->where('type', str_replace(['repair', 'other'], ['tv-repairs', 'other-repairs'], sanitize($type)));})->where('type', 'Accommodation')->whereDate('created_at', '>=', $fromdate)->whereDate('created_at', '<=', $todate)->sum('amount');
+            $staffOT = employee_expenses::with('user')->whereHas('user', function ($query) use ($type) {$query->where('type', str_replace(['repair', 'other'], ['tv-repairs', 'other-repairs'], sanitize($type)));})->where('type', 'OT')->whereDate('created_at', '>=', $fromdate)->whereDate('created_at', '<=', $todate)->sum('amount');
+            $staffLoan = employee_expenses::with('user')->whereHas('user', function ($query) use ($type) {$query->where('type', str_replace(['repair', 'other'], ['tv-repairs', 'other-repairs'], sanitize($type)));})->where('type', 'Loan')->whereDate('created_at', '>=', $fromdate)->whereDate('created_at', '<=', $todate)->sum('amount');
             $rent = expenses::where('payment', 'Cash')->where('item', 'Rent & Sadaqah')
+            ->where('type', str_replace(['repair', 'other'], ['tv-repairs', 'other-repairs'], sanitize($type)))
             ->whereDate('created_at', '>=', $fromdate)
             ->whereDate('created_at', '<=', $todate)
             ->selectRaw('SUM(CASE WHEN qty > 0 THEN amount * qty ELSE amount END) as total')
             ->value('total');
             $fbCash = expenses::where('payment', 'Cash')->where('item', 'FB Cash')
+            ->where('type', str_replace(['repair', 'other'], ['tv-repairs', 'other-repairs'], sanitize($type)))
             ->whereDate('created_at', '>=', $fromdate)
             ->whereDate('created_at', '<=', $todate)
             ->selectRaw('SUM(CASE WHEN qty > 0 THEN amount * qty ELSE amount END) as total')
             ->value('total');
 
-            $repairs = Repairs::where('type', sanitize($type))->where('status', 'Delivered')
+            $repairs = Repairs::with('credit')->where('type', sanitize($type))->where('status', 'Delivered')
             ->when($fromdate, function ($query) use ($fromdate){
                 $query->whereDate('paid_at', '>=', Carbon::parse($fromdate)->format('Y-m-d'));
             })
@@ -827,7 +829,7 @@ class DashboardController extends Controller
                 $query->whereDate('paid_at', '<=', Carbon::parse($todate)->format('Y-m-d'));
             })->get();
 
-            $tvRepairs = Repairs::where('type','repair')->where('status', 'Delivered')
+            $tvRepairs = Repairs::with('credit')->where('type','repair')->where('status', 'Delivered')
             ->when($fromdate, function ($query) use ($fromdate){
                 $query->whereDate('paid_at', '>=', Carbon::parse($fromdate)->format('Y-m-d'));
             })
@@ -835,7 +837,7 @@ class DashboardController extends Controller
                 $query->whereDate('paid_at', '<=', Carbon::parse($todate)->format('Y-m-d'));
             })->get();
 
-            $otherRepairs = Repairs::where('type','other')->where('status', 'Delivered')
+            $otherRepairs = Repairs::with('credit')->where('type','other')->where('status', 'Delivered')
             ->when($fromdate, function ($query) use ($fromdate){
                 $query->whereDate('paid_at', '>=', Carbon::parse($fromdate)->format('Y-m-d'));
             })
@@ -844,9 +846,46 @@ class DashboardController extends Controller
             })->get();
 
             foreach ($repairs as $key => $repair) {
+                $repair->finaltotal = $repair->total;
+
+                if ($repair->credit) {
+                    $repair->finaltotal -= $repair->credit->ammount;
+
+                }
+
+                if (Carbon::parse($repair->created_at)->format('d-m-Y') != Carbon::parse($repair->paid_at)->format('d-m-Y')) {
+                    $repair->finaltotal -= $repair->advance;
+                }
+
                 $repairSales += $repair->total;
                 $spareCost += $repair->cost;
                 $commission += $repair->commission;
+            }
+
+            foreach ($tvRepairs as $key => $repair) {
+                $repair->finaltotal = $repair->total;
+
+                if ($repair->credit) {
+                    $repair->finaltotal -= $repair->credit->ammount;
+
+                }
+
+                if (Carbon::parse($repair->created_at)->format('d-m-Y') != Carbon::parse($repair->paid_at)->format('d-m-Y')) {
+                    $repair->finaltotal -= $repair->advance;
+                }
+            }
+
+            foreach ($otherRepairs as $key => $repair) {
+                $repair->finaltotal = $repair->total;
+
+                if ($repair->credit) {
+                    $repair->finaltotal -= $repair->credit->ammount;
+
+                }
+
+                if (Carbon::parse($repair->created_at)->format('d-m-Y') != Carbon::parse($repair->paid_at)->format('d-m-Y')) {
+                    $repair->finaltotal -= $repair->advance;
+                }
             }
 
             return view('pos.accounts', compact([
