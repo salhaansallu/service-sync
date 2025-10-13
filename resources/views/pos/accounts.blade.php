@@ -23,8 +23,11 @@
                                     <label for="">To:</label>
                                     <input type="date" class="form-control" name="todate" value="{{ isset($_GET['todate'])? sanitize($_GET['todate']) : date('Y-m-d') }}">
                                 </div>
-                                <div class="col-lg-2">
+                                <div class="col-lg-1">
                                     <button type="submit" class="primary-btn border-only submit-btn">Filter</button>
+                                </div>
+                                <div class="col-lg-2">
+                                    <button type="button" id="summeryDownload" class="primary-btn border-only submit-btn">Download Summery</button>
                                 </div>
                             </div>
                         </form>
@@ -71,12 +74,12 @@
                         </table>
                     </div>
 
-                    <div class="row">
+                    <div class="row" id="accountsSummary">
                         <div class="col-lg-6">
                             <div class="mt-5">
                                 <div class="row m-0 fw-semibold">
                                     <div class="col-4 col-lg-4 border-bottom py-2 text-success">Repair Sales:</div>
-                                    <div class="col-4 col-lg-4 border-bottom py-2 text-success text-end">{{ currency($repairSales, '') }}</div>
+                                    <div class="col-4 col-lg-4 border-bottom py-2 text-success text-end">{{ currency($repairs->sum('finaltotal'), '') }}</div>
                                 </div>
                                 <div class="row m-0 fw-semibold">
                                     <div class="col-4 col-lg-4 border-bottom py-2 text-danger">Service Parts Cost:</div>
@@ -143,7 +146,7 @@
                                 </div>
                                 <div class="row m-0 fw-semibold">
                                     <div class="col-4 col-lg-4 border-bottom py-2 bg-success">Final Profit:</div>
-                                    <div class="col-4 col-lg-4 border-bottom py-2 text-end bg-success">{{ currency((($repairSales) - $spareCost - $staffCommission - $staffFood - $staffSalary - $staffTransport - $staffBonus - $staffMedical - $staffAccommodation - $staffOT - $staffLoan - $rent - $fbCash), 'LKR') }}</div>
+                                    <div class="col-4 col-lg-4 border-bottom py-2 text-end bg-success">{{ currency((($repairs->sum('finaltotal')) - $spareCost - $staffCommission - $staffFood - $staffSalary - $staffTransport - $staffBonus - $staffMedical - $staffAccommodation - $staffOT - $staffLoan - $rent - $fbCash), 'LKR') }}</div>
                                 </div>
                             </div>
                         </div>
@@ -242,6 +245,25 @@
                 let refund = parseFloat($('#refundMoney').val());
 
                 $('#calculatedResult').text((tvAmount+otherAmount) - refund);
+            });
+
+            $('#summeryDownload').click(function (e) {
+                e.preventDefault();
+                const printContents = document.getElementById('accountsSummary').innerHTML;
+                // Save the full page HTML
+                const originalContents = document.body.innerHTML;
+
+                // Replace the entire body with only the selected div
+                document.body.innerHTML = printContents;
+
+                // Trigger print
+                window.print();
+
+                // Restore original page content
+                document.body.innerHTML = originalContents;
+
+                // Optional: Reload scripts or event bindings if needed
+                location.reload();
             });
 
         });
