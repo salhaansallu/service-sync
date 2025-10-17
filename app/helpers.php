@@ -616,12 +616,12 @@ function getProductImage($sku)
 function getCategory($id)
 {
     if ($id == 'all') {
-        $category = Categories::where('pos_code', company()->pos_code)->get();
+        $category = Categories::get();
         if ($category) {
             return (object)$category;
         }
     } else {
-        $category = Categories::where('id', $id)->where('pos_code', company()->pos_code)->get();
+        $category = Categories::where('id', $id)->get();
         if ($category && $category->count() > 0) {
             return (object)$category[0];
         }

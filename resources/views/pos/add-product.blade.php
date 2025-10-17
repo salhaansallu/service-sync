@@ -96,7 +96,22 @@
                                             </select>
                                         </div>
                                     </div>
-                                    <div class="col-md-12">
+
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label>Category</label>
+                                            <select name="category" class="selectpicker form-control" data-style="py-0">
+                                                <option value="other">Other</option>
+                                                @foreach (getCategory('all') as $category)
+                                                    <option
+                                                        @isset($product) {{ $category->id == $product->category ? 'selected' : '' }} @endisset
+                                                        value="{{ $category->id }}">{{ $category->category_name }}</option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-6">
                                         <div class="form-group">
                                             <label>Image</label>
                                             <input type="file" class="form-control image-file" name="product_image"

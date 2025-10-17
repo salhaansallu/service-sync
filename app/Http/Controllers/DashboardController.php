@@ -213,9 +213,18 @@ class DashboardController extends Controller
     {
         login_redirect('/' . request()->path());
 
-        if (Auth::check() && $this->check(true)) {
-            $categories = Categories::where('pos_code', company()->pos_code)->get();
-            return view('pos.list-categories')->with(['categories' => $categories]);
+        if (Auth::check() && isCashier()) {
+            $categories = Categories::all();
+            return view('pos.list-category')->with(['categories' => $categories]);
+        } else {
+            return redirect('/signin');
+        }
+    }
+
+    public function createCategory()
+    {
+        if (isCashier()) {
+            return view('pos.add-categories');
         } else {
             return redirect('/signin');
         }

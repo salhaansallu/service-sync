@@ -164,6 +164,13 @@ Route::prefix('dashboard')->group(function () {
     Route::post('/products/edit', [ProductsController::class, 'update']);
     Route::delete('/products/delete', [ProductsController::class, 'destroy']);
 
+    Route::get('categories', [DashboardController::class, 'listCategories']);
+    Route::get('category/create', [DashboardController::class, 'createCategory']);
+    Route::get('category/edit/{id}', [CategoriesController::class, 'edit']);
+    Route::post('category/create', [CategoriesController::class, 'store']);
+    Route::post('/category/edit', [CategoriesController::class, 'update']);
+    Route::delete('/category/delete', [CategoriesController::class, 'destroy']);
+
     Route::get('low-stock-products', [DashboardController::class, 'listLowStockProducts']);
     Route::post('low-stock-report', [DashboardController::class, 'generateLowStockReport']);
 

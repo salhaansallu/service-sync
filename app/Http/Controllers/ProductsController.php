@@ -121,6 +121,7 @@ class ProductsController extends Controller
             //(float)$price = sanitize($request->input('price'));
             (float)$stock = sanitize($request->input('stock'));
             $supplier = sanitize($request->input('supplier'));
+            $category = sanitize($request->input('category'));
             $imageName = "placeholder.svg";
 
             $code_verify = Products::where('sku', $code)->where('pos_code', company()->pos_code)->get();
@@ -164,6 +165,7 @@ class ProductsController extends Controller
             $product->pro_image = $imageName;
             $product->pos_code = company()->pos_code;
             $product->supplier = $supplier;
+            $product->category = $category;
 
             if ($product->save()) {
                 return response(json_encode(array("error" => 0, "msg" => "Product Created Successfully")));
@@ -214,6 +216,7 @@ class ProductsController extends Controller
             (float)$price = sanitize($request->input('price'));
             (float)$stock = sanitize($request->input('stock'));
             $supplier = sanitize($request->input('supplier'));
+            $category = sanitize($request->input('category'));
             $imageName = "placeholder.svg";
 
             $id_verify = Products::where('id', $id)->where('pos_code', company()->pos_code)->get();
@@ -265,6 +268,7 @@ class ProductsController extends Controller
                     "qty" => $stock,
                     "pro_image" => $imageName,
                     "supplier" => $supplier,
+                    "category" => $category,
                 ]);
             } else {
                 $product = Products::where('id', $id)->update([
@@ -274,6 +278,7 @@ class ProductsController extends Controller
                     "price" => $price,
                     "qty" => $stock,
                     "supplier" => $supplier,
+                    "category" => $category,
                 ]);
             }
 
