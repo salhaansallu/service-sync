@@ -16,9 +16,9 @@ class AuthController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users',
-            'phone' => 'required|string|max:20',
+            'phone' => 'required|string|max:20|unique:users,phone',
             'password' => 'required|string|min:8',
+            'email' => 'sometimes|nullable|email|max:255',
         ]);
 
         if ($validator->fails()) {
@@ -30,14 +30,17 @@ class AuthController extends Controller
             ], 400);
         }
 
-        // Check if email already exists
-        if (User::where('email', $request->email)->exists()) {
+        // Check if phone already exists
+        if (User::where('phone', $request->phone)->exists()) {
             return response()->json([
                 'success' => false,
-                'message' => 'Email already exists',
-                'error' => 'DUPLICATE_EMAIL'
+                'message' => 'Phone number already registered',
+                'error' => 'DUPLICATE_PHONE'
             ], 400);
         }
+
+        // Check if customer exists with this phone number in customers table
+        $customer = \App\Models\customers::where('phone', $request->phone)->first();
 
         $user = User::create([
             'name' => $request->name,
@@ -46,6 +49,7 @@ class AuthController extends Controller
             'password' => Hash::make($request->password),
             'role' => 'customer',
             'phone_verified' => false,
+            'customer_id' => $customer ? $customer->id : null,
             'notification_preferences' => [
                 'email' => true,
                 'push' => true,
@@ -62,10 +66,12 @@ class AuthController extends Controller
                 'user' => [
                     'id' => 'user_' . $user->id,
                     'name' => $user->name,
-                    'email' => $user->email,
                     'phone' => $user->phone,
+                    'email' => $user->email,
                     'role' => $user->role,
                     'phoneVerified' => $user->phone_verified,
+                    'hasExistingCustomer' => $customer ? true : false,
+                    'customerId' => $customer ? $customer->id : null,
                     'createdAt' => $user->created_at->toIso8601String(),
                 ],
                 'token' => $token,
