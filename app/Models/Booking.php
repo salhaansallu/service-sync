@@ -36,7 +36,7 @@ class Booking extends Model
 
     public function user()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(ApiUser::class, 'user_id');
     }
 
     public function addTimelineEntry($status, $note = null)
