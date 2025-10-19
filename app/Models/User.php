@@ -25,6 +25,7 @@ class User extends Authenticatable
         'role',
         'phone_verified',
         'notification_preferences',
+        'customer_id',
     ];
 
     /**
