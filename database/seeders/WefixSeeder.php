@@ -3,7 +3,7 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use App\Models\User;
+use App\Models\ApiUser;
 use App\Models\customers;
 use App\Models\WarrantyRecord;
 use Illuminate\Support\Facades\Hash;
@@ -12,8 +12,8 @@ class WefixSeeder extends Seeder
 {
     public function run(): void
     {
-        // Create admin user (no customer link needed)
-        User::create([
+        // Create admin API user (no customer link needed)
+        ApiUser::create([
             'name' => 'WeFix Admin',
             'email' => 'wefixtvrepair@gmail.com',
             'phone' => '+94773300905',
@@ -37,8 +37,8 @@ class WefixSeeder extends Seeder
             'store_credit' => 5000.00,
         ]);
 
-        // Create user linked to customer
-        User::create([
+        // Create API user linked to customer
+        ApiUser::create([
             'name' => 'Test Customer',
             'email' => 'customer@example.com',
             'phone' => '+94771234567',
