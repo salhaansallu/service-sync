@@ -13,6 +13,7 @@ use App\Http\Controllers\Api\WarrantyController;
 use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\OTPController;
 use App\Http\Controllers\Api\AdminBookingController;
+use App\Http\Controllers\Api\CustomerOrderController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
