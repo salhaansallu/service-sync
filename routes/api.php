@@ -93,6 +93,14 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/verify', [OTPController::class, 'verify']);
     });
     
+    // Customer Orders & Repairs
+    Route::prefix('customer')->group(function () {
+        Route::get('/orders', [CustomerOrderController::class, 'getOrders']);
+        Route::get('/orders/{orderId}', [CustomerOrderController::class, 'getOrder']);
+        Route::get('/repairs/{repairId}', [CustomerOrderController::class, 'getRepair']);
+        Route::get('/stats', [CustomerOrderController::class, 'getStats']);
+    });
+    
     // Admin Routes - Require Admin Role
     Route::middleware('role:admin')->prefix('admin')->group(function () {
         
