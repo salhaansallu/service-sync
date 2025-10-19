@@ -12,7 +12,7 @@ class NotificationController extends Controller
     public function send(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'userId' => 'required|exists:users,id',
+            'userId' => 'required|exists:api_users,id',
             'title' => 'required|string|max:255',
             'message' => 'required|string',
             'type' => 'required|string|max:50',
