@@ -82,7 +82,7 @@ class AuthController extends Controller
     public function login(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'email' => 'required|email',
+            'phone' => 'required|string',
             'password' => 'required|string',
         ]);
 
@@ -95,12 +95,12 @@ class AuthController extends Controller
             ], 400);
         }
 
-        $user = User::where('email', $request->email)->first();
+        $user = User::where('phone', $request->phone)->first();
 
         if (!$user || !Hash::check($request->password, $user->password)) {
             return response()->json([
                 'success' => false,
-                'message' => 'Invalid email or password',
+                'message' => 'Invalid phone number or password',
                 'error' => 'INVALID_CREDENTIALS'
             ], 401);
         }
@@ -118,6 +118,8 @@ class AuthController extends Controller
                     'phone' => $user->phone,
                     'role' => $user->role,
                     'phoneVerified' => $user->phone_verified,
+                    'hasExistingCustomer' => $user->customer_id ? true : false,
+                    'customerId' => $user->customer_id,
                     'notificationPreferences' => $user->notification_preferences ?? [
                         'email' => true,
                         'push' => true,
