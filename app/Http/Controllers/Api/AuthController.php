@@ -16,7 +16,7 @@ class AuthController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
-            'phone' => 'required|string|max:20|unique:users,phone',
+            'phone' => 'required|string|max:20|unique:api_users,phone',
             'password' => 'required|string|min:8',
             'email' => 'sometimes|nullable|email|max:255',
         ]);
@@ -31,7 +31,7 @@ class AuthController extends Controller
         }
 
         // Check if phone already exists
-        if (User::where('phone', $request->phone)->exists()) {
+        if (ApiUser::where('phone', $request->phone)->exists()) {
             return response()->json([
                 'success' => false,
                 'message' => 'Phone number already registered',
@@ -42,7 +42,7 @@ class AuthController extends Controller
         // Check if customer exists with this phone number in customers table
         $customer = \App\Models\customers::where('phone', $request->phone)->first();
 
-        $user = User::create([
+        $user = ApiUser::create([
             'name' => $request->name,
             'email' => $request->email,
             'phone' => $request->phone,
