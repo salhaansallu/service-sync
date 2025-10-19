@@ -95,7 +95,7 @@ class AuthController extends Controller
             ], 400);
         }
 
-        $user = User::where('phone', $request->phone)->first();
+        $user = ApiUser::where('phone', $request->phone)->first();
 
         if (!$user || !Hash::check($request->password, $user->password)) {
             return response()->json([
