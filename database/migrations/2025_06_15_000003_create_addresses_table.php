@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::create('addresses', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->foreignId('user_id')->constrained('api_users')->onDelete('cascade');
             $table->string('label', 50); // Home, Office, etc.
             $table->text('address');
             $table->boolean('is_default')->default(false);
