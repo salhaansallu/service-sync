@@ -51,6 +51,11 @@ class User extends Authenticatable
     ];
 
     // Relationships
+    public function customer()
+    {
+        return $this->belongsTo(customers::class, 'customer_id');
+    }
+
     public function bookings()
     {
         return $this->hasMany(Booking::class);
