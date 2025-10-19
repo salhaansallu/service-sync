@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use App\Models\User;
+use App\Models\customers;
 use App\Models\WarrantyRecord;
 use Illuminate\Support\Facades\Hash;
 
@@ -11,12 +12,12 @@ class WefixSeeder extends Seeder
 {
     public function run(): void
     {
-        // Create admin user
+        // Create admin user (no customer link needed)
         User::create([
             'name' => 'WeFix Admin',
             'email' => 'wefixtvrepair@gmail.com',
-            'password' => Hash::make('admin123'),
             'phone' => '+94773300905',
+            'password' => Hash::make('admin123'),
             'role' => 'admin',
             'phone_verified' => true,
             'notification_preferences' => [
@@ -26,14 +27,25 @@ class WefixSeeder extends Seeder
             ],
         ]);
 
-        // Create test customer
+        // Create test customer in customers table
+        $testCustomer = customers::create([
+            'name' => 'Test Customer',
+            'phone' => '+94771234567',
+            'email' => 'customer@example.com',
+            'address' => 'No. 123, Main Street, Colombo 03',
+            'pos_code' => 'POS001',
+            'store_credit' => 5000.00,
+        ]);
+
+        // Create user linked to customer
         User::create([
             'name' => 'Test Customer',
             'email' => 'customer@example.com',
-            'password' => Hash::make('customer123'),
             'phone' => '+94771234567',
+            'password' => Hash::make('customer123'),
             'role' => 'customer',
             'phone_verified' => true,
+            'customer_id' => $testCustomer->id,
             'notification_preferences' => [
                 'email' => true,
                 'push' => true,
