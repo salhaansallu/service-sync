@@ -127,7 +127,7 @@ class BookingController extends Controller
         }
 
         $user = $request->user();
-        $booking = Booking::where('booking_id', $bookingId)
+        $booking = Booking::where('id', $bookingId)
             ->where('user_id', $user->id)
             ->first();
 

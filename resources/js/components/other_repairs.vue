@@ -617,8 +617,8 @@
 
                             <div class="col-3 mt-3">
                                 <div class="input">
-                                    <label for="" class="mb-1">Commission (%)</label>
-                                    <input type="number" ref="commission" name="" placeholder="Commission" value="10">
+                                    <label for="" class="mb-1">Commission</label>
+                                    <input type="number" ref="commission" name="" placeholder="Commission" value="0">
                                 </div>
                             </div>
 

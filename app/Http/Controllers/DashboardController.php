@@ -854,6 +854,36 @@ class DashboardController extends Controller
                 $query->whereDate('paid_at', '<=', Carbon::parse($todate)->format('Y-m-d'));
             })->get();
 
+            $sales = Repairs::where('type', 'sale')->where('status', 'Delivered')
+            ->when($fromdate, function ($query) use ($fromdate){
+                $query->whereDate('created_at', '>=', Carbon::parse($fromdate)->format('Y-m-d'));
+            })
+            ->when($todate, function ($query) use ($todate){
+                $query->whereDate('created_at', '<=', Carbon::parse($todate)->format('Y-m-d'));
+            })->get();
+
+            $productSales = [];
+            $productSales['temp'] = 0;
+            $productSales['unknown'] = 0;
+
+            foreach (categories::all() as $key => $category) {
+                $productSales[$category->id] = 0;
+            }
+
+            foreach ($sales as $key => $sale) {
+                foreach (is_array(json_decode(html_entity_decode($sale->products))) ? json_decode(html_entity_decode($sale->products)) : [] as $key => $product) {
+                    if(str_contains($product->id, 'temp-')) {
+                        $productSales['temp'] += $product->unit * $product->qty;
+                    }
+                    else {
+                        $prodData = Products::where('id', $product->id)->first();
+                        if ($prodData) {
+                            $productSales[$prodData->category ?? 'unknown'] += $product->unit * $product->qty;
+                        }
+                    }
+                }
+            }
+
             foreach ($repairs as $key => $repair) {
                 $repair->finaltotal = $repair->total;
 
@@ -915,6 +945,73 @@ class DashboardController extends Controller
                 'rent',
                 'fbCash',
                 'repairs',
+            ]));
+        }
+
+        return redirect('/signin');
+    }
+
+    public function categorySalesReport(Request $request)
+    {
+        if (Auth::check() && isCashier()) {
+            $fromdate = sanitize($request->input('fromdate'));
+            $todate = sanitize($request->input('todate'));
+
+            if (!$request->has('fromdate') || !$request->has('todate')) {
+                $fromdate = Carbon::now()->format('Y-m-d');
+                $todate = Carbon::now()->format('Y-m-d');
+            }
+
+            $sales = Repairs::where('type', 'sale')->where('status', 'Delivered')
+            ->when($fromdate, function ($query) use ($fromdate){
+                $query->whereDate('created_at', '>=', Carbon::parse($fromdate)->format('Y-m-d'));
+            })
+            ->when($todate, function ($query) use ($todate){
+                $query->whereDate('created_at', '<=', Carbon::parse($todate)->format('Y-m-d'));
+            })->get();
+
+            $productSales = [];
+
+            $productSales['temp'] = [
+                'name' => 'Temporary Products',
+                'sales' => 0,
+                'cost' =>0,
+            ];
+
+            $productSales['unknown'] = [
+                'name' => 'Unknown Products',
+                'sales' => 0,
+                'cost' =>0,
+            ];
+
+            foreach (categories::all() as $key => $category) {
+                $productSales[$category->id] = [
+                    'name' => $category->category_name,
+                    'sales' => 0,
+                    'cost' =>0,
+                ];
+            }
+
+            foreach ($sales as $key => $sale) {
+                foreach (is_array(json_decode(html_entity_decode($sale->products))) ? json_decode(html_entity_decode($sale->products)) : [] as $key => $product) {
+                    if(str_contains($product->id, 'temp-')) {
+                        $productSales['temp']['sales'] += $product->unit * $product->qty;
+                        $productSales['temp']['cost'] += $product->cost * $product->qty;
+                    }
+                    else {
+                        $prodData = Products::where('id', $product->id)->first();
+                        if ($prodData) {
+                            $productSales[$prodData->category ?? 'unknown']['sales'] += $product->unit * $product->qty;
+                            $productSales[$prodData->category ?? 'unknown']['cost'] += $product->cost * $product->qty;
+                        }
+                    }
+                }
+            }
+
+            //dd($productSales);
+
+            return view('pos.category-sales', compact([
+                'productSales',
             ]));
         }
 

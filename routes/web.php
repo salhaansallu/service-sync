@@ -211,6 +211,7 @@ Route::prefix('dashboard')->group(function () {
     Route::delete('/bill/delete', [RepairsController::class, 'salesDestroy']);
 
     Route::get('sales-report', [DashboardController::class, 'salesReport']);
+    Route::get('category-sales-report', [DashboardController::class, 'categorySalesReport']);
     Route::get('spare-report', [DashboardController::class, 'spareReport']);
     Route::post('/spares/get-report', [SpareSaleHistoryController::class, 'getReport']);
     Route::get('sales-report/customer', [DashboardController::class, 'customerSalesReport']);

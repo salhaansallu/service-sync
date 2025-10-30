@@ -403,6 +403,13 @@
                                     </a>
                                 </li>
                                 @if (isAdmin())
+                                    <li class="{{ Request::is('dashboard/category-sales-report') ? 'active' : '' }}">
+                                    <a href="/dashboard/category-sales-report">
+                                        <i class="fa-solid fa-minus"></i><span>Category Sales report</span>
+                                    </a>
+                                </li>
+                                @endif
+                                @if (isAdmin())
                                 <li class="{{ Request::is('dashboard/spare-report') ? 'active' : '' }}">
                                     <a href="/dashboard/spare-report">
                                         <i class="fa-solid fa-minus"></i><span>Spare parts report</span>
