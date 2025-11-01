@@ -11,32 +11,38 @@ class WarrantyController extends Controller
 {
     public function check(Request $request)
     {
-        $validator = Validator::make($request->all(), [
-            'serialNumber' => 'required|string',
-            'billNumber' => 'required|string',
-            'phoneNumber' => 'required|string',
-        ]);
-
-        if ($validator->fails()) {
+        if (empty($request->serialNumber) && empty($request->billNumber) && empty($request->phoneNumber)) {
             return response()->json([
                 'success' => false,
                 'message' => 'Validation error',
                 'error' => 'VALIDATION_ERROR',
-                'details' => $validator->errors()
-            ], 400);
+                'details' => 'Please enter at least one of Serial Number, Bill Number, or Phone Number.'
+            ]);
         }
 
-        $warranty = WarrantyRecord::where('serial_number', $request->serialNumber)
-            ->where('bill_number', $request->billNumber)
-            ->where('phone_number', $request->phoneNumber)
-            ->first();
+        $warranty = WarrantyRecord::query();
+
+
+        if (!empty($request->serialNumber)) {
+            $warranty->where('serial_number', $request->serialNumber);
+        }
+
+        if (!empty($request->billNumber)) {
+            $warranty->where('bill_number', $request->billNumber);
+        }
+
+        if (!empty($request->phoneNumber)) {
+            $warranty->where('phone_number', $request->phoneNumber);
+        }
+
+        $warranty = $warranty->first();
 
         if (!$warranty) {
             return response()->json([
                 'success' => false,
                 'message' => 'No warranty found with the provided details',
                 'error' => 'WARRANTY_NOT_FOUND'
-            ], 404);
+            ]);
         }
 
         $isValid = $warranty->isValid();

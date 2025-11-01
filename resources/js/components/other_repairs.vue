@@ -624,9 +624,7 @@
 
                             <div class="col-12 mt-3">
                                 <button @click="FinishRepair()" class="primary-btn submit-btn">Save</button>
-                                <button @click="finishOrder('hide')"
-                                    style="background: transparent; color: red !important; border: red 1px solid;"
-                                    class="primary-btn submit-btn mx-4">Close</button>
+                                <button @click="finishOrder('hide')" style="background: transparent; color: red !important; border: red 1px solid;" class="primary-btn submit-btn mx-4">Close</button>
                             </div>
                         </div>
                     </div>
