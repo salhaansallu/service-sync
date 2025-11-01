@@ -14,6 +14,7 @@ use App\Models\posUsers;
 use App\Models\Products;
 use App\Models\repairCommissions;
 use App\Models\Repairs;
+use App\Models\WarrantyRecord;
 use App\Models\saveOrders;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -149,6 +150,36 @@ class PosDataController extends Controller
                     "warranty" => $warranty,
                     "signature" => $signature,
                 ]);
+
+                // Create warranty record if warranty months > 0
+                if ($warranty > 0) {
+                    $repair = Repairs::where('bill_no', $id)->first();
+                    if ($repair) {
+                        $customer = customers::where('id', $repair->customer)->first();
+
+                        if ($customer) {
+                            // Get product name from model_no or use generic name
+                            $productName = !empty($repair->model_no) ? $repair->model_no : 'TV Repair Service';
+
+                            // Calculate expiry date based on warranty months
+                            $purchaseDate = Carbon::now();
+                            $expiryDate = Carbon::now()->addMonths((int)$warranty);
+
+                            // Create warranty record
+                            WarrantyRecord::create([
+                                'serial_number' => !empty($repair->serial_no) ? $repair->serial_no : 'N/A-' . $id,
+                                'bill_number' => $id,
+                                'phone_number' => $customer->phone,
+                                'product_name' => $productName,
+                                'purchase_date' => $purchaseDate,
+                                'expiry_date' => $expiryDate,
+                                'coverage_type' => $warranty . ' Months Warranty',
+                                'notes' => 'Auto-generated from POS checkout. Repair completed.',
+                                'is_active' => true,
+                            ]);
+                        }
+                    }
+                }
 
                 $rp = Repairs::where('bill_no', $id)->get(['techie', 'total', 'cost', 'commission', 'bill_no']);
                 if ($rp->count() > 0) {
