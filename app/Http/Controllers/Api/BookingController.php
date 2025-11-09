@@ -29,7 +29,7 @@ class BookingController extends Controller
                 'message' => 'Validation error',
                 'error' => 'VALIDATION_ERROR',
                 'details' => $validator->errors()
-            ], 400);
+            ]);
         }
 
         $user = $request->user();
@@ -123,7 +123,7 @@ class BookingController extends Controller
                 'message' => 'Validation error',
                 'error' => 'VALIDATION_ERROR',
                 'details' => $validator->errors()
-            ], 400);
+            ]);
         }
 
         $user = $request->user();

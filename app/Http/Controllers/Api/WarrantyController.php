@@ -11,7 +11,7 @@ class WarrantyController extends Controller
 {
     public function check(Request $request)
     {
-        if (empty($request->serialNumber) && empty($request->billNumber) && empty($request->phoneNumber)) {
+        if (empty($request->serial_number) && empty($request->bill_number) && empty($request->phone_number)) {
             return response()->json([
                 'success' => false,
                 'message' => 'Validation error',
@@ -23,16 +23,16 @@ class WarrantyController extends Controller
         $warranty = WarrantyRecord::query();
 
 
-        if (!empty($request->serialNumber)) {
-            $warranty->where('serial_number', $request->serialNumber);
+        if (!empty($request->serial_number)) {
+            $warranty->where('serial_number', $request->serial_number);
         }
 
-        if (!empty($request->billNumber)) {
-            $warranty->where('bill_number', $request->billNumber);
+        if (!empty($request->bill_number)) {
+            $warranty->where('bill_number', $request->bill_number);
         }
 
-        if (!empty($request->phoneNumber)) {
-            $warranty->where('phone_number', $request->phoneNumber);
+        if (!empty($request->phone_number)) {
+            $warranty->where('phone_number', $request->phone_number);
         }
 
         $warranty = $warranty->first();

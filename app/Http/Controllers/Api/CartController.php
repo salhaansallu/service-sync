@@ -58,7 +58,7 @@ class CartController extends Controller
                 'message' => 'Validation error',
                 'error' => 'VALIDATION_ERROR',
                 'details' => $validator->errors()
-            ], 400);
+            ]);
         }
 
         $user = $request->user();
@@ -80,7 +80,7 @@ class CartController extends Controller
                 'success' => false,
                 'message' => 'Insufficient stock',
                 'error' => 'INSUFFICIENT_STOCK'
-            ], 400);
+            ]);
         }
 
         // Check if item already exists in cart
@@ -124,7 +124,7 @@ class CartController extends Controller
                 'message' => 'Validation error',
                 'error' => 'VALIDATION_ERROR',
                 'details' => $validator->errors()
-            ], 400);
+            ]);
         }
 
         $user = $request->user();

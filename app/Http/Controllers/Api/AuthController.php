@@ -27,7 +27,7 @@ class AuthController extends Controller
                 'message' => 'Validation error',
                 'error' => 'VALIDATION_ERROR',
                 'details' => $validator->errors()
-            ], 400);
+            ]);
         }
 
         // Check if phone already exists
@@ -36,7 +36,7 @@ class AuthController extends Controller
                 'success' => false,
                 'message' => 'Phone number already registered',
                 'error' => 'DUPLICATE_PHONE'
-            ], 400);
+            ]);
         }
 
         // Check if customer exists with this phone number in customers table
@@ -92,7 +92,7 @@ class AuthController extends Controller
                 'message' => 'Validation error',
                 'error' => 'VALIDATION_ERROR',
                 'details' => $validator->errors()
-            ], 400);
+            ]);
         }
 
         $user = ApiUser::where('phone', $request->phone)->first();
@@ -153,7 +153,7 @@ class AuthController extends Controller
                 'message' => 'Validation error',
                 'error' => 'VALIDATION_ERROR',
                 'details' => $validator->errors()
-            ], 400);
+            ]);
         }
 
         // In production, you would send an actual email here
@@ -181,7 +181,7 @@ class AuthController extends Controller
                 'message' => 'Validation error',
                 'error' => 'VALIDATION_ERROR',
                 'details' => $validator->errors()
-            ], 400);
+            ]);
         }
 
         // In a real implementation, verify the token and reset password
