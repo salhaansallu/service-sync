@@ -32,7 +32,7 @@
                             </div>
                         </form>
                     </div>
-
+                    <h5 class="mb-3 mt-5">Paid Bills</h5>
                     <div class="table-responsive rounded mb-3 border-bottom" style="overflow-y: auto;max-height: 300px;">
                         <table class="table mb-0 tbl-server-info">
                             <thead class="bg-white text-uppercase">
@@ -40,35 +40,83 @@
                                     <th class="text-start">Order No</th>
                                     <th class="text-start">Model</th>
                                     <th class="text-start">Technician</th>
-                                    <th class="text-start">Total</th>
+                                    {{-- <th class="text-start">Total</th> --}}
                                     <th class="text-start">Spare Cost</th>
                                     <th class="text-start">Commission</th>
-                                    <th class="text-start">Total Cost</th>
-                                    <th class="text-start">Total Cash</th>
+                                    <th class="text-start">Cost</th>
+                                    <th class="text-start">Total</th>
                                 </tr>
                             </thead>
                             <tbody class="ligth-body">
                                 @if (isset($repairs) && $repairs->count() > 0)
                                 @foreach ($repairs as $item)
-                                <tr>
-                                    <td class="text-start">{{ $item->bill_no }}</td>
-                                    <td class="text-start">{{ $item->model_no }}</td>
-                                    <td class="text-start">{{ getUser($item->techie)->fname }}</td>
-                                    <td class="text-start">{{ currency($item->total, '') }}</td>
-                                    <td class="text-start">{{ currency($item->cost, '') }}</td>
-                                    <td class="text-start">{{ currency($item->commission, '') }}</td>
-                                    <td class="text-start">{{ currency($item->cost + $item->commission, '') }}</td>
-                                    <td class="text-start">{{ currency($item->finaltotal, '') }}</td>
-                                </tr>
+                                @if ($item->creditAmount == 0)
+                                    <tr>
+                                        <td class="text-start">{{ $item->bill_no }}</td>
+                                        <td class="text-start">{{ $item->model_no }}</td>
+                                        <td class="text-start">{{ getUser($item->techie)->fname }}</td>
+                                        {{-- <td class="text-start">{{ currency($item->total, '') }}</td> --}}
+                                        <td class="text-start">{{ currency($item->cost, '') }}</td>
+                                        <td class="text-start">{{ currency($item->commission, '') }}</td>
+                                        <td class="text-start">{{ currency($item->cost + $item->commission, '') }}</td>
+                                        <td class="text-start">{{ currency($item->finaltotal, '') }}</td>
+                                    </tr>
+                                @endif
                                 @endforeach
-                                <tr>
-                                    <td class="text-start fw-bold" colspan="3">Total:</td>
+                                {{-- <tr>
+                                    <td class="text-start fw-bold" colspan="2">Total:</td>
                                     <td class="text-start fw-bold">{{ currency($repairSales, '') }}</td>
                                     <td class="text-start fw-bold">{{ currency($spareCost, '') }}</td>
                                     <td class="text-start fw-bold">{{ currency($commission, '') }}</td>
                                     <td class="text-start fw-bold">{{ currency($spareCost + $commission, '') }}</td>
                                     <td class="text-start fw-bold">{{ currency($repairs->sum('finaltotal'), '') }}</td>
+                                </tr> --}}
+                                @endif
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <h5 class="mb-3 mt-5">Bills with Credit</h5>
+                    <div class="table-responsive rounded mb-3 border-bottom" style="overflow-y: auto;max-height: 300px;">
+                        <table class="table mb-0 tbl-server-info">
+                            <thead class="bg-white text-uppercase">
+                                <tr class="ligth ligth-data">
+                                    <th class="text-start">Order No</th>
+                                    <th class="text-start">Model</th>
+                                    <th class="text-start">Technician</th>
+                                    {{-- <th class="text-start">Total</th> --}}
+                                    <th class="text-start">Spare Cost</th>
+                                    <th class="text-start">Commission</th>
+                                    <th class="text-start">Cost</th>
+                                    <th class="text-start">Total</th>
+                                    <th class="text-start">Credit</th>
                                 </tr>
+                            </thead>
+                            <tbody class="ligth-body">
+                                @if (isset($repairs) && $repairs->count() > 0)
+                                @foreach ($repairs as $item)
+                                @if ($item->creditAmount > 0)
+                                    <tr>
+                                        <td class="text-start">{{ $item->bill_no }}</td>
+                                        <td class="text-start">{{ $item->model_no }}</td>
+                                        <td class="text-start">{{ getUser($item->techie)->fname }}</td>
+                                        {{-- <td class="text-start">{{ currency($item->total, '') }}</td> --}}
+                                        <td class="text-start">{{ currency($item->cost, '') }}</td>
+                                        <td class="text-start">{{ currency($item->commission, '') }}</td>
+                                        <td class="text-start">{{ currency($item->cost + $item->commission, '') }}</td>
+                                        <td class="text-start">{{ currency($item->finaltotal, '') }}</td>
+                                        <td class="text-start">{{ currency($item->creditAmount, '') }}</td>
+                                    </tr>
+                                @endif
+                                @endforeach
+                                {{-- <tr>
+                                    <td class="text-start fw-bold" colspan="2">Total:</td>
+                                    <td class="text-start fw-bold">{{ currency($repairSales, '') }}</td>
+                                    <td class="text-start fw-bold">{{ currency($spareCost, '') }}</td>
+                                    <td class="text-start fw-bold">{{ currency($commission, '') }}</td>
+                                    <td class="text-start fw-bold">{{ currency($spareCost + $commission, '') }}</td>
+                                    <td class="text-start fw-bold">{{ currency($repairs->sum('finaltotal'), '') }}</td>
+                                </tr> --}}
                                 @endif
                             </tbody>
                         </table>

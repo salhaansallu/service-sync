@@ -886,10 +886,11 @@ class DashboardController extends Controller
 
             foreach ($repairs as $key => $repair) {
                 $repair->finaltotal = $repair->total;
+                $repair->creditAmount = 0;
 
                 if ($repair->credit) {
                     $repair->finaltotal -= $repair->credit->ammount;
-
+                    $repair->creditAmount = $repair->credit->ammount;
                 }
 
                 if (Carbon::parse($repair->created_at)->format('d-m-Y') != Carbon::parse($repair->paid_at)->format('d-m-Y')) {
@@ -903,10 +904,11 @@ class DashboardController extends Controller
 
             foreach ($tvRepairs as $key => $repair) {
                 $repair->finaltotal = $repair->total;
+                $repair->creditAmount = 0;
 
                 if ($repair->credit) {
                     $repair->finaltotal -= $repair->credit->ammount;
-
+                    $repair->creditAmount = $repair->credit->ammount;
                 }
 
                 if (Carbon::parse($repair->created_at)->format('d-m-Y') != Carbon::parse($repair->paid_at)->format('d-m-Y')) {
@@ -916,10 +918,11 @@ class DashboardController extends Controller
 
             foreach ($otherRepairs as $key => $repair) {
                 $repair->finaltotal = $repair->total;
+                $repair->creditAmount = 0;
 
                 if ($repair->credit) {
                     $repair->finaltotal -= $repair->credit->ammount;
-
+                    $repair->creditAmount = $repair->credit->ammount;
                 }
 
                 if (Carbon::parse($repair->created_at)->format('d-m-Y') != Carbon::parse($repair->paid_at)->format('d-m-Y')) {
