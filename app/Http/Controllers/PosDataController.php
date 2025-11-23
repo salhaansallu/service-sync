@@ -195,6 +195,7 @@ class PosDataController extends Controller
                         "note" => 'Commission of bill no '.$rp[0]->bill_no,
                         "amount" => $rp[0]->commission,
                         "type" => 'Commission',
+                        "reference" => $rp[0]->bill_no,
                         "created_at" => Carbon::now(),
                         "updated_at" => Carbon::now(),
                     ]);

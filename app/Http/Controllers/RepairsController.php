@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\customers;
+use App\Models\employee_expenses;
 use App\Models\orders;
 use App\Models\partners;
 use App\Models\posUsers;
@@ -571,7 +572,7 @@ class RepairsController extends Controller
             }
             $status = sanitize($request->input('status'));
 
-            $id_verify = Repairs::where('id', $id)->where('pos_code', company()->pos_code)->get();
+            $id_verify = Repairs::where('id', $id)->get();
 
             if ($id_verify && $id_verify->count() > 0) {
                 # continue
@@ -611,6 +612,11 @@ class RepairsController extends Controller
             ]);
 
             if ($product) {
+
+                employee_expenses::where('reference', $id_verify[0]->bill_no)->where('type', 'Commission')->update([
+                    "amount" => $commission,
+                ]);
+
                 if ($status == "Pending" || $status == "Awaiting Parts" || $status == "Repaired") {
                     generateInvoice($id_verify[0]->bill_no, str_replace(['newOrder/', 'checkout/'], "", $id_verify[0]->invoice), 'newOrder');
                     generateThermalInvoice($id_verify[0]->bill_no, str_replace(['newOrder/', 'checkout/'], "", str_replace('Invoice', 'Thermal-invoice', $id_verify[0]->invoice)), 'newOrder');

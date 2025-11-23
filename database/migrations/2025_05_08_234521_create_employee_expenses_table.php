@@ -17,6 +17,7 @@ return new class extends Migration
             $table->text('note')->nullable();
             $table->float('amount', 15, 2)->nullable();
             $table->string('type')->nullable();
+            $table->string('reference')->nullable();
             $table->string('status')->nullable();
             $table->timestamps();
         });
