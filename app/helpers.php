@@ -1500,7 +1500,7 @@ function generateThermalInvoice($order_id, $inName, $bill_type)
         ';
     }
 
-    if ($repairs->partner == 0) {
+    if ($repairs->partner == 0 && (!is_array($order_id) || count($order_id) == 1)) {
         $html .= '
         <p style="font-size: 12px; text-align: left;font-weight: bold; border-bottom: 1px solid #000;">PDF Invoice</p>
 
