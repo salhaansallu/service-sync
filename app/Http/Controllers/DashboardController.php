@@ -878,7 +878,12 @@ class DashboardController extends Controller
                     else {
                         $prodData = Products::where('id', $product->id)->first();
                         if ($prodData) {
-                            $productSales[$prodData->category ?? 'unknown'] += $product->unit * $product->qty;
+                            if ($prodData->category == 0) {
+                                $productSales['unknown'] += $product->unit * $product->qty;
+                            }
+                            else {
+                                $productSales[$prodData->category ?? 'unknown'] += $product->unit * $product->qty;
+                            }
                         }
                     }
                 }

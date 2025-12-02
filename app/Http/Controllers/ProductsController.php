@@ -124,7 +124,7 @@ class ProductsController extends Controller
             $category = sanitize($request->input('category'));
             $imageName = "placeholder.svg";
 
-            $code_verify = Products::where('sku', $code)->where('pos_code', company()->pos_code)->get();
+            $code_verify = Products::where('sku', $code)->get();
 
             if ($code_verify && $code_verify->count() > 0) {
                 return response(json_encode(array("error" => 1, "msg" => "Product Code Already Exists")));
