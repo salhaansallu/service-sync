@@ -11,12 +11,11 @@ class WarrantyController extends Controller
 {
     public function check(Request $request)
     {
-        if (!$request->has('pos_key') || sanitize($request->input('pos_key')) != env('APP_KEY')) {
+        if (!$request->has('pos_key') || sanitize($request->input('pos_key')) != env('WEBSITE_KEY')) {
             return response()->json([
                 'success' => false,
                 'message' => 'Validation error',
                 'error' => 'VALIDATION_ERROR',
-                'details' => $validator->errors()
             ]);
         }
 
@@ -34,17 +33,13 @@ class WarrantyController extends Controller
 
         if (!empty($request->serial_number)) {
             $warranty->where('serial_number', $request->serial_number);
-        }
-
-        if (!empty($request->bill_number)) {
+        } elseif (!empty($request->bill_number)) {
             $warranty->where('bill_number', $request->bill_number);
-        }
-
-        if (!empty($request->phone_number)) {
+        } elseif (!empty($request->phone_number)) {
             $warranty->where('phone_number', $request->phone_number);
         }
 
-        $warranty = $warranty->first();
+        $warranty = $warranty->get(['serial_number', 'bill_number', 'product_name', 'purchase_date', 'expiry_date'])->toArray();
 
         if (!$warranty) {
             return response()->json([
@@ -54,32 +49,9 @@ class WarrantyController extends Controller
             ]);
         }
 
-        $isValid = $warranty->isValid();
-
-        if ($isValid) {
-            return response()->json([
-                'success' => true,
-                'data' => [
-                    'isValid' => true,
-                    'product' => $warranty->product_name,
-                    'purchaseDate' => $warranty->purchase_date->format('Y-m-d'),
-                    'expiryDate' => $warranty->expiry_date->format('Y-m-d'),
-                    'daysRemaining' => $warranty->days_remaining,
-                    'coverageType' => $warranty->coverage_type,
-                    'notes' => $warranty->notes,
-                ]
-            ], 200);
-        } else {
-            return response()->json([
-                'success' => true,
-                'data' => [
-                    'isValid' => false,
-                    'product' => $warranty->product_name,
-                    'purchaseDate' => $warranty->purchase_date->format('Y-m-d'),
-                    'expiryDate' => $warranty->expiry_date->format('Y-m-d'),
-                    'message' => 'Warranty has expired',
-                ]
-            ], 200);
-        }
+        return response()->json([
+            'success' => true,
+            'data' => $warranty
+        ], 200);
     }
 }
