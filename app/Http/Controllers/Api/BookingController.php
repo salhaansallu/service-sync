@@ -23,6 +23,15 @@ class BookingController extends Controller
             'customerName' => 'required|string|max:255',
         ]);
 
+        if (!$request->has('pos_key') || sanitize($request->input('pos_key')) != env('APP_KEY')) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation error',
+                'error' => 'VALIDATION_ERROR',
+                'details' => $validator->errors()
+            ]);
+        }
+
         if ($validator->fails()) {
             return response()->json([
                 'success' => false,
@@ -32,11 +41,9 @@ class BookingController extends Controller
             ]);
         }
 
-        $user = $request->user();
-
         $booking = Booking::create([
             'booking_id' => 'booking_' . time() . Str::random(6),
-            'user_id' => $user->id,
+            'user_id' => $request->customerID,
             'customer_name' => $request->customerName,
             'customer_phone' => $request->phone,
             'tv_brand' => $request->tvBrand,

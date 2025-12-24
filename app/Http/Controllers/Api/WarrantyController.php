@@ -11,6 +11,15 @@ class WarrantyController extends Controller
 {
     public function check(Request $request)
     {
+        if (!$request->has('pos_key') || sanitize($request->input('pos_key')) != env('APP_KEY')) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation error',
+                'error' => 'VALIDATION_ERROR',
+                'details' => $validator->errors()
+            ]);
+        }
+
         if (empty($request->serial_number) && empty($request->bill_number) && empty($request->phone_number)) {
             return response()->json([
                 'success' => false,
