@@ -39,7 +39,7 @@ class WarrantyController extends Controller
             $warranty->where('phone_number', $request->phone_number);
         }
 
-        $warranty = $warranty->get(['serial_number', 'bill_number', 'product_name', 'purchase_date', 'expiry_date'])->toArray();
+        $warranty = $warranty->get(['serial_number', 'bill_number', 'product_name', 'purchase_date', 'expiry_date', 'coverage_type'])->toArray();
 
         if (!$warranty) {
             return response()->json([
