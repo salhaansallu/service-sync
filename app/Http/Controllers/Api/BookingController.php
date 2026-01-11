@@ -44,9 +44,10 @@ class BookingController extends Controller
         }
 
         $booking_id = Booking::orderBy('id', 'DESC')->first(['booking_id']);
+        $booking_id = 'BOOK'. ($booking_id? str_replace('BOOK', '', $booking_id->booking_id) +1 : 1001);
 
         $booking = Booking::create([
-            'booking_id' => 'BOOK'. ($booking_id? str_replace('BOOK', '', $booking_id->booking_id) +1 : 1001),
+            'booking_id' => $booking_id,
             'customer_name' => $request->customerName,
             'customer_phone' => formatOriginalPhoneNumber($request->phone),
             'tv_brand' => $request->tvBrand,
@@ -66,7 +67,8 @@ class BookingController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Booking created successfully',
-            'data' => $this->formatBookingResponse($booking)
+            'data' => $this->formatBookingResponse($booking),
+            'booking_id' => $booking_id,
         ], 201);
     }
 
