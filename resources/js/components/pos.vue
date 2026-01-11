@@ -23,11 +23,6 @@
             </div>
 
             <div class="favourits">
-                <button @click="goTo('/other-pos')" class="primary-btn submit-btn border-only"><i
-                        class="fa-solid fa-wrench"></i>Other Repairs</button>
-            </div>
-
-            <div class="favourits">
                 <button @click="newOrder('show')" class="primary-btn submit-btn border-only"><i
                         class="fa-solid fa-plus"></i>New Order</button>
             </div>

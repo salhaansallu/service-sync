@@ -203,8 +203,7 @@ class RepairsController extends Controller
                             $cost += (float)$stock[0]['cost'] * (float)$value['qty'];
                             $parts[] = $value['id'];
                         }
-                    }
-                    else {
+                    } else {
                         $sale = new spareSaleHistory();
                         $sale->spare_name = $value['pro_name'];
                         $sale->spare_id = $value['id'];
@@ -235,7 +234,7 @@ class RepairsController extends Controller
                 //     }
                 // }
 
-                if ($update->update(["note" => $note, "techie" => $techie, "commission" => (is_numeric($commission)? $commission : 0), "status" => $status, "total" => $total, "cost" => $cost, "spares" => json_encode($parts), "repaired_date" => date('Y-m-d H:i:s')])) {
+                if ($update->update(["note" => $note, "techie" => $techie, "commission" => (is_numeric($commission) ? $commission : 0), "status" => $status, "total" => $total, "cost" => $cost, "spares" => json_encode($parts), "repaired_date" => date('Y-m-d H:i:s')])) {
 
                     $customerData = customers::where('id', $update->get()[0]["customer"])->get();
 
@@ -507,7 +506,6 @@ class RepairsController extends Controller
                 }
 
                 return response(json_encode(array("error" => 1, "msg" => "QTY must be atleast 1")));
-
             } catch (Exception $e) {
                 return response(json_encode(array("error" => 1, "msg" => "Error: " . $e->getMessage())));
             }
@@ -750,6 +748,48 @@ class RepairsController extends Controller
             $generate = generatePendingInvoice($data, 'panding-repair-report.pdf', $id, $name);
 
             return response(json_encode(['error' => 0, 'report' => asset($generate->url)]));
+        }
+    }
+
+    public function n8n_get(Request $request)
+    {
+        $term = sanitize($request->input('term'));
+
+        if (empty($term)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Term field required',
+            ]);
+        }
+
+        $qry = DB::table('repairs')->whereIn('type', ['repair', 'other']);
+
+        $qry->where(function ($query) use ($term) {
+            $query->where('bill_no', '=', $term)
+                ->orWhere('serial_no', '=', $term);
+        });
+
+        $results = $qry->get(['bill_no', 'model_no', 'serial_no', 'fault', 'has_multiple_fault', 'multiple_fault', 'advance', 'total', 'status', 'invoice', 'type', 'created_at']);
+
+        $results->map(function ($item) {
+            if (!empty($item->invoice)) {
+                $item->invoice = env('APP_URL'). 'invoice/' . $item->invoice;
+                $item->type = $item->type == 'repair'? 'TV Repair' : 'Other Repair';
+            }
+            return $item;
+        });
+
+        if ($qry->count() > 0) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Repair fetched successfully',
+                'data' => $results,
+            ]);
+        } else {
+            return response()->json([
+                'success' => false,
+                'message' => 'No repair record found',
+            ]);
         }
     }
 }

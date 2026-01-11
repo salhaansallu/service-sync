@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Booking;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 
@@ -42,11 +43,12 @@ class BookingController extends Controller
             ]);
         }
 
+        $booking_id = Booking::orderBy('id', 'DESC')->first(['booking_id']);
+
         $booking = Booking::create([
-            'booking_id' => 'booking_' . time() . Str::random(6),
-            'user_id' => $request->customerID,
+            'booking_id' => 'BOOK'. ($booking_id? str_replace('BOOK', '', $booking_id->booking_id) +1 : 1001),
             'customer_name' => $request->customerName,
-            'customer_phone' => $request->phone,
+            'customer_phone' => formatOriginalPhoneNumber($request->phone),
             'tv_brand' => $request->tvBrand,
             'tv_model' => $request->tvModel,
             'issue_type' => $request->issueType,
@@ -208,5 +210,39 @@ class BookingController extends Controller
         }
 
         return $data;
+    }
+
+    public function n8n_get(Request $request)
+    {
+        $term = sanitize($request->input('term'));
+
+        if (empty($term)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Term field required',
+            ]);
+        }
+
+        $qry = DB::table('bookings');
+
+        $qry->where(function ($query) use ($term) {
+            $query->where('booking_id', '=', $term)
+                ->orWhere('customer_phone', '=', formatOriginalPhoneNumber($term));
+        });
+
+        $qry = $qry->get(['booking_id', 'customer_name', 'customer_phone', 'tv_brand', 'tv_model', 'issue_type', 'issue_description', 'pickup_option', 'status', 'estimated_cost', 'final_cost', 'created_at']);
+
+        if ($qry->count() > 0) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Bookings fetched successfully',
+                'data' => $qry->toArray(),
+            ]);
+        } else {
+            return response()->json([
+                'success' => false,
+                'message' => 'No bookings found',
+            ]);
+        }
     }
 }

@@ -22,12 +22,6 @@
                         class="fa-solid fa-chart-line"></i>Dashboard</button>
             </div>
 
-
-            <div class="favourits">
-                <button @click="goTo('/pos')" class="primary-btn submit-btn border-only"><i
-                        class="fa-solid fa-wrench"></i>TV Repairs</button>
-            </div>
-
             <div class="favourits">
                 <button @click="newOrder('show')" class="primary-btn submit-btn border-only"><i
                         class="fa-solid fa-plus"></i>New Order</button>

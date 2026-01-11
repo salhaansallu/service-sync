@@ -169,7 +169,7 @@ class PosDataController extends Controller
                             WarrantyRecord::create([
                                 'serial_number' => !empty($repair->serial_no) ? $repair->serial_no : 'N/A-' . $id,
                                 'bill_number' => $id,
-                                'phone_number' => $customer->phone,
+                                'phone_number' => formatOriginalPhoneNumber($customer->phone),
                                 'product_name' => $productName,
                                 'purchase_date' => $purchaseDate,
                                 'expiry_date' => $expiryDate,

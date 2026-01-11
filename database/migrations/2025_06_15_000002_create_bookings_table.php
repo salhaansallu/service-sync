@@ -11,7 +11,7 @@ return new class extends Migration
         Schema::create('bookings', function (Blueprint $table) {
             $table->id();
             $table->string('booking_id')->unique();
-            $table->foreignId('user_id')->nullable()->constrained('api_users')->onDelete('set null');
+            $table->string('user_id')->nullable();
             $table->string('customer_name');
             $table->string('customer_phone', 20);
             $table->string('tv_brand');
@@ -27,7 +27,7 @@ return new class extends Migration
             $table->text('admin_notes')->nullable();
             $table->timestamps();
             $table->softDeletes();
-            
+
             $table->index(['user_id', 'status']);
             $table->index('booking_id');
         });
