@@ -754,20 +754,33 @@ class RepairsController extends Controller
     public function n8n_get(Request $request)
     {
         $term = sanitize($request->input('term'));
-
-        if (empty($term)) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Term field required',
-            ]);
-        }
+        $type = sanitize($request->input('type'));
 
         $qry = DB::table('repairs')->whereIn('type', ['repair', 'other']);
 
-        $qry->where(function ($query) use ($term) {
-            $query->where('bill_no', '=', $term)
-                ->orWhere('serial_no', '=', $term);
-        });
+        if (!empty($term)) {
+            $qry->where(function ($query) use ($term) {
+                $query->where('bill_no', '=', $term)
+                    ->orWhere('serial_no', '=', $term);
+            });
+        }
+
+        if (!empty($type)) {
+            $typeArr = [
+                'tv-repair' => 'repair',
+                'other-repair' => 'other',
+            ];
+
+            if (isset($typeArr[$type])) {
+                $qry->where('type', '=', $typeArr[$type]);
+            }
+            else {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Invalid type parameter',
+                ]);
+            }
+        }
 
         $results = $qry->get(['bill_no', 'model_no', 'serial_no', 'fault', 'has_multiple_fault', 'multiple_fault', 'advance', 'total', 'status', 'invoice', 'type', 'created_at']);
 

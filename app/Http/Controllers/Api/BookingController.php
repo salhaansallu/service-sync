@@ -44,7 +44,7 @@ class BookingController extends Controller
         }
 
         $booking_id = Booking::orderBy('id', 'DESC')->first(['booking_id']);
-        $booking_id = 'BOOK'. ($booking_id? str_replace('BOOK', '', $booking_id->booking_id) +1 : 1001);
+        $booking_id = 'BOOK' . ($booking_id ? str_replace('BOOK', '', $booking_id->booking_id) + 1 : 1001);
 
         $booking = Booking::create([
             'booking_id' => $booking_id,
@@ -218,19 +218,14 @@ class BookingController extends Controller
     {
         $term = sanitize($request->input('term'));
 
-        if (empty($term)) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Term field required',
-            ]);
-        }
-
         $qry = DB::table('bookings');
 
-        $qry->where(function ($query) use ($term) {
-            $query->where('booking_id', '=', $term)
-                ->orWhere('customer_phone', '=', formatOriginalPhoneNumber($term));
-        });
+        if (!empty($term)) {
+            $qry->where(function ($query) use ($term) {
+                $query->where('booking_id', '=', $term)
+                    ->orWhere('customer_phone', '=', formatOriginalPhoneNumber($term));
+            });
+        }
 
         $qry = $qry->get(['booking_id', 'customer_name', 'customer_phone', 'tv_brand', 'tv_model', 'issue_type', 'issue_description', 'pickup_option', 'status', 'estimated_cost', 'final_cost', 'created_at']);
 
