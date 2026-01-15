@@ -452,7 +452,7 @@ class RepairsController extends Controller
                                 }
 
                                 if ($partner == "" || $partner == 0) {
-                                    $response = Http::post('https://shadir.app.n8n.cloud/webhook/3bc785be-55d8-4692-8b9a-a444b7776593', [
+                                    $response = Http::post('https://shadir.app.n8n.cloud/webhook-test/3bc785be-55d8-4692-8b9a-a444b7776593', [
                                         'bill_no' => $bill_no,
                                         'serial_no' => $serial_no,
                                         'model_no' => $model_no,
