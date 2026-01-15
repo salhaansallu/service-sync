@@ -755,6 +755,7 @@ class RepairsController extends Controller
     {
         $term = sanitize($request->input('term'));
         $type = sanitize($request->input('type'));
+        $status = sanitize($request->input('status'));
 
         $qry = DB::table('repairs')->whereIn('type', ['repair', 'other']);
 
@@ -763,6 +764,27 @@ class RepairsController extends Controller
                 $query->where('bill_no', '=', $term)
                     ->orWhere('serial_no', '=', $term);
             });
+        }
+
+        if (!empty($status)) {
+            $statusArr = [
+                'pending' => 'Pending',
+                'delivered' => 'Delivered',
+                'repaired' => 'Repaired',
+                'return' => 'Return',
+                'awaiting_parts' => 'Awaiting Parts',
+                'customer_pending' => 'Customer Pending',
+            ];
+
+            if (isset($statusArr[$status])) {
+                $qry->where('status', '=', $statusArr[$status]);
+            }
+            else {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Invalid status parameter',
+                ]);
+            }
         }
 
         if (!empty($type)) {

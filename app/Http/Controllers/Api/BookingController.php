@@ -217,6 +217,7 @@ class BookingController extends Controller
     public function n8n_get(Request $request)
     {
         $term = sanitize($request->input('term'));
+        $status = sanitize($request->input('status'));
 
         $qry = DB::table('bookings');
 
@@ -225,6 +226,11 @@ class BookingController extends Controller
                 $query->where('booking_id', '=', $term)
                     ->orWhere('customer_phone', '=', formatOriginalPhoneNumber($term));
             });
+        }
+
+
+        if (!empty($status)) {
+            $qry->where('status', '=', $status);
         }
 
         $qry = $qry->get(['booking_id', 'customer_name', 'customer_phone', 'tv_brand', 'tv_model', 'issue_type', 'issue_description', 'pickup_option', 'status', 'estimated_cost', 'final_cost', 'created_at']);
