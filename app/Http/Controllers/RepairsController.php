@@ -17,6 +17,7 @@ use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
 use SMS;
 
 class RepairsController extends Controller
@@ -448,6 +449,19 @@ class RepairsController extends Controller
                                         "email" => $customerData->email,
                                     ));
                                     $sms->message = "Dear Customer, your  " . company()->company_name . " account is created. We've received your product and will notify you when the repair is done. Track it at https://wefixservers.xyz/customer-portal?phone=" . $customerData->phone . ". Thank you!";
+                                }
+
+                                if ($partner == "" || $partner == 0) {
+                                    $response = Http::post('https://shadir.app.n8n.cloud/webhook/3bc785be-55d8-4692-8b9a-a444b7776593', [
+                                        'bill_no' => $bill_no,
+                                        'serial_no' => $serial_no,
+                                        'model_no' => $model_no,
+                                        'fault' => $fault,
+                                        'has_multiple_faults' => $has_multiple_faults,
+                                        'multiple_fault' => json_encode($faults),
+                                        'customer_name' => $customerData->name,
+                                        'customer_phone' => $customerData->phone,
+                                    ]);
                                 }
 
                                 $rand = date('d-m-Y-h-i-s') . '-' . rand(0, 9999999) . '.pdf';
