@@ -14,14 +14,13 @@ class BookingController extends Controller
     public function create(Request $request)
     {
 
-        if (!$request->has('pos_key') || sanitize($request->input('pos_key')) != env('WEBSITE_KEY')) {
+        if (request()->path() == 'api/bookings' && (!$request->has('pos_key') || sanitize($request->input('pos_key')) != env('WEBSITE_KEY'))) {
             return response()->json([
                 'success' => false,
                 'message' => 'Validation error',
                 'error' => 'VALIDATION_ERROR',
             ]);
         }
-
 
         $validator = Validator::make($request->all(), [
             'tvBrand' => 'required|string|max:100',

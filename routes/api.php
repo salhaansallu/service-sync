@@ -52,6 +52,7 @@ Route::post('/warranty/check', [WarrantyController::class, 'check']);
 if (env('N8NAPI', false)) {
     Route::middleware('auth:sanctum')->group(function () {
         Route::prefix('n8n')->group(function () {
+            Route::post('/create-booking', [BookingController::class, 'create']);
             Route::post('/get-booking', [BookingController::class, 'n8n_get']);
             Route::post('/get-warranty', [WarrantyController::class, 'n8n_get']);
             Route::post('/get-repairs', [RepairsController::class, 'n8n_get']);
