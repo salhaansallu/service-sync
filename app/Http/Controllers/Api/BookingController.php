@@ -13,62 +13,87 @@ class BookingController extends Controller
 {
     public function create(Request $request)
     {
+        // --------------------------------
+        // Accept GET + POST data
+        // --------------------------------
+        $input = array_merge(
+            $request->query(),              // GET parameters
+            $request->request->all()         // POST parameters
+        );
 
-        if (request()->path() == 'api/bookings' && (!$request->has('pos_key') || sanitize($request->input('pos_key')) != env('WEBSITE_KEY'))) {
+        // --------------------------------
+        // POS key validation (API only)
+        // --------------------------------
+        if (
+            request()->path() == 'api/bookings' &&
+            (!isset($input['pos_key']) || sanitize($input['pos_key']) != env('WEBSITE_KEY'))
+        ) {
             return response()->json([
                 'success' => false,
                 'message' => 'Validation error',
-                'error' => 'VALIDATION_ERROR',
+                'error'   => 'VALIDATION_ERROR',
             ]);
         }
 
-        $validator = Validator::make($request->all(), [
-            'tvBrand' => 'required|string|max:100',
-            'tvModel' => 'required|string|max:100',
-            'issueType' => 'required|string|max:100',
+        // --------------------------------
+        // Validation
+        // --------------------------------
+        $validator = Validator::make($input, [
+            'tvBrand'          => 'required|string|max:100',
+            'tvModel'          => 'required|string|max:100',
+            'issueType'        => 'required|string|max:100',
             'issueDescription' => 'required|string',
-            'address' => 'required|string',
-            'phone' => 'required|string|max:20',
-            'pickupOption' => 'required|in:pickup,drop-off',
-            'customerName' => 'required|string|max:255',
+            'address'          => 'required|string',
+            'phone'            => 'required|string|max:20',
+            'pickupOption'     => 'required|in:pickup,drop-off',
+            'customerName'     => 'required|string|max:255',
         ]);
 
         if ($validator->fails()) {
             return response()->json([
                 'success' => false,
                 'message' => 'Validation error',
-                'error' => 'VALIDATION_ERROR',
+                'error'   => 'VALIDATION_ERROR',
                 'details' => $validator->errors()
             ]);
         }
 
-        $booking_id = Booking::orderBy('id', 'DESC')->first(['booking_id']);
-        $booking_id = 'BOOK' . ($booking_id ? str_replace('BOOK', '', $booking_id->booking_id) + 1 : 1001);
+        // --------------------------------
+        // Generate Booking ID
+        // --------------------------------
+        $lastBooking = Booking::orderBy('id', 'DESC')->first(['booking_id']);
+        $booking_id  = 'BOOK' . ($lastBooking
+            ? (int) str_replace('BOOK', '', $lastBooking->booking_id) + 1
+            : 1001
+        );
 
+        // --------------------------------
+        // Create Booking
+        // --------------------------------
         $booking = Booking::create([
-            'booking_id' => $booking_id,
-            'customer_name' => $request->customerName,
-            'customer_phone' => formatOriginalPhoneNumber($request->phone),
-            'tv_brand' => $request->tvBrand,
-            'tv_model' => $request->tvModel,
-            'issue_type' => $request->issueType,
-            'issue_description' => $request->issueDescription,
-            'address' => $request->address,
-            'pickup_option' => $request->pickupOption,
-            'status' => 'pending',
-            'timeline' => [[
-                'status' => 'pending',
+            'booking_id'         => $booking_id,
+            'customer_name'      => $input['customerName'],
+            'customer_phone'     => formatOriginalPhoneNumber($input['phone']),
+            'tv_brand'           => $input['tvBrand'],
+            'tv_model'           => $input['tvModel'],
+            'issue_type'         => $input['issueType'],
+            'issue_description'  => $input['issueDescription'],
+            'address'            => $input['address'],
+            'pickup_option'      => $input['pickupOption'],
+            'status'             => 'pending',
+            'timeline'           => [[
+                'status'    => 'pending',
                 'timestamp' => now()->toIso8601String(),
-                'note' => 'Booking created'
+                'note'      => 'Booking created'
             ]],
         ]);
 
         return response()->json([
-            'success' => true,
-            'message' => 'Booking created successfully',
-            'data' => $this->formatBookingResponse($booking),
+            'success'    => true,
+            'message'    => 'Booking created successfully',
+            'data'       => $this->formatBookingResponse($booking),
             'booking_id' => $booking_id,
-        ], 201);
+        ], 200);
     }
 
     public function getUserBookings(Request $request)
@@ -215,11 +240,25 @@ class BookingController extends Controller
 
     public function n8n_get(Request $request)
     {
-        $term = sanitize($request->input('term'));
-        $status = sanitize($request->input('status'));
+        // --------------------------------
+        // Accept GET + POST inputs
+        // --------------------------------
+        $input = array_merge(
+            $request->query(),          // GET parameters
+            $request->request->all()    // POST parameters
+        );
 
+        $term   = isset($input['term']) ? sanitize($input['term']) : null;
+        $status = isset($input['status']) ? sanitize($input['status']) : null;
+
+        // --------------------------------
+        // Base query
+        // --------------------------------
         $qry = DB::table('bookings');
 
+        // --------------------------------
+        // Search by booking ID or phone
+        // --------------------------------
         if (!empty($term)) {
             $qry->where(function ($query) use ($term) {
                 $query->where('booking_id', '=', $term)
@@ -227,24 +266,46 @@ class BookingController extends Controller
             });
         }
 
-
+        // --------------------------------
+        // Filter by status
+        // --------------------------------
         if (!empty($status)) {
             $qry->where('status', '=', $status);
         }
 
-        $qry = $qry->get(['booking_id', 'customer_name', 'customer_phone', 'tv_brand', 'tv_model', 'issue_type', 'issue_description', 'pickup_option', 'status', 'estimated_cost', 'final_cost', 'created_at']);
+        // --------------------------------
+        // Fetch data
+        // --------------------------------
+        $results = $qry->get([
+            'booking_id',
+            'customer_name',
+            'customer_phone',
+            'tv_brand',
+            'tv_model',
+            'issue_type',
+            'issue_description',
+            'pickup_option',
+            'status',
+            'estimated_cost',
+            'final_cost',
+            'created_at',
+        ]);
 
-        if ($qry->count() > 0) {
+        // --------------------------------
+        // Response
+        // --------------------------------
+        if ($results->count() > 0) {
             return response()->json([
                 'success' => true,
                 'message' => 'Bookings fetched successfully',
-                'data' => $qry->toArray(),
-            ]);
-        } else {
-            return response()->json([
-                'success' => false,
-                'message' => 'No bookings found',
+                'data'    => $results->toArray(),
             ]);
         }
+
+        return response()->json([
+            'success' => false,
+            'message' => 'No bookings found',
+            'data'    => [],
+        ]);
     }
 }

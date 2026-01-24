@@ -767,12 +767,26 @@ class RepairsController extends Controller
 
     public function n8n_get(Request $request)
     {
-        $term = sanitize($request->input('term'));
-        $type = sanitize($request->input('type'));
-        $status = sanitize($request->input('status'));
+        // --------------------------------
+        // Accept GET + POST inputs
+        // --------------------------------
+        $input = array_merge(
+            $request->query(),          // GET parameters
+            $request->request->all()    // POST parameters
+        );
 
+        $term   = isset($input['term']) ? sanitize($input['term']) : null;
+        $type   = isset($input['type']) ? sanitize($input['type']) : null;
+        $status = isset($input['status']) ? sanitize($input['status']) : null;
+
+        // --------------------------------
+        // Base query
+        // --------------------------------
         $qry = DB::table('repairs')->whereIn('type', ['repair', 'other']);
 
+        // --------------------------------
+        // Search by bill / serial
+        // --------------------------------
         if (!empty($term)) {
             $qry->where(function ($query) use ($term) {
                 $query->where('bill_no', '=', $term)
@@ -780,65 +794,100 @@ class RepairsController extends Controller
             });
         }
 
+        // --------------------------------
+        // Status filter
+        // --------------------------------
         if (!empty($status)) {
+
             $statusArr = [
-                'pending' => 'Pending',
-                'delivered' => 'Delivered',
-                'repaired' => 'Repaired',
-                'return' => 'Return',
-                'awaiting_parts' => 'Awaiting Parts',
+                'pending'          => 'Pending',
+                'delivered'        => 'Delivered',
+                'repaired'         => 'Repaired',
+                'return'           => 'Return',
+                'awaiting_parts'   => 'Awaiting Parts',
                 'customer_pending' => 'Customer Pending',
             ];
 
-            if (isset($statusArr[$status])) {
-                $qry->where('status', '=', $statusArr[$status]);
-            }
-            else {
+            if (!isset($statusArr[$status])) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Invalid status parameter',
                 ]);
             }
+
+            $qry->where('status', '=', $statusArr[$status]);
         }
 
+        // --------------------------------
+        // Type filter
+        // --------------------------------
         if (!empty($type)) {
+
             $typeArr = [
-                'tv-repair' => 'repair',
+                'tv-repair'    => 'repair',
                 'other-repair' => 'other',
             ];
 
-            if (isset($typeArr[$type])) {
-                $qry->where('type', '=', $typeArr[$type]);
-            }
-            else {
+            if (!isset($typeArr[$type])) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Invalid type parameter',
                 ]);
             }
+
+            $qry->where('type', '=', $typeArr[$type]);
         }
 
-        $results = $qry->get(['bill_no', 'model_no', 'serial_no', 'fault', 'has_multiple_fault', 'multiple_fault', 'advance', 'total', 'status', 'invoice', 'type', 'created_at']);
+        $qry->whereDate('created_at', '>=', now()->subMonths(5));
 
-        $results->map(function ($item) {
+        // --------------------------------
+        // Fetch results
+        // --------------------------------
+        $results = $qry->get([
+            'bill_no',
+            'model_no',
+            'serial_no',
+            'fault',
+            'has_multiple_fault',
+            'multiple_fault',
+            'advance',
+            'total',
+            'status',
+            'invoice',
+            'type',
+            'created_at',
+        ]);
+
+        // --------------------------------
+        // Format response fields
+        // --------------------------------
+        $results->transform(function ($item) {
             if (!empty($item->invoice)) {
-                $item->invoice = env('APP_URL'). 'invoice/' . $item->invoice;
-                $item->type = $item->type == 'repair'? 'TV Repair' : 'Other Repair';
+                $item->invoice = env('APP_URL') . 'invoice/' . $item->invoice;
             }
+
+            $item->type = $item->type === 'repair'
+                ? 'TV Repair'
+                : 'Other Repair';
+
             return $item;
         });
 
-        if ($qry->count() > 0) {
+        // --------------------------------
+        // Response
+        // --------------------------------
+        if ($results->count() > 0) {
             return response()->json([
                 'success' => true,
                 'message' => 'Repair fetched successfully',
-                'data' => $results,
-            ]);
-        } else {
-            return response()->json([
-                'success' => false,
-                'message' => 'No repair record found',
+                'data'    => $results,
             ]);
         }
+
+        return response()->json([
+            'success' => false,
+            'message' => 'No repair record found',
+            'data'    => [],
+        ]);
     }
 }
