@@ -293,7 +293,7 @@
             <div class="proceed_btn">
                 <div class="row row-cols-1">
                     <div class="col">
-                        <button class="primary-btn submit-btn w-100" @click="getSignaure('show', 'checkout')">Checkout</button>
+                        <button class="primary-btn submit-btn w-100" @click="proceed()">Checkout</button>
                     </div>
                 </div>
             </div>
@@ -477,8 +477,7 @@
                                         <select ref="partner" name="" class="select2-multiple">
                                             <option value=""></option>
                                             <option v-for="part in partners" :value="part.id">{{ part.company }}
-                                                ({{
-                                                    part.phone }})</option>
+                                                ({{ part.phone }})</option>
                                         </select>
                                     </div>
                                 </div>
@@ -519,7 +518,7 @@
                             </div>
 
                             <div class="col-12 mt-3">
-                                <button :disabled="isDisabled" @click="getSignaure('show','newOrder')"
+                                <button :disabled="isDisabled" @click="PlaceOrder('show','newOrder')"
                                     class="primary-btn submit-btn">Save</button>
                                 <button @click="getCashierModel('hide')"
                                     style="background: transparent; color: red !important; border: red 1px solid;"
@@ -1335,7 +1334,7 @@ export default {
                         repair.push(element['bill_no']);
                     });
 
-                    const signDataURL = this.signaturePad.toDataURL('image/png');
+                    //const signDataURL = this.signaturePad.toDataURL('image/png');
 
                     const { data } = await axios.post('/other-pos/checkout', {
                         params: {
@@ -1343,7 +1342,7 @@ export default {
                             cashin: cashin,
                             delivery: order_delivery,
                             warranty: order_warranty,
-                            signature: signDataURL,
+                            //signature: signDataURL,
                         }
                     }).catch(function (error) {
                         if (error.response) {
@@ -1549,7 +1548,7 @@ export default {
                 }
             }
 
-            const signDataURL = this.signaturePad.toDataURL('image/png');
+            //const signDataURL = this.signaturePad.toDataURL('image/png');
 
             const { data } = await axios.post('/other-pos/new_order?source=other-pos', {
                 total: total,
@@ -1569,7 +1568,7 @@ export default {
                 has_multiple_faults: this.multipleFult,
                 faults: JSON.stringify(faults),
                 send_sms: send_sms,
-                signature: signDataURL,
+                //signature: signDataURL,
             }).catch(function (error) {
                 if (error.response) {
                     this.getSignaure('hide');

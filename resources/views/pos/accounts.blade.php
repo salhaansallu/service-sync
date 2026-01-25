@@ -52,7 +52,7 @@
                                 @foreach ($repairs as $item)
                                 @if ($item->creditAmount == 0)
                                     <tr>
-                                        <td class="text-start">{{ $item->bill_no }}</td>
+                                        <td class="text-start"><a href="/dashboard/repairs/edit/{{ $item->id }}" target="_blank">{{ $item->bill_no }}</a></td>
                                         <td class="text-start">{{ $item->model_no }}</td>
                                         <td class="text-start">{{ getUser($item->techie)->fname }}</td>
                                         {{-- <td class="text-start">{{ currency($item->total, '') }}</td> --}}
@@ -97,7 +97,7 @@
                                 @foreach ($repairs as $item)
                                 @if ($item->creditAmount > 0)
                                     <tr>
-                                        <td class="text-start">{{ $item->bill_no }}</td>
+                                        <td class="text-start"><a href="/dashboard/repairs/edit/{{ $item->id }}" target="_blank">{{ $item->bill_no }}</a></td>
                                         <td class="text-start">{{ $item->model_no }}</td>
                                         <td class="text-start">{{ getUser($item->techie)->fname }}</td>
                                         {{-- <td class="text-start">{{ currency($item->total, '') }}</td> --}}

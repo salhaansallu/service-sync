@@ -131,7 +131,7 @@ class PosDataController extends Controller
             $advance = 0;
             $delivery = sanitize($request['delivery']);
             $warranty = sanitize($request['warranty']);
-            $signature = sanitize($request['signature']);
+            $signature = isset($request['signature']) ? sanitize($request['signature']) : '';
 
             $rand = date('d-m-Y-h-i-s') . '-' . rand(0, 9999999) . '.pdf';
             $inName = str_replace(' ', '-', str_replace('.', '-', $bill_no[0])) . '-Delivery-' . $rand;
