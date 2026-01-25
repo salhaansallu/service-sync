@@ -153,6 +153,7 @@
                         </div>
                         <div class="context_menu" :id="'order_wrap_' + repair.bill_no" style="display: none;">
                             <ul>
+                                <li><a href="javascript:void(0)" @click="editRepair(repair.id)">Edit Repair</a></li>
                                 <li><a href="javascript:void(0)" @click="printInvoice(repair.invoice)">Open Invoice</a>
                                 </li>
                                 <li><a href="javascript:void(0)"
@@ -929,6 +930,9 @@ export default {
         isNumber,
         openMenu(menuID) {
             $('#' + menuID).toggle();
+        },
+        editRepair(id) {
+            window.open('https://wefixservers.xyz/dashboard/repairs/edit/' + id, '_blank');
         },
         loadModal(action) {
             $("#loadingModal").modal(action);

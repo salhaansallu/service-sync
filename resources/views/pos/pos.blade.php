@@ -21,7 +21,7 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     @vite(['resources/views/pos/sass/pos.scss', 'resources/js/app.js'])
-    
+
 
     <style>
         body {
@@ -43,7 +43,7 @@
 
 <body>
     <div id="pos-elem">
-        <pos v-bind:app_url="'{{ env('APP_ENV')=='production'? '/var/www/image.nmsware.com/' : env('app.url').'/assets/images/' }}'" />
+        <pos v-bind:app_url="'{{ env('app.url').'/assets/images/' }}'" />
     </div>
 </body>
 
