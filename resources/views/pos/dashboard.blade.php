@@ -257,6 +257,45 @@
                             </div>
                         </div>
                     </div>
+                    <div class="col-lg-12">
+                        <div class="card card-block card-stretch card-height">
+                            <div class="card-header d-flex align-items-center justify-content-between">
+                                <div class="header-title">
+                                    <h4 class="card-title">Pending Bookings</h4>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive rounded mb-3">
+                                    <table class="table mb-0 tbl-server-info">
+                                        <thead class="bg-white text-uppercase">
+                                            <tr class="ligth ligth-data">
+                                                <th class="text-start">Booking ID</th>
+                                                <th class="text-start">Customer Name</th>
+                                                <th class="text-start">TV Brand</th>
+                                                <th class="text-start">TV Model</th>
+                                                <th class="text-start">Issue Type</th>
+                                                <th class="text-start">Pickup Option</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="ligth-body">
+                                            @if (isset($bookings))
+                                                @foreach ($bookings as $item)
+                                                    <tr>
+                                                        <td class="text-start">{{ $item->booking_id }}</td>
+                                                        <td class="text-start">{{ $item->customer_name }}</td>
+                                                        <td class="text-start">{{ $item->tv_brand }}</td>
+                                                        <td class="text-start">{{ $item->tv_model }}</td>
+                                                        <td class="text-start">{{ $item->issue_type }}</td>
+                                                        <td class="text-start">{{ $item->pickup_option }}</td>
+                                                    </tr>
+                                                @endforeach
+                                            @endif
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                     <div class="col-lg-6">
                         <div class="card card-block card-stretch card-height">
                             <div class="card-header d-flex justify-content-between">

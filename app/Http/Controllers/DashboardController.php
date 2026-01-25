@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Booking;
 use App\Models\Categories;
 use App\Models\customers;
 use App\Models\employee_expenses;
@@ -150,8 +151,10 @@ class DashboardController extends Controller
                 }
             }
 
+            $bookings = Booking::where('status', 'pending')->orderBy('created_at', 'ASC')->limit(10)->get();
 
-            return view('pos.dashboard')->with(['company' => $company, 'todaysales' => $todaysales, 'cost' => $cost, 'sales' => json_encode($sales), 'low_stock' => $low_stock, 'yearcost' => json_encode($yearcost), 'yearexpense' => json_encode($yearexpense), 'best_sellings' => $best_selling, 'todayRepairsIn'=>$todayRepairsIn, 'todayRepaired'=>$todayRepaired, 'todayRepairsOut'=>$todayRepairsOut]);
+
+            return view('pos.dashboard')->with(['company' => $company, 'todaysales' => $todaysales, 'cost' => $cost, 'sales' => json_encode($sales), 'low_stock' => $low_stock, 'yearcost' => json_encode($yearcost), 'yearexpense' => json_encode($yearexpense), 'best_sellings' => $best_selling, 'todayRepairsIn'=>$todayRepairsIn, 'todayRepaired'=>$todayRepaired, 'todayRepairsOut'=>$todayRepairsOut, 'bookings' => $bookings]);
         } else {
             return redirect('/account/overview');
         }
