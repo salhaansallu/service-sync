@@ -822,7 +822,7 @@ class RepairsController extends Controller
                 ]);
             }
 
-            $qry->where('status', '=', $statusArr[$status]);
+            $qry->where('repairs.status', '=', $statusArr[$status]);
         }
 
         // --------------------------------
@@ -845,7 +845,7 @@ class RepairsController extends Controller
             $qry->where('type', '=', $typeArr[$type]);
         }
 
-        $qry->whereDate('created_at', '>=', now()->subMonths(5));
+        $qry->whereDate('repairs.created_at', '>=', now()->subMonths(5));
 
         // --------------------------------
         // Fetch results
