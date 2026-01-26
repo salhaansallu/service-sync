@@ -285,8 +285,8 @@
                                                         <td class="text-start">{{ $item->customer_name }}</td>
                                                         <td class="text-start">{{ $item->tv_brand }}</td>
                                                         <td class="text-start">{{ $item->tv_model }}</td>
-                                                        <td class="text-start">{{ $item->issue_type }}</td>
-                                                        <td class="text-start">{{ $item->pickup_option }}</td>
+                                                        <td class="text-start text-capitalize">{{ str_replace('_', ' ', $item->issue_type) }}</td>
+                                                        <td class="text-start text-capitalize">{{ str_replace('-', ' ', $item->pickup_option) }}</td>
                                                     </tr>
                                                 @endforeach
                                             @endif

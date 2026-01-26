@@ -342,7 +342,7 @@ class RepairsController extends Controller
                 $parent_bill_no = sanitize($request->input('parent_bill_no'));
                 $new_order_qty = sanitize($request->input('new_order_qty'));
                 $has_multiple_faults = sanitize($request->input('has_multiple_faults'));
-                $signature = $request->has('signature')? sanitize($request->input('signature')) : '';
+                $signature = $request->has('signature') ? sanitize($request->input('signature')) : '';
                 $faults = json_decode($request->input('faults'));
                 $customerData = [];
                 $billData = [];
@@ -776,13 +776,16 @@ class RepairsController extends Controller
         );
 
         $term   = isset($input['term']) ? sanitize($input['term']) : null;
+        $phone   = isset($input['phone']) ? sanitize($input['phone']) : null;
         $type   = isset($input['type']) ? sanitize($input['type']) : null;
         $status = isset($input['status']) ? sanitize($input['status']) : null;
 
         // --------------------------------
         // Base query
         // --------------------------------
-        $qry = DB::table('repairs')->whereIn('type', ['repair', 'other']);
+        $qry = DB::table('repairs')
+            ->leftJoin('customers', 'customers.id', '=', 'repairs.customer')
+            ->whereIn('repairs.type', ['repair', 'other']);
 
         // --------------------------------
         // Search by bill / serial
@@ -792,6 +795,10 @@ class RepairsController extends Controller
                 $query->where('bill_no', '=', $term)
                     ->orWhere('serial_no', '=', $term);
             });
+        }
+
+        if (!empty($phone)) {
+            $qry->where('customers.phone', '=', formatOriginalPhoneNumber($phone));
         }
 
         // --------------------------------
@@ -844,19 +851,23 @@ class RepairsController extends Controller
         // Fetch results
         // --------------------------------
         $results = $qry->get([
-            'bill_no',
-            'model_no',
-            'serial_no',
-            'fault',
-            'has_multiple_fault',
-            'multiple_fault',
-            'advance',
-            'total',
-            'status',
-            'invoice',
-            'type',
-            'created_at',
+            'repairs.bill_no',
+            'repairs.model_no',
+            'repairs.serial_no',
+            'repairs.fault',
+            'repairs.has_multiple_fault',
+            'repairs.multiple_fault',
+            'repairs.advance',
+            'repairs.total',
+            'repairs.status',
+            'repairs.invoice',
+            'repairs.type',
+            'repairs.created_at',
+
+            'customers.name  as customer_name',
+            'customers.phone as customer_phone',
         ]);
+
 
         // --------------------------------
         // Format response fields
@@ -870,8 +881,13 @@ class RepairsController extends Controller
                 ? 'TV Repair'
                 : 'Other Repair';
 
+            if (!empty($item->customer_phone)) {
+                $item->customer_phone = formatOriginalPhoneNumber($item->customer_phone);
+            }
+
             return $item;
         });
+
 
         // --------------------------------
         // Response
