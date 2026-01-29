@@ -12,10 +12,11 @@ return new class extends Migration
             $table->id();
             $table->string('booking_id')->unique();
             $table->string('user_id')->nullable();
+            $table->string('bill_no')->nullable();
             $table->string('customer_name');
             $table->string('customer_phone', 20);
-            $table->string('tv_brand');
-            $table->string('tv_model');
+            $table->string('tv_brand')->nullable();;
+            $table->string('tv_model')->nullable();;
             $table->string('issue_type');
             $table->text('issue_description');
             $table->text('address');

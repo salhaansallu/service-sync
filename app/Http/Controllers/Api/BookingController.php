@@ -39,10 +39,6 @@ class BookingController extends Controller
         // Validation
         // --------------------------------
         $validator = Validator::make($input, [
-            'tvBrand'          => 'required|string|max:100',
-            'tvModel'          => 'required|string|max:100',
-            'issueType'        => 'required|string|max:100',
-            'issueDescription' => 'required|string',
             'address'          => 'required|string',
             'phone'            => 'required|string|max:20',
             'pickupOption'     => 'required|in:pickup,drop-off',
