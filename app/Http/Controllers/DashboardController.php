@@ -835,10 +835,20 @@ class DashboardController extends Controller
 
             $repairs = Repairs::with('credit')->where('type', sanitize($type))->where('status', 'Delivered')
             ->when($fromdate, function ($query) use ($fromdate){
-                $query->whereDate('paid_at', '>=', Carbon::parse($fromdate)->format('Y-m-d'));
+                $query->where(function ($query) use ($fromdate) {
+                    $query->whereDate('paid_at', '>=', Carbon::parse($fromdate)->format('Y-m-d'))
+                    ->orWhereHas('credit', function ($query) use ($fromdate) {
+                        $query->whereDate('updated_at', '>=', Carbon::parse($fromdate)->format('Y-m-d'));
+                    });
+                });
             })
             ->when($todate, function ($query) use ($todate){
-                $query->whereDate('paid_at', '<=', Carbon::parse($todate)->format('Y-m-d'));
+                $query->where(function ($query) use ($todate) {
+                    $query->whereDate('paid_at', '<=', Carbon::parse($todate)->format('Y-m-d'))
+                    ->orWhereHas('credit', function ($query) use ($todate) {
+                        $query->whereDate('updated_at', '<=', Carbon::parse($todate)->format('Y-m-d'));
+                    });
+                });
             })->get();
 
             $tvRepairs = Repairs::with('credit')->where('type','repair')->where('status', 'Delivered')
@@ -900,15 +910,19 @@ class DashboardController extends Controller
                     $repair->finaltotal -= $repair->credit->ammount;
                     $repair->creditAmount = $repair->credit->ammount;
                 }
+                else {
+                    $spareCost += $repair->cost;
+                    $commission += $repair->commission;
+                }
 
                 if (Carbon::parse($repair->created_at)->format('d-m-Y') != Carbon::parse($repair->paid_at)->format('d-m-Y')) {
                     $repair->finaltotal -= $repair->advance;
                 }
 
                 $repairSales += $repair->total;
-                $spareCost += $repair->cost;
-                $commission += $repair->commission;
             }
+
+            //dd($repairs);
 
             foreach ($tvRepairs as $key => $repair) {
                 $repair->finaltotal = $repair->total;

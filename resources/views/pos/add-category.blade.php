@@ -60,9 +60,20 @@
                                     </div>
 
                                     <div class="col-md-6">
-                                        <div class="form-group">
-                                            <label>Total</label>
-                                            <input type="text" name="total" class="form-control" value="{{ $repairs->total }}">
+                                        <div class="row m-0">
+                                            <div class="col-lg-6">
+                                                <div class="form-group">
+                                                    <label>Cost</label>
+                                                    <input type="text" name="cost" class="form-control" value="{{ $repairs->cost }}">
+                                                </div>
+                                            </div>
+
+                                            <div class="col-lg-6">
+                                                <div class="form-group">
+                                                    <label>Total</label>
+                                                    <input type="text" name="total" class="form-control" value="{{ $repairs->total }}">
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
 

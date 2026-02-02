@@ -95,7 +95,7 @@
                             <tbody class="ligth-body">
                                 @if (isset($repairs) && $repairs->count() > 0)
                                 @foreach ($repairs as $item)
-                                @if ($item->creditAmount > 0)
+                                @if ($item->creditAmount == 0)
                                     <tr>
                                         <td class="text-start"><a href="/dashboard/repairs/edit/{{ $item->id }}" target="_blank">{{ $item->bill_no }}</a></td>
                                         <td class="text-start">{{ $item->model_no }}</td>
@@ -127,7 +127,7 @@
                             <div class="mt-5">
                                 <div class="row m-0 fw-semibold">
                                     <div class="col-4 col-lg-4 border-bottom py-2 text-success">Repair Sales:</div>
-                                    <div class="col-4 col-lg-4 border-bottom py-2 text-success text-end">{{ currency($repairs->sum('finaltotal'), '') }}</div>
+                                    <div class="col-4 col-lg-4 border-bottom py-2 text-success text-end">{{ currency($repairs->where('creditAmount', 0)->sum('finaltotal'), '') }}</div>
                                 </div>
                                 <div class="row m-0 fw-semibold">
                                     <div class="col-4 col-lg-4 border-bottom py-2 text-danger">Service Parts Cost:</div>

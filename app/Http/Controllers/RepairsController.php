@@ -569,6 +569,7 @@ class RepairsController extends Controller
             $note = sanitize($request->input('note'));
             $delivery = sanitize($request->input('delivery'));
             $advance = sanitize($request->input('advance'));
+            $cost = sanitize($request->input('cost'));
             $total = sanitize($request->input('total'));
             $customer = sanitize($request->input('customer'));
             $partner = sanitize($request->input('partner'));
@@ -592,6 +593,10 @@ class RepairsController extends Controller
                 return response(json_encode(array("error" => 1, "msg" => "Invalid Update Attempt")));
             }
 
+            if (!is_numeric($cost)) {
+                return response(json_encode(array("error" => 1, "msg" => "Please Use Only Numbers For Cost")));
+            }
+
             if (!is_numeric($total)) {
                 return response(json_encode(array("error" => 1, "msg" => "Please Use Only Numbers For Price")));
             }
@@ -610,6 +615,7 @@ class RepairsController extends Controller
                 "fault" => $fault,
                 "note" => $note,
                 "advance" => $advance,
+                "cost" => $cost,
                 "total" => $total,
                 "delivery" => $delivery,
                 "customer" => $customer,

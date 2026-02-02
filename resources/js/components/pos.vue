@@ -1645,6 +1645,14 @@ export default {
                         note2 += '\nHas ' + checkbox.value;
                     }
                 }
+                else {
+                    if (index == 0) {
+                        note2 += 'No ' + checkbox.value;
+                    }
+                    else {
+                        note2 += '\nNo ' + checkbox.value;
+                    }
+                }
             });
 
             if (this.multipleFult) {
