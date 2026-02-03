@@ -95,7 +95,7 @@
                             <tbody class="ligth-body">
                                 @if (isset($repairs) && $repairs->count() > 0)
                                 @foreach ($repairs as $item)
-                                @if ($item->creditAmount == 0)
+                                @if ($item->creditAmount > 0)
                                     <tr>
                                         <td class="text-start"><a href="/dashboard/repairs/edit/{{ $item->id }}" target="_blank">{{ $item->bill_no }}</a></td>
                                         <td class="text-start">{{ $item->model_no }}</td>
