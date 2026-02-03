@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Booking;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
@@ -303,5 +304,72 @@ class BookingController extends Controller
             'message' => 'No bookings found',
             'data'    => [],
         ]);
+    }
+
+    public function listBookings() {
+        if (isCashier()) {
+            $bookings = Booking::query();
+
+            if (isset($_GET['status'])) {
+                $status = trim(sanitize($_GET['status']));
+
+                $statusLower = strtolower($status);
+                $ignoreStatuses = ['', 'all', '0', 'null', 'undefined'];
+
+                if (!in_array($statusLower, $ignoreStatuses, true)) {
+                    $bookings->whereRaw('LOWER(status) = ?', [$statusLower]);
+                }
+            }
+
+            if (isset($_GET['s'])) {
+                $search = trim(sanitize($_GET['s']));
+
+                if ($search === '') {
+                    return view('pos.list-bookings', ['bookings' => $bookings->paginate(20)]);
+                }
+
+                $bookings->where(function ($query) use ($search) {
+                    $like = '%' . $search . '%';
+
+                    $query->where('booking_id', 'like', $like)
+                        ->orWhere('customer_name', 'like', $like)
+                        ->orWhere('customer_phone', 'like', $like)
+                        ->orWhere('tv_brand', 'like', $like)
+                        ->orWhere('tv_model', 'like', $like)
+                        ->orWhere('issue_type', 'like', $like);
+                });
+            }
+
+            return view('pos.list-bookings', ['bookings' => $bookings->paginate(20)]);
+        }
+    }
+
+    public function destroy(Request $request, Booking $booking)
+    {
+        if (Auth::check() && isCashier()) {
+            $id = sanitize($request->input('id'));
+            $verify = Booking::where('id', $id);
+            if ($verify && $verify->get()->count() > 0) {
+                if ($verify->delete()) {
+                    return response(json_encode(array("error" => 0, "msg" => "Booking deleted successfully")));
+                }
+                return response(json_encode(array("error" => 1, "msg" => "Booking not found")));
+            }
+            return response(json_encode(array("error" => 1, "msg" => "Sorry! something went wrong")));
+        }
+    }
+
+    public function changeStatus(Request $request)
+    {
+        if (Auth::check() && isCashier()) {
+            $id = sanitize($request->input('id'));
+            $verify = Booking::where('id', $id)->first();
+            if ($verify) {
+                $verify->status = 'converted';
+                $verify->save();
+                return response(json_encode(array("error" => 0, "msg" => "Booking status changed successfully")));
+            }
+            return response(json_encode(array("error" => 1, "msg" => "Booking not found")));
+        }
     }
 }

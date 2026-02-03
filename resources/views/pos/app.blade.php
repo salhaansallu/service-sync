@@ -217,6 +217,44 @@
                             </ul>
                         </li>
 
+                        <li class="{{ Request::is('dashboard/booking*') ? 'active' : '' }}">
+                            <a href="#bookings" class="collapsed {{ company()->plan == 1 ? 'no-collapsable' : '' }}"
+                                data-toggle="collapse" aria-expanded="false">
+                                <svg class="svg-icon" id="p-dash7" width="20" height="20"
+                                    xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none"
+                                    stroke="currentColor" stroke-width="30" stroke-linecap="round"
+                                    stroke-linejoin="round">
+                                    <path d="M424 64C437.3 64 448 74.7 448 88L448 128L480 128C515.3 128 544 156.7 544 192L544 480C544 515.3 515.3 544 480 544L160 544C124.7 544 96 515.3 96 480L96 192C96 156.7 124.7 128 160 128L192 128L192 88C192 74.7 202.7 64 216 64C229.3 64 240 74.7 240 88L240 128L400 128L400 88C400 74.7 410.7 64 424 64zM160 176C151.2 176 144 183.2 144 192L144 480C144 488.8 151.2 496 160 496L480 496C488.8 496 496 488.8 496 480L496 192C496 183.2 488.8 176 480 176L160 176zM390.7 241.9C398.5 231.2 413.5 228.8 424.2 236.6C434.9 244.4 437.3 259.4 429.5 270.1L307.4 438.1C303.3 443.8 296.9 447.4 289.9 447.9C282.9 448.4 276 445.9 271.1 441L215.2 385.1C205.8 375.7 205.8 360.5 215.2 351.2C224.6 341.9 239.8 341.8 249.1 351.2L285.1 387.2L390.7 242z"/>
+                                </svg>
+                                <span class="ml-4">Bookings</span>
+                                @if (company()->plan == 1)
+                                    <span class="badge"><i class="fa-solid fa-crown text-warning"></i></span>
+                                @else
+                                    <svg class="svg-icon iq-arrow-right arrow-active" width="20" height="20"
+                                        xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                                        stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                        stroke-linejoin="round">
+                                        <polyline points="10 15 15 20 20 15"></polyline>
+                                        <path d="M4 4h7a4 4 0 0 1 4 4v12"></path>
+                                    </svg>
+                                @endif
+                            </a>
+                            <ul id="bookings"
+                                class="iq-submenu collapse {{ Request::is('dashboard/booking*') ? 'show' : '' }}"
+                                data-parent="#iq-sidebar-toggle">
+                                <li class="{{ Request::is('/dashboard/bookings/?status=pending') ? 'active' : '' }}">
+                                    <a href="/dashboard/bookings/?status=pending">
+                                        <i class="fa-solid fa-minus"></i><span>List Pending Bookings</span>
+                                    </a>
+                                </li>
+                                <li class="{{ Request::is('dashboard/bookings/') ? 'active' : '' }}">
+                                    <a href="/dashboard/bookings/">
+                                        <i class="fa-solid fa-minus"></i><span>List All Bookings</span>
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+
                         @if (isAdmin())
                         <li class="{{ Request::is('dashboard/repair-commissions*') ? 'active' : '' }}">
                             <a href="#commission" class="collapsed {{ company()->plan == 1 ? 'no-collapsable' : '' }}"

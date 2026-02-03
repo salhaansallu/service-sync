@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\accountController;
+use App\Http\Controllers\Api\BookingController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
@@ -179,6 +180,10 @@ Route::prefix('dashboard')->group(function () {
     Route::get('/repairs/edit/{id}', [RepairsController::class, 'edit']);
     Route::post('/repairs/edit', [RepairsController::class, 'update']);
     Route::delete('/repairs/delete', [RepairsController::class, 'destroy']);
+
+    Route::get('bookings', [BookingController::class, 'listBookings']);
+    Route::post('booking/change-status', [BookingController::class, 'changeStatus']);
+    Route::delete('/booking/delete', [BookingController::class, 'destroy']);
 
     Route::get('repair-commissions/list/{id}', [UserDataController::class, 'listRepairCommision']);
     Route::get('repair-commissions/list', [UserDataController::class, 'listRepairCommisions']);

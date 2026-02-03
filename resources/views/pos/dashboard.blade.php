@@ -271,6 +271,7 @@
                                             <tr class="ligth ligth-data">
                                                 <th class="text-start">Booking ID</th>
                                                 <th class="text-start">Customer Name</th>
+                                                <th class="text-start">Customer Phone</th>
                                                 <th class="text-start">TV Brand</th>
                                                 <th class="text-start">TV Model</th>
                                                 <th class="text-start">Issue Type</th>
@@ -283,6 +284,7 @@
                                                     <tr>
                                                         <td class="text-start">{{ $item->booking_id }}</td>
                                                         <td class="text-start">{{ $item->customer_name }}</td>
+                                                        <td class="text-start">{{ $item->customer_phone }}</td>
                                                         <td class="text-start">{{ $item->tv_brand }}</td>
                                                         <td class="text-start">{{ $item->tv_model }}</td>
                                                         <td class="text-start text-capitalize">{{ str_replace('_', ' ', $item->issue_type) }}</td>

@@ -1027,6 +1027,51 @@ export default {
                 });
             })
         },
+        applyNewOrderFromQuery() {
+            const params = new URLSearchParams(window.location.search);
+            if (params.get('action') !== 'new-order') {
+                return;
+            }
+
+            const decodeParam = (value) => (value ? value.replace(/\+/g, ' ') : value);
+            const modelNo = decodeParam(params.get('model_no'));
+            const customerName = decodeParam(params.get('customer_name'));
+            const customerPhone = decodeParam(params.get('customer_phone'));
+            const issueType = decodeParam(params.get('issue_type'));
+            const address = decodeParam(params.get('address'));
+
+            this.new_bill = true;
+            if (this.$refs.bill_type) {
+                this.$refs.bill_type.value = 'new-order';
+            }
+
+            this.newOrder('show');
+
+            this.$nextTick(() => {
+                if (this.$refs.model_no && modelNo) {
+                    this.$refs.model_no.value = modelNo;
+                }
+                if (this.$refs.new_bill_customer_name && customerName) {
+                    this.$refs.new_bill_customer_name.value = customerName;
+                }
+                if (this.$refs.new_bill_customer_phone && customerPhone) {
+                    this.$refs.new_bill_customer_phone.value = customerPhone;
+                }
+                if (this.$refs.fault && issueType) {
+                    this.$refs.fault.value = issueType;
+                }
+                if (this.$refs.note && address && this.$refs.note.value.trim() === '') {
+                    this.$refs.note.value = `Address: ${address}`;
+                }
+                if (this.$refs.customer) {
+                    this.$refs.customer.value = '';
+                }
+            });
+        },
+        clearUrlQuery() {
+            const url = `${window.location.pathname}${window.location.hash}`;
+            window.history.replaceState({}, document.title, url);
+        },
         newCustomer(action) {
             $("#NewCustomer").modal(action);
         },
@@ -1722,6 +1767,7 @@ export default {
                 this.$refs.cashier_no.value = "";
                 this.newOrder('hide');
                 this.getCashierModel('hide');
+                this.clearUrlQuery();
                 this.getRepairs();
                 this.reloadPOS();
                 this.isDisabled = false;
@@ -2031,6 +2077,8 @@ export default {
         this.signaturePad = new SignaturePad(this.$refs.canvas)
 
         window.addEventListener('keydown', this.handleKey);
+
+        this.applyNewOrderFromQuery();
     },
     beforeUnmount() {
         window.removeEventListener('keydown', this.handleKey);
