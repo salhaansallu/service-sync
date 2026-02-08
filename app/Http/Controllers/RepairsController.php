@@ -457,6 +457,7 @@ class RepairsController extends Controller
                                         'serial_no' => $serial_no,
                                         'model_no' => $model_no,
                                         'fault' => $fault,
+                                        'advance' => $advance,
                                         'has_multiple_faults' => $has_multiple_faults,
                                         'multiple_fault' => json_encode($faults),
                                         'customer_name' => $customerData->name,
