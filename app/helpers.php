@@ -1406,6 +1406,8 @@ function generateThermalInvoice($order_id, $inName, $bill_type)
             ';
     }
 
+    $credit_balance = Credit::where('customer_id', $repairs->customer)->sum('ammount');
+
     if ($repairs->partner == 0) {
         if ($bill_type == "newOrder" && $repairs->type != "other") {
             $html .= '
@@ -1419,8 +1421,12 @@ function generateThermalInvoice($order_id, $inName, $bill_type)
                         <td style="width: 50%; font-size: 14px;padding-top: 10px;  text-align: right;">' . currency($advance, 'LKR') . '</td>
                     </tr>
                     <tr>
+                        <td style="width: 50%; font-size: 14px;padding-top: 10px; font-weight: bold; text-align: right;">Due Balance: </td>
+                        <td style="width: 50%; font-size: 14px;padding-top: 10px;  text-align: right;">' . currency($credit_balance, 'LKR') . '</td>
+                    </tr>
+                    <tr>
                         <td style="width: 50%; font-size: 14px;padding-top: 10px; font-weight: bold; text-align: right;">Balance: </td>
-                        <td style="width: 50%; font-size: 14px;padding-top: 10px;  text-align: right;">' . currency(((float)$total - (float)$advance), 'LKR') . '</td>
+                        <td style="width: 50%; font-size: 14px;padding-top: 10px;  text-align: right;">' . currency(((float)$total - (float)$advance) + $credit_balance, 'LKR') . '</td>
                     </tr>
                 </table>
             ';
@@ -1476,8 +1482,12 @@ function generateThermalInvoice($order_id, $inName, $bill_type)
                         <td style="width: 50%; font-size: 14px;padding-top: 10px;  text-align: right;">' . currency($delivery, 'LKR') . '</td>
                     </tr>
                     <tr>
+                        <td style="width: 50%; font-size: 14px;padding-top: 10px; font-weight: bold; text-align: right;">Due Balance: </td>
+                        <td style="width: 50%; font-size: 14px;padding-top: 10px;  text-align: right;">' . currency($credit_balance, 'LKR') . '</td>
+                    </tr>
+                    <tr>
                         <td style="width: 50%; font-size: 14px;padding-top: 10px; font-weight: bold; text-align: right;">Total: </td>
-                        <td style="width: 50%; font-size: 14px;padding-top: 10px;  text-align: right;">' . currency(((float)$total - (float)$advance) + $delivery, 'LKR') . '</td>
+                        <td style="width: 50%; font-size: 14px;padding-top: 10px;  text-align: right;">' . currency(((float)$total - (float)$advance) + $delivery + $credit_balance, 'LKR') . '</td>
                     </tr>
                 </table>
             ';
