@@ -906,14 +906,14 @@ class DashboardController extends Controller
                 $repair->finaltotal = $repair->total;
                 $repair->creditAmount = 0;
 
-                if ($repair->credit) {
+                $hasCredit = $repair->credit && $repair->credit->ammount > 0;
+                if ($hasCredit) {
                     $repair->finaltotal -= $repair->credit->ammount;
                     $repair->creditAmount = $repair->credit->ammount;
                 }
-                else {
-                    $spareCost += $repair->cost;
-                    $commission += $repair->commission;
-                }
+
+                $spareCost += $repair->cost;
+                $commission += $repair->commission;
 
                 if (Carbon::parse($repair->created_at)->format('d-m-Y') != Carbon::parse($repair->paid_at)->format('d-m-Y')) {
                     $repair->finaltotal -= $repair->advance;
@@ -928,7 +928,7 @@ class DashboardController extends Controller
                 $repair->finaltotal = $repair->total;
                 $repair->creditAmount = 0;
 
-                if ($repair->credit) {
+                if ($repair->credit && $repair->credit->ammount > 0) {
                     $repair->finaltotal -= $repair->credit->ammount;
                     $repair->creditAmount = $repair->credit->ammount;
                 }
@@ -942,7 +942,7 @@ class DashboardController extends Controller
                 $repair->finaltotal = $repair->total;
                 $repair->creditAmount = 0;
 
-                if ($repair->credit) {
+                if ($repair->credit && $repair->credit->ammount > 0) {
                     $repair->finaltotal -= $repair->credit->ammount;
                     $repair->creditAmount = $repair->credit->ammount;
                 }

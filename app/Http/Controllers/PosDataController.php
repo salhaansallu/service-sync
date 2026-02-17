@@ -22,6 +22,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Http;
 use SMS;
 
 class PosDataController extends Controller
@@ -192,7 +193,7 @@ class PosDataController extends Controller
 
                     employee_expenses::insert([
                         "user" => $rp[0]->techie,
-                        "note" => 'Commission of bill no '.$rp[0]->bill_no,
+                        "note" => 'Commission of bill no ' . $rp[0]->bill_no,
                         "amount" => $rp[0]->commission,
                         "type" => 'Commission',
                         "reference" => $rp[0]->bill_no,
@@ -204,14 +205,12 @@ class PosDataController extends Controller
                 personalCredits::where('bill_no', $id)->update([
                     'status' => 'Delivered',
                 ]);
-
-
             }
 
             $repairs = Repairs::where('bill_no', $bill_no[0])->get('customer')[0];
 
             if ($cashin < $total) {
-                $minusAmt = count($bill_no) > 0? ($cashin / count($bill_no)) : 0;
+                $minusAmt = count($bill_no) > 0 ? ($cashin / count($bill_no)) : 0;
                 foreach ($bill_no as $key => $id) {
                     $repair = Repairs::where('bill_no', $id)->first(['customer', 'total', 'advance']);
                     if ($repair) {
@@ -238,6 +237,24 @@ class PosDataController extends Controller
                     $mail->body = "Dear Customer,<br><br>Please find the invoice attached for your repair.<br><br>Thank you!<br>" . company()->company_name;
                     $mail->attachments = [public_path(($generate_invoice->url)) => 'Invoice.pdf'];
                     $mail->sendMail();
+
+                    foreach ($bill_no as $key => $value) {
+                        $n8nRepair = Repairs::where('bill_no', $value)->first();
+
+                        if ($n8nRepair) {
+                            $response = Http::post('https://vmi3085336.contaboserver.net/webhook/aba879e6-3b03-480f-9e60-031b943bb15c', [
+                                'bill_no' => $n8nRepair->bill_no,
+                                'serial_no' => $n8nRepair->serial_no,
+                                'model_no' => $n8nRepair->model_no,
+                                'fault' => $n8nRepair->fault,
+                                'advance' => $n8nRepair->advance,
+                                'total' => $n8nRepair->total,
+                                'warranty' => $warranty.' Months',
+                                'customer_name' => $customer->name,
+                                'customer_phone' => $customer->phone,
+                            ]);
+                        }
+                    }
                 }
                 return response(json_encode(array("error" => 0, "msg" => "Checkout successful", "invoiceURL" => $generate_thermal_invoice->url)));
             } else {
@@ -286,8 +303,7 @@ class PosDataController extends Controller
                         "sku" => $stock->sku,
                         "id" => $stock->id,
                     );
-                }
-                else {
+                } else {
                     $cost += (float)$value['cost'] * (float)$value['qty'];
                     $total += (float)$value['price'] * (float)$value['qty'];
                     $parts[] = $value['id'];
