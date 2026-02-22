@@ -229,20 +229,12 @@ class PosDataController extends Controller
 
             if ($generate_invoice->generated == true) {
                 $customer = customers::where('id', $repairs->customer)->first();
-                if ($customer && !empty($customer->email)) {
-                    $mail = new Mail();
-                    $mail->to = $customer->email;
-                    $mail->toName = $customer->name;
-                    $mail->subject = "Invoice - " . company()->company_name;
-                    $mail->body = "Dear Customer,<br><br>Please find the invoice attached for your repair.<br><br>Thank you!<br>" . company()->company_name;
-                    $mail->attachments = [public_path(($generate_invoice->url)) => 'Invoice.pdf'];
-                    $mail->sendMail();
-
-                    foreach ($bill_no as $key => $value) {
+            	if ($customer && !empty($customer->phone)) {
+                	foreach ($bill_no as $key => $value) {
                         $n8nRepair = Repairs::where('bill_no', $value)->first();
 
                         if ($n8nRepair) {
-                            $response = Http::post('https://vmi3085336.contaboserver.net/webhook/aba879e6-3b03-480f-9e60-031b943bb15c', [
+                            $response = Http::post('https://vmi3085336.contaboserver.net/webhook-test/aba879e6-3b03-480f-9e60-031b943bb15c', [
                                 'bill_no' => $n8nRepair->bill_no,
                                 'serial_no' => $n8nRepair->serial_no,
                                 'model_no' => $n8nRepair->model_no,
@@ -255,6 +247,16 @@ class PosDataController extends Controller
                             ]);
                         }
                     }
+                }
+
+                if ($customer && !empty($customer->email)) {
+                    $mail = new Mail();
+                    $mail->to = $customer->email;
+                    $mail->toName = $customer->name;
+                    $mail->subject = "Invoice - " . company()->company_name;
+                    $mail->body = "Dear Customer,<br><br>Please find the invoice attached for your repair.<br><br>Thank you!<br>" . company()->company_name;
+                    $mail->attachments = [public_path(($generate_invoice->url)) => 'Invoice.pdf'];
+                    $mail->sendMail();
                 }
                 return response(json_encode(array("error" => 0, "msg" => "Checkout successful", "invoiceURL" => $generate_thermal_invoice->url)));
             } else {

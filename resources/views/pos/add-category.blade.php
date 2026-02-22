@@ -184,6 +184,11 @@
                                     </div>
                                 </div>
                                 <button type="submit" id="save_btn" class="btn btn-primary mr-2">Update</button>
+                                @if ($repairs->paid_at != null)
+                                    <button type="button" id="paid_btn" data-status="unpaid" class="btn btn-danger mr-2">Mark as Unpaid</button>
+                                @else
+                                    <button type="button" id="paid_btn" data-status="paid" class="btn btn-success mr-2">Mark as Paid</button>
+                                @endif
                             </form>
                         </div>
                     </div>
@@ -219,6 +224,35 @@
                 }
             });
             $('#save_btn').prop('disabled', false);
+        });
+
+        $("#paid_btn").click(function(e) {
+            e.preventDefault();
+
+            var formData = new FormData($("#repairsCreate")[0]);
+            formData.append('status', $(this).data('status'));
+            $('#paid_btn').prop('disabled', true);
+            $.ajax({
+                type: "post",
+                url: '/dashboard/repairs/mark-paid',
+                data: formData,
+                dataType: "json",
+                contentType: false,
+                processData: false,
+
+                success: function(response) {
+                    if (response.error == 0) {
+                        toastr.success(response.msg, 'Success');
+                        setInterval(() => {
+                            location.reload();
+                        }, 1000);
+                    } else {
+                        toastr.error(response.msg, 'Error');
+                    }
+                }
+            });
+
+            $('#paid_btn').prop('disabled', false);
         });
     </script>
 @endsection

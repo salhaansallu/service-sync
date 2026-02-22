@@ -833,7 +833,7 @@ class DashboardController extends Controller
             ->selectRaw('SUM(CASE WHEN qty > 0 THEN amount * qty ELSE amount END) as total')
             ->value('total');
 
-            $repairs = Repairs::with('credit')->where('type', sanitize($type))->where('status', 'Delivered')
+            $repairs = Repairs::with('credit')->where('type', sanitize($type))
             ->when($fromdate, function ($query) use ($fromdate){
                 $query->where(function ($query) use ($fromdate) {
                     $query->whereDate('paid_at', '>=', Carbon::parse($fromdate)->format('Y-m-d'))
@@ -851,7 +851,7 @@ class DashboardController extends Controller
                 });
             })->get();
 
-            $tvRepairs = Repairs::with('credit')->where('type','repair')->where('status', 'Delivered')
+            $tvRepairs = Repairs::with('credit')->where('type','repair')
             ->when($fromdate, function ($query) use ($fromdate){
                 $query->whereDate('paid_at', '>=', Carbon::parse($fromdate)->format('Y-m-d'));
             })
@@ -859,7 +859,7 @@ class DashboardController extends Controller
                 $query->whereDate('paid_at', '<=', Carbon::parse($todate)->format('Y-m-d'));
             })->get();
 
-            $otherRepairs = Repairs::with('credit')->where('type','other')->where('status', 'Delivered')
+            $otherRepairs = Repairs::with('credit')->where('type','other')
             ->when($fromdate, function ($query) use ($fromdate){
                 $query->whereDate('paid_at', '>=', Carbon::parse($fromdate)->format('Y-m-d'));
             })

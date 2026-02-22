@@ -239,6 +239,32 @@ class RepairsController extends Controller
 
                     $customerData = customers::where('id', $update->get()[0]["customer"])->get();
 
+                    if ($customerData->count() > 0) {
+                        $n8nUrl = "";
+
+                        if ($status == "Return") {
+                            $n8nUrl = "https://vmi3085336.contaboserver.net/webhook/3c2beb48-d0c9-49bc-85ef-ba456e1b33be";
+                        }
+                        elseif ($status == "Customer Pending") {
+                            $n8nUrl = "https://vmi3085336.contaboserver.net/webhook/6dbdd7de-f70d-4a68-9bd2-fa9dd2d1cd78";
+                        }
+
+                        $n8nRepair = Repairs::where('bill_no', $bill_no)->first();
+
+                        if (!empty($n8nUrl) && $n8nRepair) {
+                            $response = Http::post($n8nUrl, [
+                                'bill_no' => $n8nRepair->bill_no,
+                                'serial_no' => $n8nRepair->serial_no,
+                                'model_no' => $n8nRepair->model_no,
+                                'fault' => $n8nRepair->fault,
+                                'advance' => $n8nRepair->advance,
+                                'total' => $n8nRepair->total,
+                                'customer_name' => $customerData[0]->name,
+                                'customer_phone' => $customerData[0]->phone,
+                            ]);
+                        }
+                    }
+
                     if ($request->has('send_sms') && sanitize($request->input('send_sms')) == true) {
 
                         $sms = new SMS();
@@ -286,6 +312,22 @@ class RepairsController extends Controller
             }
 
             return response(json_encode(array("error" => 0, "msg" => "Order Updated Successfully")));
+        }
+    }
+
+    public function markPaid(Request $request)
+    {
+        if (Auth::check() && isCashier()) {
+            $modelid = sanitize($request->input('modelid'));
+            $status = sanitize($request->input('status'));
+
+            $update = Repairs::where('id', $modelid);
+
+            if ($update->update(["paid_at" => $status == "paid" ? date('Y-m-d H:i:s') : null])) {
+                return response(json_encode(array("error" => 0, "msg" => "Payment status updated successfully")));
+            }
+
+            return response(json_encode(array("error" => 1, "msg" => "Failed to update payment status")));
         }
     }
 
