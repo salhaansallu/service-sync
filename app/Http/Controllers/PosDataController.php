@@ -234,7 +234,7 @@ class PosDataController extends Controller
                         $n8nRepair = Repairs::where('bill_no', $value)->first();
 
                         if ($n8nRepair) {
-                            $response = Http::post('https://vmi3085336.contaboserver.net/webhook-test/aba879e6-3b03-480f-9e60-031b943bb15c', [
+                            $response = Http::post('https://vmi3085336.contaboserver.net/webhook/aba879e6-3b03-480f-9e60-031b943bb15c', [
                                 'bill_no' => $n8nRepair->bill_no,
                                 'serial_no' => $n8nRepair->serial_no,
                                 'model_no' => $n8nRepair->model_no,
