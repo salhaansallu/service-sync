@@ -205,8 +205,8 @@
                         <div class="row row-cols-2 mt-4">
                             <div class="col">
                                 <div class="input">
-                                    <div class="label">Product name</div>
-                                    <input type="text" placeholder="Product name" ref="pro_name"
+                                    <div class="label">Username</div>
+                                    <input type="text" placeholder="Username" ref="pro_name"
                                         @keyup="Enter($event, 'price')">
                                 </div>
                             </div>
@@ -221,8 +221,8 @@
 
                             <div class="col mt-3">
                                 <div class="input">
-                                    <div class="label">Product cost</div>
-                                    <input type="number" placeholder="Product price" value="0" ref="cost"
+                                    <div class="label">Password</div>
+                                    <input type="password" placeholder="Password" value="0" ref="cost"
                                         @keyup="$event.key == 'Enter' ? createProduct() : ''">
                                 </div>
                             </div>

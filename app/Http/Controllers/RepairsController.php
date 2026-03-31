@@ -529,8 +529,13 @@ class RepairsController extends Controller
                     }
 
                     $tempBill = 'temp-muilti-repairs-invoice';
-                    $generate_temp_thermal_invoice = generateThermalInvoice($bills, $tempBill, 'newOrder');
-                    $generate_temp_sticker = generateThermalSticker(is_array($bills) ? $bills[0] : $bills, 'temp-sticker');
+                    $generate_temp_thermal_invoice = null;
+                    $generate_temp_sticker = null;
+
+                    if (!empty($bills)) {
+                        $generate_temp_thermal_invoice = generateThermalInvoice($bills, $tempBill, 'newOrder');
+                        $generate_temp_sticker = generateThermalSticker(is_array($bills) ? $bills[0] : $bills, 'temp-sticker');
+                    }
 
                     if ($bill_type != 'new-order') {
                         $commis = new repairCommissions();
@@ -549,9 +554,9 @@ class RepairsController extends Controller
                             $mail->subject = "Account Created - " . company()->company_name;
                             $mail->body = "Dear Customer,<br><br>We've received your product and will notify you when the repair is done.<br>Track it at <a href='https://wefixservers.xyz/customer-portal?phone=" . $customerData->phone . "'>Customer Portal</a>.<br><br>Thank you!<br>" . company()->company_name;
 
-                            if ($new_order_qty > 1) {
+                            if ($new_order_qty > 1 && $generate_temp_thermal_invoice) {
                                 $mail->attachments = [public_path(($generate_temp_thermal_invoice->url)) => 'Invoice-' . $bill_no . '.pdf'];
-                            } else {
+                            } elseif (isset($generate_invoice)) {
                                 $mail->attachments = [public_path(($generate_invoice->url)) => 'Invoice-' . $bill_no . '.pdf'];
                             }
 
@@ -559,7 +564,7 @@ class RepairsController extends Controller
                         }
                     }
 
-                    return response(json_encode(array("error" => $new_order_qty != $success_count, "msg" => $success_count . " out of " . $new_order_qty . " orders placed", "invoiceURL" => $generate_temp_thermal_invoice->url, 'sticker' => $generate_temp_sticker)));
+                    return response(json_encode(array("error" => $new_order_qty != $success_count, "msg" => $success_count . " out of " . $new_order_qty . " orders placed", "invoiceURL" => $generate_temp_thermal_invoice ? $generate_temp_thermal_invoice->url : '', 'sticker' => $generate_temp_sticker)));
                 }
 
                 return response(json_encode(array("error" => 1, "msg" => "QTY must be atleast 1")));
@@ -955,4 +960,74 @@ class RepairsController extends Controller
             'data'    => [],
         ]);
     }
+
+    public function getWhatsappMessageStatuses(Request $request)
+    {
+        $billNos = $request->input('bill_nos', []);
+
+        if (empty($billNos)) {
+            return response()->json([]);
+        }
+
+        $statuses = DB::table('whatsapp_message_statuses')
+            ->whereIn('bill_no', $billNos)
+            ->orderBy('id', 'desc')
+            ->get()
+            ->groupBy('bill_no')
+            ->map(function ($records) {
+                $latest = $records->first();
+                return [
+                    'status' => $latest->status,
+                    'mobile_no' => $latest->mobile_no,
+                ];
+            });
+
+        return response()->json($statuses);
+    }
+
+    public function whatsappMessageStatusUpdate(Request $request)
+    {
+        $bill_no = sanitize($request->input('bill_no'));
+        $mobile_no = sanitize($request->input('phone_no'));
+        $status = sanitize($request->input('status'));
+
+        // Validate required fields
+        if (empty($bill_no) || empty($mobile_no) || empty($status)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Missing required fields',
+            ], 400);
+        }
+
+        // Only allow specific statuses
+        $allowedStatuses = ['Not sent', 'accepted'];
+        if (!in_array($status, $allowedStatuses)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid status value',
+            ], 400);
+        }
+
+        // Store in whatsapp_message_statuses table
+        try {
+            DB::table('whatsapp_message_statuses')->insert([
+                'bill_no' => $bill_no,
+                'mobile_no' => $mobile_no,
+                'status' => $status,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+            return response()->json([
+                'success' => true,
+                'message' => 'Message status recorded',
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to record message status',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
 }

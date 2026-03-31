@@ -52,12 +52,13 @@
                                                       </tr>
                                                     </thead>
                                                     <tbody>
+                                                      @php $products = isset($quotation) ? json_decode($quotation->products) : []; @endphp
                                                       @for ($i = 1; $i < 11; $i++)
                                                         <tr>
-                                                          <td><input type="text" class="w-100 border-0" name="model_no_{{ $i }}" value="{{ isset($quotation)? json_decode($quotation->products)[$i-1]->model_no : '' }}"></td>
-                                                          <td><input type="text" class="w-100 border-0" name="serial_no_{{ $i }}" value="{{ isset($quotation)? json_decode($quotation->products)[$i-1]->serial_no : '' }}"></td>
-                                                          <td><input type="text" class="w-100 border-0" name="fault_{{ $i }}" value="{{ isset($quotation)? json_decode($quotation->products)[$i-1]->fault : '' }}"></td>
-                                                          <td><input type="text" class="w-100 border-0 text-center" name="price_{{ $i }}" value="{{ isset($quotation)? json_decode($quotation->products)[$i-1]->price : '0' }}"></td>
+                                                          <td><input type="text" class="w-100 border-0" name="model_no_{{ $i }}" value="{{ isset($products[$i-1]) ? $products[$i-1]->model_no : '' }}"></td>
+                                                          <td><input type="text" class="w-100 border-0" name="serial_no_{{ $i }}" value="{{ isset($products[$i-1]) ? $products[$i-1]->serial_no : '' }}"></td>
+                                                          <td><input type="text" class="w-100 border-0" name="fault_{{ $i }}" value="{{ isset($products[$i-1]) ? $products[$i-1]->fault : '' }}"></td>
+                                                          <td><input type="text" class="w-100 border-0 text-center" name="price_{{ $i }}" value="{{ isset($products[$i-1]) ? $products[$i-1]->price : '0' }}"></td>
                                                         </tr>
                                                       @endfor
                                                     </tbody>

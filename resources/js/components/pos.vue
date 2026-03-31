@@ -136,9 +136,11 @@
                                     repair.serial_no }}</div>
                             <div class="col-2 form-text mt-0 d-flex align-items-center control-text-overflow">{{
                                 repair.fault }}</div>
-                            <div class="col-2 form-text mt-0 d-flex align-items-center control-text-overflow">{{
-                                searchCustomer(repair.customer)["phone"] }} ({{
-                                    searchCustomer(repair.customer)["name"] }})</div>
+                            <div class="col-2 form-text mt-0 d-flex align-items-center control-text-overflow">
+                                <span :style="getWhatsappStatusColor(repair.bill_no)">{{
+                                    searchCustomer(repair.customer)["phone"] }}</span>&nbsp;({{
+                                        searchCustomer(repair.customer)["name"] }})
+                            </div>
                             <div class="col-1 form-text mt-0 d-flex align-items-center control-text-overflow"
                                 style="width: 200px;"><span :class="'badge bg-' + getStatus(repair.status)">{{
                                     repair.status }}</span></div>
@@ -265,7 +267,8 @@
                     </div>
                     <div class="col">
                         <input type="number" ref="cashin" value="0"
-                            @keyup="$event.key == 'Enter' ? getSignaure('show','checkout') : updateOrder()" @focus="$event.target.select();">
+                            @keyup="$event.key == 'Enter' ? getSignaure('show', 'checkout') : updateOrder()"
+                            @focus="$event.target.select();">
                     </div>
                 </div>
 
@@ -299,7 +302,8 @@
             <div class="proceed_btn">
                 <div class="row row-cols-1">
                     <div class="col">
-                        <button class="primary-btn submit-btn w-100" @click="getSignaure('show','checkout')">Checkout</button>
+                        <button class="primary-btn submit-btn w-100"
+                            @click="getSignaure('show', 'checkout')">Checkout</button>
                     </div>
                 </div>
             </div>
@@ -369,7 +373,8 @@
                                     <div class="col-lg-4">
                                         <div class="input">
                                             <label for="" class="mb-1">Has Multiple</label><br>
-                                            <input ref="faultCheckbox" type="checkbox" placeholder="Fault" value="" style="width: max-content;" @click="multipleFaultToggle()">
+                                            <input ref="faultCheckbox" type="checkbox" placeholder="Fault" value=""
+                                                style="width: max-content;" @click="multipleFaultToggle()">
                                         </div>
                                     </div>
                                 </div>
@@ -439,19 +444,24 @@
                             </div>
 
                             <div class="col-12 border pb-3 my-5" v-if="new_bill">
-                                <label class="form-text text-secondary fs-6" for="" style="margin-top: -15px;position: absolute; background-color: #fff;">Customer Details</label>
+                                <label class="form-text text-secondary fs-6" for=""
+                                    style="margin-top: -15px;position: absolute; background-color: #fff;">Customer
+                                    Details</label>
                                 <div class="row">
                                     <div class="col-6 mt-3">
                                         <div class="input">
                                             <label for="" class="mb-1">Customer Name</label>
-                                            <input ref="new_bill_customer_name" @keyup="filterCustomer($event, 'name')" type="text" placeholder="Customer Name">
+                                            <input ref="new_bill_customer_name" @keyup="filterCustomer($event, 'name')"
+                                                type="text" placeholder="Customer Name">
                                         </div>
                                     </div>
 
                                     <div class="col-6 mt-3">
                                         <div class="input">
                                             <label for="" class="mb-1">Customer Phone</label>
-                                            <input ref="new_bill_customer_phone" @keyup="filterCustomer($event, 'phone')" type="text" placeholder="Customer Phone">
+                                            <input ref="new_bill_customer_phone"
+                                                @keyup="filterCustomer($event, 'phone')" type="text"
+                                                placeholder="Customer Phone">
                                         </div>
                                     </div>
                                 </div>
@@ -459,14 +469,17 @@
                                 <input type="hidden" name="customer" ref="customer">
 
                                 <div class="customer_list" style="display: none;">
-                                    <div class="close_list text-end fs-5"><i style="cursor: pointer;" class="fa-solid fa-xmark bg-danger p-1 text-light" @click="closeCustomerList()"></i></div>
+                                    <div class="close_list text-end fs-5"><i style="cursor: pointer;"
+                                            class="fa-solid fa-xmark bg-danger p-1 text-light"
+                                            @click="closeCustomerList()"></i></div>
                                     <table>
                                         <thead>
                                             <th>Name</th>
                                             <th>Phone</th>
                                         </thead>
                                         <tbody>
-                                            <tr v-for="customer in selectedCustomerList" @click="selectCustomer(customer.id, customer.name, customer.phone)">
+                                            <tr v-for="customer in selectedCustomerList"
+                                                @click="selectCustomer(customer.id, customer.name, customer.phone)">
                                                 <td>{{ customer.name }}</td>
                                                 <td>{{ customer.phone }}</td>
                                             </tr>
@@ -516,7 +529,8 @@
                                         <label for="" class="mb-1">Partner</label>
                                         <select ref="partner" name="" class="select2-multiple">
                                             <option value=""></option>
-                                            <option v-for="part in partners" :value="part.id">{{ part.company }} ({{ part.phone }})</option>
+                                            <option v-for="part in partners" :value="part.id">{{ part.company }} ({{
+                                                part.phone }})</option>
                                         </select>
                                     </div>
                                 </div>
@@ -557,7 +571,7 @@
                             </div>
 
                             <div class="col-12 mt-3">
-                                <button :disabled="isDisabled" @click="getSignaure('show','newOrder')"
+                                <button :disabled="isDisabled" @click="getSignaure('show', 'newOrder')"
                                     class="primary-btn submit-btn">Save</button>
                                 <button @click="getCashierModel('hide')"
                                     style="background: transparent; color: red !important; border: red 1px solid;"
@@ -652,7 +666,8 @@
                                     <label for="" class="mb-1">Technician</label>
                                     <select ref="techie" name="" class="select2-multiple">
                                         <option value=""></option>
-                                        <option v-for="cashier in cashiers" :value="cashier.user_id">{{ cashier.fname }}</option>
+                                        <option v-for="cashier in cashiers" :value="cashier.user_id">{{ cashier.fname }}
+                                        </option>
                                     </select>
                                 </div>
                             </div>
@@ -660,7 +675,8 @@
                             <div class="col-3 mt-3">
                                 <div class="input">
                                     <label for="" class="mb-1">Commission amount</label>
-                                    <input type="number" ref="commission" name="" placeholder="Commission amount" value="0">
+                                    <input type="number" ref="commission" name="" placeholder="Commission amount"
+                                        value="0">
                                 </div>
                             </div>
 
@@ -749,8 +765,8 @@
         </div>
     </div>
 
-    <div class="modal fade" id="newProduct" tabindex="-1" role="dialog" aria-labelledby="newProduct"
-        aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal fade" id="newProduct" tabindex="-1" role="dialog" aria-labelledby="newProduct" aria-hidden="true"
+        data-bs-backdrop="static" data-bs-keyboard="false">
         <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
             <div class="modal-content">
                 <div class="modal-body d-flex" style="justify-content: center;">
@@ -761,15 +777,15 @@
                             </div>
                             <div class="col-6 mt-3">
                                 <div class="input">
-                                    <label for="" class="mb-1">Product Name</label>
-                                    <input ref="temp_pro_name" type="text" placeholder="Product Name" value="">
+                                    <label for="" class="mb-1">Username</label>
+                                    <input ref="temp_pro_name" type="text" placeholder="Username" value="">
                                 </div>
                             </div>
 
                             <div class="col-6 mt-3">
                                 <div class="input">
-                                    <label for="" class="mb-1">Product Cost</label>
-                                    <input ref="temp_pro_cost" type="text" placeholder="Product Cost" value="">
+                                    <label for="" class="mb-1">Password</label>
+                                    <input ref="temp_pro_cost" type="password" placeholder="Password" value="">
                                 </div>
                             </div>
 
@@ -841,13 +857,15 @@
         <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
             <div class="modal-content">
                 <div class="modal-body">
-                      <div class="signature-container">
+                    <div class="signature-container">
                         <h3 class="text-start">Sign here</h3>
                         <div class="form-text">
                             <p>By agreeing to these terms, you acknowledge and accept these conditions:</p>
                             <ul>
-                                <li>If you retrieve your item before the repair is completed, you must still pay the repair charges.</li>
-                                <li>The company is not responsible for items not collected within 14 days after repair.</li>
+                                <li>If you retrieve your item before the repair is completed, you must still pay the
+                                    repair charges.</li>
+                                <li>The company is not responsible for items not collected within 14 days after repair.
+                                </li>
                             </ul>
                         </div>
                         <canvas ref="canvas" width="400" height="200" style="border: 1px solid #ccc;"></canvas>
@@ -921,6 +939,7 @@ export default {
             selectedFaults: [],
             signaturePad: null,
             signatureFor: null,
+            whatsappStatuses: {},
         }
     },
     methods: {
@@ -930,6 +949,25 @@ export default {
         isNumber,
         openMenu(menuID) {
             $('#' + menuID).toggle();
+        },
+        async fetchWhatsappStatuses() {
+            if (this.repairs.length === 0) return;
+            const billNos = this.repairs.map(r => r.bill_no);
+            try {
+                const { data } = await axios.post('/pos/whatsapp_message_statuses', { bill_nos: billNos });
+                this.whatsappStatuses = data;
+            } catch (e) {
+                this.whatsappStatuses = {};
+            }
+        },
+        getWhatsappStatusColor(bill_no) {
+            const record = this.whatsappStatuses[bill_no];
+            if (record && record.status === 'accepted') {
+                return { color: 'green', fontWeight: 'bold' };
+            } else if (record && record.status === 'Not sent') {
+                return { color: 'red', fontWeight: 'bold' };
+            }
+            return {};
         },
         editRepair(id) {
             window.open('https://wefixservers.xyz/dashboard/repairs/edit/' + id, '_blank');
@@ -948,8 +986,8 @@ export default {
                 }
                 var rand = Math.floor(Math.random() * 1000);
                 this.Spares.push({
-                    "id": "temp-"+rand,
-                    "sku": "sku-"+rand,
+                    "id": "temp-" + rand,
+                    "sku": "sku-" + rand,
                     "pro_name": this.$refs.temp_pro_name.value,
                     "price": 0,
                     "cost": this.$refs.temp_pro_cost.value,
@@ -1491,6 +1529,7 @@ export default {
                         this.reloadPOS();
                         window.open(data.invoiceURL, '_blank');
                         this.clearSignature();
+                        setTimeout(() => { this.fetchWhatsappStatuses(); }, 10000);
                     }
                     else {
                         this.getSignaure('hide');
@@ -1608,6 +1647,7 @@ export default {
                     $(this.$refs.techie).val("").trigger("change");
                     this.finishOrderNo = 0;
                     this.selectedRepair = [];
+                    setTimeout(() => { this.fetchWhatsappStatuses(); }, 10000);
                 }
                 else {
                     this.loadModal("hide");
@@ -1775,6 +1815,7 @@ export default {
                     printJS(data.sticker.url);
                 }
                 window.open(data.invoiceURL, '_blank');
+                setTimeout(() => { this.fetchWhatsappStatuses(); }, 10000);
             }
             else {
                 this.getSignaure('hide');
@@ -1843,6 +1884,7 @@ export default {
                     });
                     this.repairs = data;
                     this.proBackup = data;
+                    this.fetchWhatsappStatuses();
                 }
                 else {
                     toastr.error("'From date' should be lower or equals to 'To date'", "Error");
@@ -2088,8 +2130,8 @@ export default {
 
 <style scoped>
 .signature-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 </style>

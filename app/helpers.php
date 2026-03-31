@@ -2623,8 +2623,18 @@ function generateQuotation($q_no, $filename = null)
         ];
     }
 
+    $userData = getUserData($company->admin_id);
+    $headerLogo = '';
+    $headerLogoPath = public_path('assets/images/brand/logo.png');
+    if (file_exists($headerLogoPath)) {
+        $logoType = pathinfo($headerLogoPath, PATHINFO_EXTENSION);
+        $logoData = file_get_contents($headerLogoPath);
+        $headerLogo = 'data:image/' . $logoType . ';base64,' . base64_encode($logoData);
+    }
+
     $total = 0;
 
+    $userData = getUserData($company->admin_id);
     $html = '
         <!DOCTYPE html>
         <html lang="en">
@@ -2648,11 +2658,23 @@ function generateQuotation($q_no, $filename = null)
 
         <body style="font-family: Arial, sans-serif; margin: 0; padding: 30px; padding-top: 30px; box-sizing: border-box;">
 
-            <header style="text-align: center; margin-bottom: 20px;">
-                <h1 style="margin: 0; font-size: 24px;">Quotation</h1>
-                <p style="margin: 5px 0; font-size: 14px; color: #666;">' . $company->company_name . '</p>
-                <p style="margin: 5px 0; font-size: 14px; color: #666;">' . getUserData($company->admin_id)->address . ' <br> '
-        . formatPhoneNumber(getUserData($company->admin_id)->phone) . ' <br> www.wefix.lk</p>
+            <header style="margin-bottom: 20px;">
+                <table style="width: 100%; border-collapse: collapse;">
+                    <tr>
+                        <td style="width: 45%; vertical-align: top; border-right: 1px solid #cfcfcf; padding-right: 14px;">
+                            ' . (!empty($headerLogo) ? '<img src="' . $headerLogo . '" style="height: 72px; width: auto;">' : '<h2 style="margin: 0; font-size: 26px; letter-spacing: 1px;">' . $company->company_name . '</h2>') . '
+                        </td>
+                        <td style="vertical-align: top; padding-left: 14px; font-size: 12px; line-height: 1.5;">
+                            <p style="margin: 0;"><strong>' . $company->company_name . '</strong></p>
+                            <p style="margin: 0;"><strong>Address:</strong> ' . $userData->address . '</p>
+                            <p style="margin: 0;"><strong>Phone:</strong> ' . formatPhoneNumber($userData->phone) . '</p>
+                            <p style="margin: 0;"><strong>Email:</strong> info@wefix.lk</p>
+                            <p style="margin: 0;"><strong>Web:</strong> www.wefix.lk</p>
+                        </td>
+                    </tr>
+                </table>
+                <hr style="border: 0; border-top: 1px solid #cfcfcf; margin: 12px 0 14px;">
+                <h1 style="margin: 0; font-size: 30px; text-align: center; letter-spacing: 1px; font-family: \"Times New Roman\", serif;">QUOTATION/ESTIMATE</h1>
             </header>
 
             <section style="margin-bottom: 20px;">

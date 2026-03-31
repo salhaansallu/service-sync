@@ -133,8 +133,8 @@
                                 repair.serial_no }}</div>
                             <div class="col-2 form-text mt-0 d-flex align-items-center control-text-overflow">{{
                                 repair.fault }}</div>
-                            <div class="col-2 form-text mt-0 d-flex align-items-center control-text-overflow">{{
-                                searchCustomer(repair.customer)["phone"] }} ({{
+                            <div class="col-2 form-text mt-0 d-flex align-items-center control-text-overflow">
+                                <span :style="getWhatsappStatusColor(repair.bill_no)">{{ searchCustomer(repair.customer)["phone"] }}</span>&nbsp;({{
                                     searchCustomer(repair.customer)["name"] }})</div>
                             <div class="col-1 form-text mt-0 d-flex align-items-center control-text-overflow"
                                 style="width: 200px;"><span :class="'badge bg-' + getStatus(repair.status)">{{
@@ -720,15 +720,15 @@
                             </div>
                             <div class="col-6 mt-3">
                                 <div class="input">
-                                    <label for="" class="mb-1">Product Name</label>
-                                    <input ref="temp_pro_name" type="text" placeholder="Product Name" value="">
+                                    <label for="" class="mb-1">Username</label>
+                                    <input ref="temp_pro_name" type="text" placeholder="Username" value="">
                                 </div>
                             </div>
 
                             <div class="col-6 mt-3">
                                 <div class="input">
-                                    <label for="" class="mb-1">Product Cost</label>
-                                    <input ref="temp_pro_cost" type="text" placeholder="Product Cost" value="">
+                                    <label for="" class="mb-1">Password</label>
+                                    <input ref="temp_pro_cost" type="password" placeholder="Password" value="">
                                 </div>
                             </div>
 
@@ -859,6 +859,7 @@ export default {
             faultCount: 1,
             selectedFaults: [],
             signaturePad: null,
+            whatsappStatuses: {},
         }
     },
     methods: {
@@ -866,6 +867,25 @@ export default {
         printJS,
         reformatPhoneNumbers,
         isNumber,
+        async fetchWhatsappStatuses() {
+            if (this.repairs.length === 0) return;
+            const billNos = this.repairs.map(r => r.bill_no);
+            try {
+                const { data } = await axios.post('/pos/whatsapp_message_statuses', { bill_nos: billNos });
+                this.whatsappStatuses = data;
+            } catch (e) {
+                this.whatsappStatuses = {};
+            }
+        },
+        getWhatsappStatusColor(bill_no) {
+            const record = this.whatsappStatuses[bill_no];
+            if (record && record.status === 'accepted') {
+                return { color: 'green', fontWeight: 'bold' };
+            } else if (record && record.status === 'Not sent') {
+                return { color: 'red', fontWeight: 'bold' };
+            }
+            return {};
+        },
         openMenu(menuID) {
             $('#' + menuID).toggle();
         },
@@ -1300,6 +1320,7 @@ export default {
                     });
                     this.repairs = data;
                     this.proBackup = data;
+                    this.fetchWhatsappStatuses();
                 }
                 else {
                     toastr.error("'From date' should be lower or equals to 'To date'", "Error");
@@ -1361,6 +1382,7 @@ export default {
                         this.getSignaure('hide');
                         this.clearSignature();
                         window.open(data.invoiceURL, '_blank');
+                        setTimeout(() => { this.fetchWhatsappStatuses(); }, 10000);
                     }
                     else {
                         this.getSignaure('hide');
@@ -1472,6 +1494,7 @@ export default {
                     $(this.$refs.techie).val("").trigger("change");
                     this.finishOrderNo = 0;
                     this.selectedRepair = [];
+                    setTimeout(() => { this.fetchWhatsappStatuses(); }, 10000);
                 }
                 else {
                     this.loadModal("hide");
@@ -1613,6 +1636,7 @@ export default {
                     printJS(data.sticker.url);
                 }
                 window.open(data.invoiceURL, '_blank');
+                setTimeout(() => { this.fetchWhatsappStatuses(); }, 10000);
             }
             else {
                 this.loadModal("hide");

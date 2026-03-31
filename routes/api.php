@@ -56,6 +56,7 @@ if (env('N8NAPI', false)) {
             Route::post('/get-booking', [BookingController::class, 'n8n_get']);
             Route::post('/get-warranty', [WarrantyController::class, 'n8n_get']);
             Route::post('/get-repairs', [RepairsController::class, 'n8n_get']);
+            Route::post('/whatsapp-message-status', [RepairsController::class, 'whatsappMessageStatusUpdate']);
         });
     });
 }
