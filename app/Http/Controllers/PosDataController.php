@@ -15,6 +15,7 @@ use App\Models\Products;
 use App\Models\repairCommissions;
 use App\Models\Repairs;
 use App\Models\WarrantyRecord;
+use App\Models\OrderRequest;
 use App\Models\saveOrders;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -546,5 +547,47 @@ class PosDataController extends Controller
         $repairedData = Repairs::where('status', 'Repaired')->whereDate('repaired_date', Carbon::now()->subDays(16))->delete();
         $customerPendingData = Repairs::where('status', 'Customer Pending')->whereDate('repaired_date', Carbon::now()->subDays(16))->delete();
         $returnData = Repairs::where('status', 'Return')->whereDate('repaired_date', Carbon::now()->subDays(16))->delete();
+    }
+
+    public function createOrderRequest(Request $request)
+    {
+        $input = array_merge($request->query(), $request->request->all());
+
+        $customer_name = isset($input['customer_name']) ? sanitize($input['customer_name']) : null;
+        $customer_phone = isset($input['customer_phone']) ? sanitize($input['customer_phone']) : null;
+        $spares = isset($input['products']) ? $input['products'] : [];
+
+        if (empty($customer_name) || empty($customer_phone)) {
+            return response()->json(["error" => 1, "msg" => "Customer name and phone are required"]);
+        }
+
+        if (empty($spares)) {
+            return response()->json(["error" => 1, "msg" => "Products are required"]);
+        }
+
+        $products = [];
+        foreach ($spares as $value) {
+            $products[] = [
+                'id' => $value['id'],
+                'qty' => $value['qty'],
+            ];
+        }
+
+        $lastRequest = OrderRequest::orderBy('id', 'DESC')->first();
+        $requestId = $lastRequest ? 'ORQ' . ((int)str_replace('ORQ', '', $lastRequest->request_id) + 1) : 'ORQ1001';
+
+        $orderRequest = OrderRequest::create([
+            'request_id' => $requestId,
+            'customer_name' => $customer_name,
+            'customer_phone' => $customer_phone,
+            'products' => $products,
+            'status' => 'pending',
+        ]);
+
+        return response()->json([
+            "error" => 0,
+            "msg" => "Order request submitted successfully",
+            "request_id" => $orderRequest->request_id,
+        ]);
     }
 }

@@ -325,6 +325,42 @@
                             </ul>
                         </li>
 
+                        <li class="{{ Request::is('dashboard/sales-quotation*') ? 'active' : '' }}">
+                            <a href="#sales-quotations" class="collapsed"
+                                data-toggle="collapse" aria-expanded="false">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="svg-icon" width="20" height="20"
+                                    fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
+                                    stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"></path>
+                                    <rect x="9" y="3" width="6" height="4" rx="1" ry="1"></rect>
+                                    <line x1="9" y1="12" x2="15" y2="12"></line>
+                                    <line x1="9" y1="16" x2="13" y2="16"></line>
+                                </svg>
+                                <span class="ml-4">Sales Quotations</span>
+                                <svg class="svg-icon iq-arrow-right arrow-active" width="20" height="20"
+                                    xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                                    stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                    stroke-linejoin="round">
+                                    <polyline points="10 15 15 20 20 15"></polyline>
+                                    <path d="M4 4h7a4 4 0 0 1 4 4v12"></path>
+                                </svg>
+                            </a>
+                            <ul id="sales-quotations"
+                                class="iq-submenu collapse {{ Request::is('dashboard/sales-quotation*') ? 'show' : '' }}"
+                                data-parent="#iq-sidebar-toggle">
+                                <li class="{{ Request::is('dashboard/sales-quotations') ? 'active' : '' }}">
+                                    <a href="/dashboard/sales-quotations">
+                                        <i class="fa-solid fa-minus"></i><span>List Sales Quotations</span>
+                                    </a>
+                                </li>
+                                <li class="{{ Request::is('dashboard/sales-quotations/create') ? 'active' : '' }}">
+                                    <a href="/dashboard/sales-quotations/create">
+                                        <i class="fa-solid fa-minus"></i><span>Add Sales Quotation</span>
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+
                         @if (isAdmin())
                         <li class="{{ Request::is('dashboard/order*') ? 'active' : '' }}">
                             <a href="#orders" class="collapsed {{ company()->plan == 1 ? 'no-collapsable' : '' }}"

@@ -248,6 +248,9 @@ class RepairsController extends Controller
                         elseif ($status == "Customer Pending") {
                             $n8nUrl = "https://vmi3085336.contaboserver.net/webhook/6dbdd7de-f70d-4a68-9bd2-fa9dd2d1cd78";
                         }
+                        elseif ($status == "Repaired") {
+                            $n8nUrl = "https://vmi3085336.contaboserver.net/webhook/88e2319b-a485-4e7e-a4a7-4e1927b1f3b3";
+                        }
 
                         $n8nRepair = Repairs::where('bill_no', $bill_no)->first();
 

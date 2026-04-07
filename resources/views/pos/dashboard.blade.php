@@ -298,6 +298,52 @@
                             </div>
                         </div>
                     </div>
+                    <div class="col-lg-12">
+                        <div class="card card-block card-stretch card-height">
+                            <div class="card-header d-flex align-items-center justify-content-between">
+                                <div class="header-title">
+                                    <h4 class="card-title">Pending Order Requests</h4>
+                                </div>
+                                <a href="/dashboard/order-requests">View all</a>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive rounded mb-3">
+                                    <table class="table mb-0 tbl-server-info">
+                                        <thead class="bg-white text-uppercase">
+                                            <tr class="ligth ligth-data">
+                                                <th class="text-start">Request ID</th>
+                                                <th class="text-start">Customer Name</th>
+                                                <th class="text-start">Customer Phone</th>
+                                                <th class="text-start">Products</th>
+                                                <th class="text-start">Date</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="ligth-body">
+                                            @if (isset($pendingOrderRequests) && $pendingOrderRequests->count() > 0)
+                                                @foreach ($pendingOrderRequests as $orItem)
+                                                    <tr>
+                                                        <td class="text-start">{{ $orItem->request_id }}</td>
+                                                        <td class="text-start">{{ $orItem->customer_name }}</td>
+                                                        <td class="text-start">{{ $orItem->customer_phone }}</td>
+                                                        <td class="text-start">
+                                                            @foreach ($orItem->products as $product)
+                                                                <span class="badge bg-light text-dark">ID: {{ $product['id'] }} x{{ $product['qty'] }}</span>
+                                                            @endforeach
+                                                        </td>
+                                                        <td class="text-start">{{ $orItem->created_at->format('Y-m-d H:i') }}</td>
+                                                    </tr>
+                                                @endforeach
+                                            @else
+                                                <tr>
+                                                    <td colspan="5" class="text-center">No pending order requests.</td>
+                                                </tr>
+                                            @endif
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                     <div class="col-lg-6">
                         <div class="card card-block card-stretch card-height">
                             <div class="card-header d-flex justify-content-between">

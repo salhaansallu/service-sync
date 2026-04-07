@@ -1197,6 +1197,9 @@ function generateInvoice($order_id, $inName, $bill_type)
     // $connector = new FilePrintConnector("/dev/usb/lp0");
     // $printer = new Printer($connector);
 
+    $order_id = is_array($order_id) ? $order_id[0] : $order_id;
+    $inName = empty($inName) ? $order_id."-Invoice-".date("d-m-Y-H-i-s")."-".rand(1111,99999).".pdf" : $inName;
+
     $pdf = new Dompdf();
     $pdf->setPaper("A4", "portrait");
     $pdf->loadHtml($html, 'UTF-8');
@@ -2892,6 +2895,138 @@ function generateQuotation($q_no, $filename = null)
     $path = public_path($filename);
     file_put_contents($path, $pdf->output());
     return (object)array('generated' => true, 'url' => $filename);
+}
+
+function generateSalesQuotation($sq_no, $filename = null)
+{
+    $company   = PosDataController::company();
+    $quotation = \App\Models\SalesQuotation::where('sq_no', $sq_no)
+        ->where('pos_code', $company->pos_code)
+        ->first();
+
+    if ($quotation == null) {
+        return null;
+    }
+
+    $userData   = getUserData($company->admin_id);
+    $headerLogo = '';
+    $headerLogoPath = public_path('assets/images/brand/logo.png');
+    if (file_exists($headerLogoPath)) {
+        $logoType   = pathinfo($headerLogoPath, PATHINFO_EXTENSION);
+        $logoData   = file_get_contents($headerLogoPath);
+        $headerLogo = 'data:image/' . $logoType . ';base64,' . base64_encode($logoData);
+    }
+
+    $items = is_array($quotation->items) ? $quotation->items : json_decode($quotation->items, true);
+
+    $itemRows = '';
+    foreach ($items as $item) {
+        $itemRows .= '
+            <tr>
+                <td style="padding:8px;border:1px solid #ddd;">' . htmlspecialchars($item['name']) . '</td>
+                <td style="padding:8px;border:1px solid #ddd;text-align:center;">' . $item['qty'] . '</td>
+                <td style="padding:8px;border:1px solid #ddd;text-align:right;">' . currency($item['unit_price'], $company->currency) . '</td>
+                <td style="padding:8px;border:1px solid #ddd;text-align:right;">' . currency($item['total'], $company->currency) . '</td>
+            </tr>';
+    }
+
+    $noteHtml = '';
+    if (!empty($quotation->note)) {
+        $noteHtml = '
+            <div style="margin-top:20px;padding:12px;background:#f9f9f9;border:1px solid #e0e0e0;border-radius:4px;">
+                <strong style="font-size:13px;">Note:</strong>
+                <p style="font-size:13px;color:#555;margin:6px 0 0;">' . nl2br(htmlspecialchars($quotation->note)) . '</p>
+            </div>';
+    }
+
+    $html = '
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <title>Sales Quotation ' . $sq_no . '</title>
+            <style>
+                @page { margin: 10px; width: 210mm; }
+                body { margin: 10px; font-family: Arial, sans-serif; }
+                table { border-collapse: collapse; }
+            </style>
+        </head>
+        <body style="padding:30px;box-sizing:border-box;">
+
+            <header style="margin-bottom:20px;">
+                <table style="width:100%;">
+                    <tr>
+                        <td style="width:45%;vertical-align:top;border-right:1px solid #cfcfcf;padding-right:14px;">
+                            ' . (!empty($headerLogo)
+                                ? '<img src="' . $headerLogo . '" style="height:72px;width:auto;">'
+                                : '<h2 style="margin:0;font-size:26px;letter-spacing:1px;">' . htmlspecialchars($company->company_name) . '</h2>') . '
+                        </td>
+                        <td style="vertical-align:top;padding-left:14px;font-size:12px;line-height:1.6;">
+                            <p style="margin:0;"><strong>' . htmlspecialchars($company->company_name) . '</strong></p>
+                            <p style="margin:0;"><strong>Address:</strong> ' . htmlspecialchars($userData->address) . '</p>
+                            <p style="margin:0;"><strong>Phone:</strong> ' . formatPhoneNumber($userData->phone) . '</p>
+                        </td>
+                    </tr>
+                </table>
+                <hr style="border:0;border-top:1px solid #cfcfcf;margin:12px 0 14px;">
+                <h1 style="margin:0;font-size:28px;text-align:center;letter-spacing:1px;font-family:Times New Roman,serif;">SALES QUOTATION</h1>
+            </header>
+
+            <section style="margin-bottom:20px;">
+                <table style="width:100%;">
+                    <tr>
+                        <td style="vertical-align:top;">
+                            <p style="font-size:13px;margin:4px 0;"><strong>Customer Name:</strong> ' . htmlspecialchars($quotation->customer_name) . '</p>
+                            <p style="font-size:13px;margin:4px 0;"><strong>Phone Number:</strong> ' . htmlspecialchars($quotation->customer_phone) . '</p>
+                            <p style="font-size:13px;margin:4px 0;"><strong>Quotation No:</strong> ' . $sq_no . '</p>
+                        </td>
+                        <td style="vertical-align:top;text-align:right;">
+                            <p style="font-size:13px;margin:4px 0;"><strong>Date:</strong> ' . date('Y-m-d', strtotime($quotation->created_at)) . '</p>
+                        </td>
+                    </tr>
+                </table>
+            </section>
+
+            <section style="margin-bottom:20px;">
+                <table style="width:100%;">
+                    <thead>
+                        <tr style="background-color:#f4f4f4;">
+                            <th style="text-align:left;padding:8px;border:1px solid #ddd;">Item Name</th>
+                            <th style="text-align:center;padding:8px;border:1px solid #ddd;width:80px;">Qty</th>
+                            <th style="text-align:right;padding:8px;border:1px solid #ddd;width:130px;">Unit Price</th>
+                            <th style="text-align:right;padding:8px;border:1px solid #ddd;width:130px;">Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ' . $itemRows . '
+                    </tbody>
+                </table>
+            </section>
+
+            <div style="text-align:right;font-size:16px;font-weight:bold;border-top:2px solid #333;padding-top:10px;">
+                Grand Total: ' . currency($quotation->total, $company->currency) . '
+            </div>
+
+            ' . $noteHtml . '
+
+            <footer style="text-align:center;font-size:12px;color:#777;margin-top:40px;border-top:1px solid #cfcfcf;padding-top:10px;">
+                <p>Thank you for choosing our services!</p>
+            </footer>
+
+        </body>
+        </html>
+    ';
+
+    if ($filename == null) {
+        $filename = '/quotations/' . str_replace([' ', '.', "'", '"'], ['', '', '', ''], $sq_no) . '-' . $company->pos_code . '.pdf';
+    }
+
+    $pdf = new Dompdf();
+    $pdf->setPaper('A4', 'portrait');
+    $pdf->loadHtml($html, 'UTF-8');
+    $pdf->render();
+    file_put_contents(public_path($filename), $pdf->output());
+    return (object)['generated' => true, 'url' => $filename];
 }
 
 function generateEmployeeExpenses($datas, $inName = 'employee-expenses.pdf')

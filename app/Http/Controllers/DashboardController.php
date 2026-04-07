@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Booking;
 use App\Models\Categories;
+use App\Models\OrderRequest;
+use App\Models\SalesQuotation;
 use App\Models\customers;
 use App\Models\employee_expenses;
 use App\Models\expenses;
@@ -153,8 +155,9 @@ class DashboardController extends Controller
 
             $bookings = Booking::where('status', 'pending')->orderBy('created_at', 'ASC')->limit(10)->get();
 
+            $pendingOrderRequests = OrderRequest::where('status', 'pending')->orderBy('created_at', 'DESC')->limit(10)->get();
 
-            return view('pos.dashboard')->with(['company' => $company, 'todaysales' => $todaysales, 'cost' => $cost, 'sales' => json_encode($sales), 'low_stock' => $low_stock, 'yearcost' => json_encode($yearcost), 'yearexpense' => json_encode($yearexpense), 'best_sellings' => $best_selling, 'todayRepairsIn'=>$todayRepairsIn, 'todayRepaired'=>$todayRepaired, 'todayRepairsOut'=>$todayRepairsOut, 'bookings' => $bookings]);
+            return view('pos.dashboard')->with(['company' => $company, 'todaysales' => $todaysales, 'cost' => $cost, 'sales' => json_encode($sales), 'low_stock' => $low_stock, 'yearcost' => json_encode($yearcost), 'yearexpense' => json_encode($yearexpense), 'best_sellings' => $best_selling, 'todayRepairsIn'=>$todayRepairsIn, 'todayRepaired'=>$todayRepaired, 'todayRepairsOut'=>$todayRepairsOut, 'bookings' => $bookings, 'pendingOrderRequests' => $pendingOrderRequests]);
         } else {
             return redirect('/account/overview');
         }
@@ -1038,6 +1041,47 @@ class DashboardController extends Controller
             return view('pos.category-sales', compact([
                 'productSales',
             ]));
+        }
+
+        return redirect('/signin');
+    }
+
+    public function listOrderRequests(Request $request)
+    {
+        login_redirect('/' . request()->path());
+
+        if (Auth::check() && isCashier()) {
+            if ($request->has('s')) {
+                $s = sanitize($request->input('s'));
+                $orderRequests = OrderRequest::where(function ($query) use ($s) {
+                        $query->where('request_id', 'LIKE', "%$s%")
+                            ->orWhere('customer_name', 'LIKE', "%$s%")
+                            ->orWhere('customer_phone', 'LIKE', "%$s%")
+                            ->orWhere('status', 'LIKE', "%$s%");
+                    })
+                    ->orderBy('created_at', 'DESC')
+                    ->paginate(10);
+            } else {
+                $orderRequests = OrderRequest::orderBy('created_at', 'DESC')
+                    ->paginate(10);
+            }
+
+            return view('pos.list-order-requests')->with(['orderRequests' => $orderRequests]);
+        }
+
+        return redirect('/signin');
+    }
+
+    public function listSalesQuotations()
+    {
+        login_redirect('/' . request()->path());
+
+        if (Auth::check() && isCashier()) {
+            $salesQuotations = SalesQuotation::where('pos_code', company()->pos_code)
+                ->orderBy('created_at', 'DESC')
+                ->get();
+
+            return view('pos.list-sales-quotations')->with(['salesQuotations' => $salesQuotations]);
         }
 
         return redirect('/signin');

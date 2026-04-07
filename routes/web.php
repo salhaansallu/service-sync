@@ -26,6 +26,7 @@ use App\Http\Controllers\ProductPurchasesController;
 use App\Http\Controllers\ProductsController;
 use App\Http\Controllers\PurchasesController;
 use App\Http\Controllers\QuotationsController;
+use App\Http\Controllers\SalesQuotationsController;
 use App\Http\Controllers\RepairsController;
 use App\Http\Controllers\ShippersController;
 use App\Http\Controllers\SMSController;
@@ -187,6 +188,8 @@ Route::prefix('dashboard')->group(function () {
     Route::post('booking/change-status', [BookingController::class, 'changeStatus']);
     Route::delete('/booking/delete', [BookingController::class, 'destroy']);
 
+    Route::get('order-requests', [DashboardController::class, 'listOrderRequests']);
+
     Route::get('repair-commissions/list/{id}', [UserDataController::class, 'listRepairCommision']);
     Route::get('repair-commissions/list', [UserDataController::class, 'listRepairCommisions']);
     Route::post('repair-commissions/update', [UserDataController::class, 'updateRepairCommisions']);
@@ -197,6 +200,14 @@ Route::prefix('dashboard')->group(function () {
     Route::get('/quotations/edit/{id}', [QuotationsController::class, 'edit']);
     Route::post('/quotations/edit', [QuotationsController::class, 'update']);
     Route::delete('/quotations/delete', [QuotationsController::class, 'destroy']);
+
+    Route::get('sales-quotations', [DashboardController::class, 'listSalesQuotations']);
+    Route::get('sales-quotations/create', [SalesQuotationsController::class, 'create']);
+    Route::post('sales-quotations/create', [SalesQuotationsController::class, 'store']);
+    Route::get('sales-quotations/edit/{id}', [SalesQuotationsController::class, 'edit']);
+    Route::post('sales-quotations/edit', [SalesQuotationsController::class, 'update']);
+    Route::delete('sales-quotations/delete', [SalesQuotationsController::class, 'destroy']);
+    Route::get('sales-quotations/pdf/{id}', [SalesQuotationsController::class, 'pdf']);
 
     Route::get('orders', [DashboardController::class, 'listOrders']);
     Route::get('/order/edit/{id}', [OrdersController::class, 'edit']);

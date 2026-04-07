@@ -131,7 +131,7 @@
                                 </div>
                                 <div class="row m-0 fw-semibold">
                                     <div class="col-4 col-lg-4 border-bottom py-2 text-danger">Service Parts Cost:</div>
-                                    <div class="col-4 col-lg-4 border-bottom py-2 text-end text-danger">{{ currency($spareCost, '') }}</div>
+                                    <div class="col-4 col-lg-4 border-bottom py-2 text-end text-danger">{{ currency($repairs->where('creditAmount', 0)->sum('cost'), '') }}</div>
                                 </div>
                                 <div class="row m-0 fw-semibold">
                                     <div class="col-4 col-lg-4 border-bottom py-2 text-danger">Commission:</div>
