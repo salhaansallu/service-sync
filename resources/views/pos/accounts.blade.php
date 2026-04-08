@@ -127,11 +127,11 @@
                             <div class="mt-5">
                                 <div class="row m-0 fw-semibold">
                                     <div class="col-4 col-lg-4 border-bottom py-2 text-success">Repair Sales:</div>
-                                    <div class="col-4 col-lg-4 border-bottom py-2 text-success text-end">{{ currency($repairs->where('creditAmount', 0)->sum('finaltotal'), '') }}</div>
+                                    <div class="col-4 col-lg-4 border-bottom py-2 text-success text-end">{{ currency($repairs->sum('finaltotal'), '') }}</div>
                                 </div>
                                 <div class="row m-0 fw-semibold">
                                     <div class="col-4 col-lg-4 border-bottom py-2 text-danger">Service Parts Cost:</div>
-                                    <div class="col-4 col-lg-4 border-bottom py-2 text-end text-danger">{{ currency($repairs->where('creditAmount', 0)->sum('cost'), '') }}</div>
+                                    <div class="col-4 col-lg-4 border-bottom py-2 text-end text-danger">{{ currency($repairs->sum('cost'), '') }}</div>
                                 </div>
                                 <div class="row m-0 fw-semibold">
                                     <div class="col-4 col-lg-4 border-bottom py-2 text-danger">Commission:</div>
