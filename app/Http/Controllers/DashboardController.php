@@ -837,6 +837,12 @@ class DashboardController extends Controller
             ->value('total');
 
             $repairs = Repairs::with('credit')->where('type', sanitize($type))->where('status', '!=', 'Pending')
+            ->where(function ($query) {
+                $query->whereNotNull('paid_at')
+                    ->orWhereHas('credit', function ($q) {
+                        $q->where('ammount', '>=', 0);
+                    });
+            })
             ->when($fromdate, function ($query) use ($fromdate){
                 $query->where(function ($query) use ($fromdate) {
                     $query->whereDate('paid_at', '>=', Carbon::parse($fromdate)->format('Y-m-d'))
@@ -911,7 +917,7 @@ class DashboardController extends Controller
 
                 $hasCredit = $repair->credit && $repair->credit->ammount > 0;
                 if ($hasCredit) {
-                    $repair->finaltotal -= $repair->credit->ammount;
+                    //$repair->finaltotal -= $repair->credit->ammount;
                     $repair->creditAmount = $repair->credit->ammount;
                 }
 
@@ -932,7 +938,7 @@ class DashboardController extends Controller
                 $repair->creditAmount = 0;
 
                 if ($repair->credit && $repair->credit->ammount > 0) {
-                    $repair->finaltotal -= $repair->credit->ammount;
+                    //$repair->finaltotal -= $repair->credit->ammount;
                     $repair->creditAmount = $repair->credit->ammount;
                 }
 
@@ -946,7 +952,7 @@ class DashboardController extends Controller
                 $repair->creditAmount = 0;
 
                 if ($repair->credit && $repair->credit->ammount > 0) {
-                    $repair->finaltotal -= $repair->credit->ammount;
+                    //$repair->finaltotal -= $repair->credit->ammount;
                     $repair->creditAmount = $repair->credit->ammount;
                 }
 
