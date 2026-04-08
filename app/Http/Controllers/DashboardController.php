@@ -837,27 +837,12 @@ class DashboardController extends Controller
             ->value('total');
 
             $repairs = Repairs::with('credit')->where('type', sanitize($type))->where('status', '!=', 'Pending')
-            ->where(function ($query) {
-                $query->whereNotNull('paid_at')
-                    ->orWhereHas('credit', function ($q) {
-                        $q->where('ammount', '>=', 0);
-                    });
-            })
+            ->whereNotNull('paid_at')
             ->when($fromdate, function ($query) use ($fromdate){
-                $query->where(function ($query) use ($fromdate) {
-                    $query->whereDate('paid_at', '>=', Carbon::parse($fromdate)->format('Y-m-d'))
-                    ->orWhereHas('credit', function ($query) use ($fromdate) {
-                        $query->whereDate('updated_at', '>=', Carbon::parse($fromdate)->format('Y-m-d'));
-                    });
-                });
+                $query->whereDate('paid_at', '>=', Carbon::parse($fromdate)->format('Y-m-d'));
             })
             ->when($todate, function ($query) use ($todate){
-                $query->where(function ($query) use ($todate) {
-                    $query->whereDate('paid_at', '<=', Carbon::parse($todate)->format('Y-m-d'))
-                    ->orWhereHas('credit', function ($query) use ($todate) {
-                        $query->whereDate('updated_at', '<=', Carbon::parse($todate)->format('Y-m-d'));
-                    });
-                });
+                $query->whereDate('paid_at', '<=', Carbon::parse($todate)->format('Y-m-d'));
             })->get();
 
             $tvRepairs = Repairs::with('credit')->where('type','repair')->where('status', '!=', 'Pending')
