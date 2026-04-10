@@ -902,7 +902,7 @@ class DashboardController extends Controller
 
                 $hasCredit = $repair->credit && $repair->credit->ammount > 0;
                 if ($hasCredit) {
-                    //$repair->finaltotal -= $repair->credit->ammount;
+                    $repair->finaltotal -= $repair->credit->ammount;
                     $repair->creditAmount = $repair->credit->ammount;
                 }
 
@@ -923,7 +923,7 @@ class DashboardController extends Controller
                 $repair->creditAmount = 0;
 
                 if ($repair->credit && $repair->credit->ammount > 0) {
-                    //$repair->finaltotal -= $repair->credit->ammount;
+                    $repair->finaltotal -= $repair->credit->ammount;
                     $repair->creditAmount = $repair->credit->ammount;
                 }
 
@@ -937,7 +937,7 @@ class DashboardController extends Controller
                 $repair->creditAmount = 0;
 
                 if ($repair->credit && $repair->credit->ammount > 0) {
-                    //$repair->finaltotal -= $repair->credit->ammount;
+                    $repair->finaltotal -= $repair->credit->ammount;
                     $repair->creditAmount = $repair->credit->ammount;
                 }
 
