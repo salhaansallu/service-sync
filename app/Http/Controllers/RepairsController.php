@@ -902,7 +902,7 @@ class RepairsController extends Controller
             $qry->where('type', '=', $typeArr[$type]);
         }
 
-        $qry->whereDate('repairs.created_at', '>=', now()->subMonths(5));
+        $qry->whereDate('repairs.created_at', '>=', now()->subMonths(12));
 
         // --------------------------------
         // Fetch results
