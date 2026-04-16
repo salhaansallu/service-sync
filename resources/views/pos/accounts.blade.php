@@ -45,6 +45,7 @@
                                     <th class="text-start">Commission</th>
                                     <th class="text-start">Cost</th>
                                     <th class="text-start">Total</th>
+                                    <th class="text-start">Action</th>
                                 </tr>
                             </thead>
                             <tbody class="ligth-body">
@@ -60,6 +61,13 @@
                                         <td class="text-start">{{ currency($item->commission, '') }}</td>
                                         <td class="text-start">{{ currency($item->cost + $item->commission, '') }}</td>
                                         <td class="text-start">{{ currency($item->finaltotal, '') }}</td>
+                                        <td class="text-start">
+                                            @if ($item->paid_at != null)
+                                                <button type="button" id="paid_btn" data-id="{{ $item->id }}" data-status="unpaid" class="btn btn-sm btn-danger mr-2">Mark as Unpaid</button>
+                                            @else
+                                                <button type="button" id="paid_btn" data-id="{{ $item->id }}" data-status="paid" class="btn btn-sm btn-success mr-2">Mark as Paid</button>
+                                            @endif
+                                        </td>
                                     </tr>
                                 @endif
                                 @endforeach
@@ -90,6 +98,7 @@
                                     <th class="text-start">Cost</th>
                                     <th class="text-start">Total</th>
                                     <th class="text-start">Credit</th>
+                                    <th class="text-start">Action</th>
                                 </tr>
                             </thead>
                             <tbody class="ligth-body">
@@ -106,6 +115,13 @@
                                         <td class="text-start">{{ currency($item->cost + $item->commission, '') }}</td>
                                         <td class="text-start">{{ currency($item->finaltotal, '') }}</td>
                                         <td class="text-start">{{ currency($item->creditAmount, '') }}</td>
+                                        <td class="text-start">
+                                            @if ($item->paid_at != null)
+                                                <button type="button" id="paid_btn" data-id="{{ $item->id }}" data-status="unpaid" class="btn btn-sm btn-danger mr-2">Mark as Unpaid</button>
+                                            @else
+                                                <button type="button" id="paid_btn" data-id="{{ $item->id }}" data-status="paid" class="btn btn-sm btn-success mr-2">Mark as Paid</button>
+                                            @endif
+                                        </td>
                                     </tr>
                                 @endif
                                 @endforeach
@@ -312,6 +328,35 @@
 
                 // Optional: Reload scripts or event bindings if needed
                 location.reload();
+            });
+
+            $("#paid_btn").click(function(e) {
+                e.preventDefault();
+
+                var formData = new FormData($("#repairsCreate")[0]);
+                formData.append('status', $(this).data('status'));
+                formData.append('modelid', $(this).data('id'));
+                formData.append('_token', '{{ csrf_token() }}');
+                $('#paid_btn').prop('disabled', true);
+                $.ajax({
+                    type: "post",
+                    url: '/dashboard/repairs/mark-paid',
+                    data: formData,
+                    dataType: "json",
+                    contentType: false,
+                    processData: false,
+
+                    success: function(response) {
+                        if (response.error == 0) {
+                            toastr.success(response.msg, 'Success');
+                            location.reload();
+                        } else {
+                            toastr.error(response.msg, 'Error');
+                        }
+                    }
+                });
+
+                $('#paid_btn').prop('disabled', false);
             });
 
         });
