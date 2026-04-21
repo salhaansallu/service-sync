@@ -832,7 +832,7 @@ import sale_pos from './sale_pos.vue';
 import SignaturePad from 'signature_pad'
 
 export default {
-    props: ['app_url'],
+    props: ['app_url', 'third_party_token'],
     components: {
         sale_pos
     },
@@ -1080,6 +1080,22 @@ export default {
         async getSpares() {
             const { data } = await axios.post("/other-pos/get_spares");
             this.Spares = data;
+            const token = this.third_party_token;
+            const { data: fixaiproducts } = await axios.get("https://fixai.wefixservers.xyz/api/products",
+                {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                }
+            );
+
+            if (fixaiproducts.error == 0) {
+                fixaiproducts.data.forEach(pro => {
+                    pro['source'] = '3rd_party';
+                    pro['id'] = 'fixai_temp_' + pro['id'];
+                    this.Spares.push(pro);
+                });
+            }
         },
         filterCustomer(e, field) {
             var key = e.target.value;
@@ -1439,12 +1455,13 @@ export default {
                             var pro = this.Spares.filter(item => item['id'] == this.$refs["finish_spare_" + i][0].value);
                             if (pro.length > 0) {
                                 name = pro[0]['pro_name'];
-                                cost = pro[0]['cost'];
+                                cost = pro[0]?.source == '3rd_party' ? pro[0]['price'] : pro[0]['cost'];
                             }
 
                             sparePro.push({
                                 pro_name: name,
                                 cost: cost,
+                                source: pro[0]?.source == '3rd_party' ? pro[0]['source'] : '',
                                 id: this.$refs["finish_spare_" + i][0].value,
                                 qty: this.$refs["qty_finish_spare_" + i][0].value,
                             });

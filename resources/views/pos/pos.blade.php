@@ -43,7 +43,7 @@
 
 <body>
     <div id="pos-elem">
-        <pos v-bind:app_url="'{{ env('app.url').'/assets/images/' }}'" />
+        <pos v-bind:app_url="'{{ env('app.url').'/assets/images/' }}'" v-bind:third_party_token="'{{ env('THIRD_PARTY_APPLICATION_TOKEN') }}'" />
     </div>
 </body>
 

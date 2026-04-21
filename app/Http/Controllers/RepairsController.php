@@ -138,6 +138,7 @@ class RepairsController extends Controller
             $parts = [];
             $customerData = [];
             $cost = 0;
+            $third_party_products = [];
 
             if ($status == "Awaiting Parts") {
                 foreach ($bills as $key => $bill_no) {
@@ -216,6 +217,13 @@ class RepairsController extends Controller
 
                         $cost += (float)$value['cost'] * (float)$value['qty'];
                         $parts[] = $value['id'];
+
+                        if (str_contains($value['id'], 'fixai')) {
+                            $third_party_products[] = [
+                                "id" => str_replace('fixai_temp_', '', $value['id']),
+                                "qty" => $value['qty']
+                            ];
+                        }
                     }
                 }
 
@@ -244,11 +252,9 @@ class RepairsController extends Controller
 
                         if ($status == "Return") {
                             $n8nUrl = "https://vmi3085336.contaboserver.net/webhook/3c2beb48-d0c9-49bc-85ef-ba456e1b33be";
-                        }
-                        elseif ($status == "Customer Pending") {
+                        } elseif ($status == "Customer Pending") {
                             $n8nUrl = "https://vmi3085336.contaboserver.net/webhook/6dbdd7de-f70d-4a68-9bd2-fa9dd2d1cd78";
-                        }
-                        elseif ($status == "Repaired") {
+                        } elseif ($status == "Repaired") {
                             $n8nUrl = "https://vmi3085336.contaboserver.net/webhook/88e2319b-a485-4e7e-a4a7-4e1927b1f3b3";
                         }
 
@@ -311,6 +317,27 @@ class RepairsController extends Controller
 
                     generateInvoice($bill_no, str_replace(['checkout/', 'newOrder/'], ['', ''], $update->get()[0]["invoice"]), 'newOrder');
                     generateThermalInvoice($bill_no, str_replace('Invoice', 'Thermal-invoice', str_replace(['checkout/', 'newOrder/'], ['', ''], $update->get()[0]["invoice"])), 'newOrder');
+
+                    if (is_array($third_party_products) && count($third_party_products) > 0) {
+                        try {
+                            $thirdPartyToken = env('THIRD_PARTY_APPLICATION_TOKEN');
+                            $response = Http::withHeaders([
+                                'Authorization' => 'Bearer ' . $thirdPartyToken,
+                            ])->post('https://fixai.wefixservers.xyz/api/bill-products', [
+                                'products' => $third_party_products,
+                            ]);
+
+                            // if ($response->successful()) {
+                            //     dd($response->body());
+                            // }
+
+                            // if ($response->failed()) {
+                            //     dd($response->body());
+                            // }
+                        } catch (\Exception $e) {
+                            //Log::error('Third party API error: ' . $e->getMessage());
+                        }
+                    }
                 }
             }
 
@@ -1032,5 +1059,4 @@ class RepairsController extends Controller
             ], 500);
         }
     }
-
 }
