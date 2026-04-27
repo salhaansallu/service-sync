@@ -618,7 +618,7 @@
                                                         {{ formatSpareLabel(spare) }}
                                                     </option>
                                                 </optgroup>
-                                                <optgroup label="3rd party spares" v-if="thirdPartySpares.length">
+                                                <optgroup label="Fix AI spares" v-if="thirdPartySpares.length">
                                                     <option v-for="spare in thirdPartySpares" :key="spare.id" :value="spare.id">
                                                         {{ formatSpareLabel(spare) }}
                                                     </option>
@@ -964,7 +964,7 @@ export default {
         reformatPhoneNumbers,
         isNumber,
         formatSpareLabel(spare) {
-            return spare.pro_name + (spare.source === '3rd_party' ? ' (3rd party)' : '');
+            return spare.pro_name + (spare.source === '3rd_party' ? ' (Fix AI)' : '');
         },
         openMenu(menuID) {
             $('#' + menuID).toggle();
