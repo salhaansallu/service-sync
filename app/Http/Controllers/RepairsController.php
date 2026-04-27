@@ -641,6 +641,7 @@ class RepairsController extends Controller
     {
         if (Auth::check() && isCashier()) {
             $id = sanitize($request->input('modelid'));
+            $move_type = sanitize($request->input('move_type'));
             $model_no = sanitize($request->input('model_no'));
             $serial_no = sanitize($request->input('serial_no'));
             $fault = sanitize($request->input('fault'));
@@ -704,6 +705,7 @@ class RepairsController extends Controller
                 "spares" => json_encode($spares),
                 "status" => $status,
                 "warranty" => $warranty,
+                "type" => $move_type,
                 "updated_at" => date('Y-m-d H:i:s'),
             ]);
 

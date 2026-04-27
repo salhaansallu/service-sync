@@ -15,6 +15,7 @@
                             <form id="repairsCreate" action="" data-toggle="validator" onsubmit="return false;">
                                 @csrf
                                 <input type="hidden" name="modelid" value="{{ $repairs->id }}">
+                                <input type="hidden" name="move_type" id="move_type" value="">
 
                                 <div class="row">
                                     <div class="col-md-6">
@@ -183,12 +184,13 @@
                                         </div>
                                     </div>
                                 </div>
-                                <button type="submit" id="save_btn" class="btn btn-primary mr-2">Update</button>
+                                <button type="submit" id="update_btn" class="btn btn-primary mr-2">Update</button>
                                 @if ($repairs->paid_at != null)
                                     <button type="button" id="paid_btn" data-status="unpaid" class="btn btn-danger mr-2">Mark as Unpaid</button>
                                 @else
                                     <button type="button" id="paid_btn" data-status="paid" class="btn btn-success mr-2">Mark as Paid</button>
                                 @endif
+                                <button type="button" id="move_btn" class="btn btn-info mr-2" data-move-to-type="{{ $repairs->type == 'repair' ? 'other' : 'repair' }}">Move To {{ $repairs->type == 'repair' ? 'Other Repair' : 'TV Repair' }}</button>
                             </form>
                         </div>
                     </div>
@@ -199,11 +201,18 @@
     </div>
 
     <script>
+        $("#move_btn").click(function(e) {
+            e.preventDefault();
+            var moveType = $(this).data('move-to-type');
+            $('#move_type').val(moveType);
+            $('#repairsCreate').submit();
+        });
+
         $("#repairsCreate").submit(function(e) {
             e.preventDefault();
 
             var formData = new FormData(this);
-            $('#save_btn').prop('disabled', true);
+            $('button[type=submit]', this).prop('disabled', true);
             $.ajax({
                 type: "post",
                 url: '/dashboard/repairs/edit',
@@ -217,7 +226,7 @@
                         toastr.success(response.msg, 'Success');
                         setInterval(() => {
                             location.reload();
-                        }, 3000);
+                        }, 2000);
                     } else {
                         toastr.error(response.msg, 'Error');
                     }

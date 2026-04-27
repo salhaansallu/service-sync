@@ -613,8 +613,16 @@
                                             <select :ref="'finish_spare_' + spare" :name="'finish_spare_' + spare"
                                                 class="select2-multiple">
                                                 <option value="">-- Select spare --</option>
-                                                <option v-for="spare in Spares" :value="spare.id">{{ spare.pro_name }}
-                                                </option>
+                                                <optgroup label="Own spares" v-if="internalSpares.length">
+                                                    <option v-for="spare in internalSpares" :key="spare.id" :value="spare.id">
+                                                        {{ formatSpareLabel(spare) }}
+                                                    </option>
+                                                </optgroup>
+                                                <optgroup label="3rd party spares" v-if="thirdPartySpares.length">
+                                                    <option v-for="spare in thirdPartySpares" :key="spare.id" :value="spare.id">
+                                                        {{ formatSpareLabel(spare) }}
+                                                    </option>
+                                                </optgroup>
                                             </select>
                                         </div>
                                         <div class="col-3">
@@ -942,11 +950,22 @@ export default {
             whatsappStatuses: {},
         }
     },
+    computed: {
+        internalSpares() {
+            return this.Spares.filter(spare => spare.source !== '3rd_party');
+        },
+        thirdPartySpares() {
+            return this.Spares.filter(spare => spare.source === '3rd_party');
+        },
+    },
     methods: {
         currency,
         printJS,
         reformatPhoneNumbers,
         isNumber,
+        formatSpareLabel(spare) {
+            return spare.pro_name + (spare.source === '3rd_party' ? ' (3rd party)' : '');
+        },
         openMenu(menuID) {
             $('#' + menuID).toggle();
         },

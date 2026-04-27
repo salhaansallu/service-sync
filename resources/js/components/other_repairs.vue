@@ -560,8 +560,16 @@
                                             <select :ref="'finish_spare_' + spare" :name="'finish_spare_' + spare"
                                                 class="select2-multiple">
                                                 <option value="">-- Select spare --</option>
-                                                <option v-for="spare in Spares" :value="spare.id">{{ spare.pro_name }}
-                                                </option>
+                                                <optgroup label="Own spares" v-if="internalSpares.length">
+                                                    <option v-for="spare in internalSpares" :key="spare.id" :value="spare.id">
+                                                        {{ formatSpareLabel(spare) }}
+                                                    </option>
+                                                </optgroup>
+                                                <optgroup label="Fix AI spares" v-if="thirdPartySpares.length">
+                                                    <option v-for="spare in thirdPartySpares" :key="spare.id" :value="spare.id">
+                                                        {{ formatSpareLabel(spare) }}
+                                                    </option>
+                                                </optgroup>
                                             </select>
                                         </div>
                                         <div class="col-3">
@@ -862,11 +870,22 @@ export default {
             whatsappStatuses: {},
         }
     },
+    computed: {
+        internalSpares() {
+            return this.Spares.filter(spare => spare.source !== '3rd_party');
+        },
+        thirdPartySpares() {
+            return this.Spares.filter(spare => spare.source === '3rd_party');
+        },
+    },
     methods: {
         currency,
         printJS,
         reformatPhoneNumbers,
         isNumber,
+        formatSpareLabel(spare) {
+            return spare.pro_name + (spare.source === '3rd_party' ? ' (Fix AI)' : '');
+        },
         async fetchWhatsappStatuses() {
             if (this.repairs.length === 0) return;
             const billNos = this.repairs.map(r => r.bill_no);
