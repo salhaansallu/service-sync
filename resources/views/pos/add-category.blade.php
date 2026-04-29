@@ -15,7 +15,7 @@
                             <form id="repairsCreate" action="" data-toggle="validator" onsubmit="return false;">
                                 @csrf
                                 <input type="hidden" name="modelid" value="{{ $repairs->id }}">
-                                <input type="hidden" name="move_type" id="move_type" value="">
+                                <input type="hidden" name="move_type" id="move_type" value="{{ $repairs->type }}">
 
                                 <div class="row">
                                     <div class="col-md-6">
