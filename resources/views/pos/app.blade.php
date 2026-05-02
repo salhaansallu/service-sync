@@ -214,6 +214,11 @@
                                         <i class="fa-solid fa-minus"></i><span>List Other Repairs</span>
                                     </a>
                                 </li>
+                                <li class="{{ Request::is('dashboard/repairs/third-party-returns') ? 'active' : '' }}">
+                                    <a href="/dashboard/repairs/third-party-returns">
+                                        <i class="fa-solid fa-minus"></i><span>3rd Party Returns</span>
+                                    </a>
+                                </li>
                             </ul>
                         </li>
 

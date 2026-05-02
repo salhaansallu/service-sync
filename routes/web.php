@@ -179,6 +179,9 @@ Route::prefix('dashboard')->group(function () {
 
     Route::get('repairs', [DashboardController::class, 'listrepairs']);
     Route::get('repairs/other-repairs', [DashboardController::class, 'listrepairs']);
+    Route::get('repairs/third-party-returns', [RepairsController::class, 'thirdPartyReturnsView']);
+    Route::post('repairs/third-party-returns/products', [RepairsController::class, 'getThirdPartyProducts']);
+    Route::post('repairs/third-party-returns/submit', [RepairsController::class, 'submitThirdPartyReturn']);
     Route::post('/repairs/mark-paid', [RepairsController::class, 'markPaid']);
     Route::get('/repairs/edit/{id}', [RepairsController::class, 'edit']);
     Route::post('/repairs/edit', [RepairsController::class, 'update']);

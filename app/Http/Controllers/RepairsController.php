@@ -48,6 +48,159 @@ class RepairsController extends Controller
         }
     }
 
+    public function thirdPartyReturnsView()
+    {
+        login_redirect('/' . request()->path());
+
+        if (Auth::check() && isCashier()) {
+            return view('pos.third-party-returns');
+        }
+
+        return redirect('/signin');
+    }
+
+    public function getThirdPartyProducts()
+    {
+        if (!(Auth::check() && isCashier())) {
+            return response()->json([
+                'error' => 1,
+                'msg' => 'Not logged in',
+            ], 401);
+        }
+
+        $thirdPartyToken = env('THIRD_PARTY_APPLICATION_TOKEN');
+        if (empty($thirdPartyToken)) {
+            return response()->json([
+                'error' => 1,
+                'msg' => 'Third party token is not configured',
+            ], 500);
+        }
+
+        try {
+            $response = Http::withHeaders([
+                'Authorization' => 'Bearer ' . $thirdPartyToken,
+            ])->get('https://fixai.wefixservers.xyz/api/products');
+
+            if ($response->failed()) {
+                $payload = $response->json();
+
+                return response()->json([
+                    'error' => 1,
+                    'msg' => is_array($payload) && isset($payload['msg']) ? $payload['msg'] : 'Failed to load third party products',
+                ], $response->status());
+            }
+
+            $payload = $response->json();
+            if (is_array($payload) && isset($payload['error']) && (string) $payload['error'] !== '0') {
+                return response()->json([
+                    'error' => 1,
+                    'msg' => isset($payload['msg']) ? $payload['msg'] : 'Failed to load third party products',
+                    'data' => isset($payload['data']) ? $payload['data'] : [],
+                ], 422);
+            }
+
+            $products = is_array($payload) && isset($payload['data']) && is_array($payload['data'])
+                ? $payload['data']
+                : (is_array($payload) ? $payload : []);
+
+            return response()->json([
+                'error' => 0,
+                'data' => $products,
+                'msg' => is_array($payload) && isset($payload['msg']) ? $payload['msg'] : 'Products loaded successfully',
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 1,
+                'msg' => 'Unable to connect to third party products API',
+            ], 500);
+        }
+    }
+
+    public function submitThirdPartyReturn(Request $request)
+    {
+        if (!(Auth::check() && isCashier())) {
+            return response()->json([
+                'error' => 1,
+                'msg' => 'Not logged in',
+            ], 401);
+        }
+
+        $thirdPartyToken = env('THIRD_PARTY_APPLICATION_TOKEN');
+        if (empty($thirdPartyToken)) {
+            return response()->json([
+                'error' => 1,
+                'msg' => 'Third party token is not configured',
+            ], 500);
+        }
+
+        $submittedProducts = $request->input('products', []);
+        if (!is_array($submittedProducts) || count($submittedProducts) === 0) {
+            return response()->json([
+                'error' => 1,
+                'msg' => 'Please add at least one product return',
+            ], 422);
+        }
+
+        $products = [];
+
+        foreach ($submittedProducts as $item) {
+            if (!is_array($item)) {
+                continue;
+            }
+
+            $id = isset($item['id']) ? trim((string) $item['id']) : '';
+            $qty = isset($item['qty']) ? $item['qty'] : null;
+
+            if ($id === '' || !is_numeric($qty)) {
+                return response()->json([
+                    'error' => 1,
+                    'msg' => 'Each return item must have a valid product',
+                ], 422);
+            }
+
+            $products[] = [
+                'id' => is_numeric($id) ? (int) $id : $id,
+                'qty' => (float) $qty,
+            ];
+        }
+
+        if (count($products) === 0) {
+            return response()->json([
+                'error' => 1,
+                'msg' => 'Please add at least one valid product return',
+            ], 422);
+        }
+
+        try {
+            $response = Http::withHeaders([
+                'Authorization' => 'Bearer ' . $thirdPartyToken,
+            ])->post('https://fixai.wefixservers.xyz/api/return-bill-products', [
+                'products' => $products,
+            ]);
+
+            $payload = $response->json();
+
+            if ($response->failed()) {
+                return response()->json([
+                    'error' => 1,
+                    'msg' => is_array($payload) && isset($payload['msg']) ? $payload['msg'] : 'Failed to submit third party return',
+                    'data' => $payload,
+                ], $response->status());
+            }
+
+            return response()->json([
+                'error' => is_array($payload) && isset($payload['error']) ? $payload['error'] : 0,
+                'msg' => is_array($payload) && isset($payload['msg']) ? $payload['msg'] : 'Third party return submitted successfully',
+                'data' => is_array($payload) && isset($payload['data']) ? $payload['data'] : $payload,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 1,
+                'msg' => 'Unable to connect to third party return API',
+            ], 500);
+        }
+    }
+
     public function reServiceList($bill_no = null)
     {
         if (Auth::check() && DashboardController::check(true)) {
