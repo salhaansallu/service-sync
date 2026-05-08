@@ -42,7 +42,6 @@ class BookingController extends Controller
         $validator = Validator::make($input, [
             'address'          => 'required|string',
             'phone'            => 'required|string|max:20',
-            'pickupOption'     => 'required|in:pickup,drop-off',
             'customerName'     => 'required|string|max:255',
         ]);
 
