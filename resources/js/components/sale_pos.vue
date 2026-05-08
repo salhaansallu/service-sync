@@ -16,7 +16,7 @@
                 </div>
                 <div :class="'product ' + pro['status']" v-for="pro in products" :ref="pro['sku']">
                     <div class="img" @click="selectProduct(pro['sku'])">
-                        <img :src="'/assets/images/products/' + pro['pro_image']" alt="">
+                        <img :src="productImage(pro)" alt="">
                     </div>
                     <div class="name" @click="selectProduct(pro['sku'])">{{ pro['pro_name'] }}</div>
                     <div class="sku" @click="selectProduct(pro['sku'])">Code: {{ pro['sku'] }} | QTY: {{ pro['qty'] }}</div>
@@ -45,7 +45,7 @@
                     <div class="row m-0">
                         <div class="col col-10">
                             <div class="orderlist">
-                                <img :src="'/assets/images/products/' + order['pro_image']" alt="">
+                                <img :src="productImage(order)" alt="">
                                 <div class="dtl">
                                     <div class="name">{{ order['pro_name'] }}</div>
                                     <div class="price"><input type="text" class="price border-0 w-100 text-primary" @change="productPriceChange($event, order['sku'])" style="background: none; outline: none;" :value="currency(parseFloat(order['price']), '')"></div>
@@ -249,7 +249,7 @@ import axios from 'axios';
 import printJS from 'print-js';
 
 export default {
-    props: ['app_url'],
+    props: ['app_url', 'third_party_token'],
     data() {
         return {
             name: 'pos',
@@ -276,6 +276,13 @@ export default {
         loadModal(action) {
             $("#loadingModal").modal(action);
         },
+        productImage(product) {
+            if (product['pro_image'] && /^https?:\/\//.test(product['pro_image'])) {
+                return product['pro_image'];
+            }
+
+            return '/assets/images/products/' + (product['pro_image'] || 'placeholder.svg');
+        },
         async getPosData() {
             const { data } = await axios.post("/pos/pos_data");
             this.posData = data;
@@ -287,7 +294,30 @@ export default {
         async getProducts() {
             const { data } = await axios.post("/pos/get_spares");
             this.products = data;
-            this.proBackup = data;
+
+            try {
+                const token = this.third_party_token;
+                if (token) {
+                    const { data: fixaiproducts } = await axios.get("https://fixai.wefixservers.xyz/api/products", {
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    });
+
+                    if (fixaiproducts.error == 0) {
+                        fixaiproducts.data.forEach(pro => {
+                            pro['source'] = '3rd_party';
+                            pro['id'] = 'fixai_temp_' + pro['id'];
+                            pro['pro_image'] = pro['pro_image'] || 'placeholder.svg';
+                            this.products.push(pro);
+                        });
+                    }
+                }
+            } catch (error) {
+                console.error('Failed to load third party products', error);
+            }
+
+            this.proBackup = [...this.products];
             this.tempProducts = this.proBackup
         },
         async getCustomers() {
@@ -387,9 +417,11 @@ export default {
                         element["status"] = "active";
                         temp_pro['pro_name'] = element['pro_name'];
                         temp_pro['pro_image'] = element['pro_image'];
+                        temp_pro['id'] = element['id'];
                         temp_pro['sku'] = element['sku'];
                         temp_pro['price'] = element['price'];
                         temp_pro['cost'] = element['cost'];
+                        temp_pro['source'] = element['source'] || 'local';
                         temp_pro['qty'] = 1;
                         temp_pro['discount'] = 0;
                         temp_pro['discounted_price'] = 0;
@@ -475,6 +507,7 @@ export default {
                 temp_pro['sku'] = "temp-"+rand;
                 temp_pro['price'] = parseFloat(price);
                 temp_pro['cost'] = parseFloat(cost);
+                temp_pro['source'] = 'temp';
                 temp_pro['qty'] = 1;
                 temp_pro['discount'] = 0;
                 temp_pro['discounted_price'] = 0;
@@ -570,12 +603,13 @@ export default {
                 this.selectedProduct.forEach(arr => {
                     parseFloat(cost += arr['cost'] * arr['qty']);
                     product.push({
-                        id: arr['sku'],
+                        id: arr['id'] ?? arr['sku'],
                         pro_name: arr['pro_name'],
                         sku: arr['sku'],
                         price: arr['price'],
                         cost: arr['cost'],
                         qty: arr['qty'],
+                        source: arr['source'] || 'local',
                     });
                 });
 

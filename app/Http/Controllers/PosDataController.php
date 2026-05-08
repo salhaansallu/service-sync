@@ -284,14 +284,39 @@ class PosDataController extends Controller
             $cost = 0;
             $parts = [];
             $invoice_pro = [];
+            $third_party_products = [];
 
             if ($sale_type != "online" && $sale_type != "instore") {
                 return response(json_encode(array("error" => 1, "msg" => "Invalid Sale Type")));
             }
 
             foreach ($spares as $key => $value) {
-                $stock = Products::where('sku', $value['id'])->first();
-                if ($stock != null) {
+                $isThirdPartyProduct = (isset($value['source']) && $value['source'] === '3rd_party') || (isset($value['id']) && str_contains((string)$value['id'], 'fixai_temp_'));
+
+                if ($isThirdPartyProduct) {
+                    $cost += (float)$value['cost'] * (float)$value['qty'];
+                    $total += (float)$value['price'] * (float)$value['qty'];
+                    $parts[] = $value['id'];
+                    $invoice_pro[] = array(
+                        "name" => $value['pro_name'],
+                        "unit" => $value['price'],
+                        "cost" => $value['cost'],
+                        "qty" => $value['qty'],
+                        "sku" => $value['sku'],
+                        "id" => $value['id'],
+                    );
+                    $third_party_products[] = [
+                        "id" => str_replace('fixai_temp_', '', $value['id']),
+                        "qty" => $value['qty'],
+                        "price" => $value['price'],
+                        "sku" => $value['sku'],
+                        "name" => $value['pro_name'],
+                    ];
+                } else {
+                    $stock = Products::where('id', $value['id'])->orWhere('sku', $value['sku'])->first();
+                }
+
+                if (!$isThirdPartyProduct && $stock != null) {
                     $stock->qty = (float)$stock->qty - (float)$value['qty'];
                     $stock->save();
                     $cost += (float)$stock->cost * (float)$value['qty'];
@@ -306,7 +331,7 @@ class PosDataController extends Controller
                         "sku" => $stock->sku,
                         "id" => $stock->id,
                     );
-                } else {
+                } elseif (!$isThirdPartyProduct) {
                     $cost += (float)$value['cost'] * (float)$value['qty'];
                     $total += (float)$value['price'] * (float)$value['qty'];
                     $parts[] = $value['id'];
@@ -365,6 +390,24 @@ class PosDataController extends Controller
 
                 $generate_invoice = generateSalesInvoice($bill_no, $inName, $invoice_pro, $cashin);
                 $generate_thermal_invoice = generateThermalSalesInvoice($bill_no, $ThermalInName, json_encode($invoice_pro), $cashin);
+
+                if (is_array($third_party_products) && count($third_party_products) > 0) {
+                    try {
+                        $thirdPartyToken = env('THIRD_PARTY_APPLICATION_TOKEN');
+                        Http::withHeaders([
+                            'Authorization' => 'Bearer ' . $thirdPartyToken,
+                        ])->post(env('THIRD_PARTY_SALES_API_URL', 'https://fixai.wefixservers.xyz/api/sales'), [
+                            'bill_no' => $bill_no,
+                            'sale_type' => $sale_type,
+                            'customer' => $customer,
+                            'cashin' => $cashin,
+                            'total' => $total,
+                            'products' => $third_party_products,
+                        ]);
+                    } catch (\Exception $e) {
+                        //Log::error('Third party sales API error: ' . $e->getMessage());
+                    }
+                }
 
                 if ($generate_invoice->generated == true) {
 

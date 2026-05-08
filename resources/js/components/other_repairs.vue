@@ -822,7 +822,7 @@
                             </div>
                         </div>
                     </div>
-                    <sale_pos />
+                    <sale_pos :app_url="app_url" :third_party_token="third_party_token" />
                 </div>
             </div>
         </div>
