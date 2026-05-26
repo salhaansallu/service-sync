@@ -203,7 +203,7 @@
             <div class="total bg-grey">
                 <div class="row row-cols-2">
                     <div class="col">
-                        Warranty
+                        Parts Warranty
                     </div>
                     <div class="col">
                         <select name="" ref="order_warranty">
