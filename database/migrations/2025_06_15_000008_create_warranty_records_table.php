@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::create('warranty_records', function (Blueprint $table) {
             $table->id();
-            $table->string('serial_number')->unique();
+            $table->string('serial_number');
             $table->string('bill_number');
             $table->string('phone_number', 20);
             $table->string('product_name');
@@ -20,7 +20,7 @@ return new class extends Migration
             $table->text('notes')->nullable();
             $table->boolean('is_active')->default(true);
             $table->timestamps();
-            
+
             $table->index(['serial_number', 'bill_number']);
         });
     }

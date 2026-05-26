@@ -1620,10 +1620,6 @@ export default {
                 }
             }
 
-            if (confirm("Do you want to send SMS notification to customer")) {
-                send_sms = true;
-            }
-
             this.isDisabled = true;
 
             if (this.multipleFult) {

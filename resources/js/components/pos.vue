@@ -1677,10 +1677,6 @@ export default {
                 //     });
                 // }
 
-                if (confirm("Do you want to send SMS notification to customer")) {
-                    send_sms = true;
-                }
-
                 this.loadModal("show");
 
                 const { data } = await axios.post('/pos/update', {
@@ -1772,10 +1768,6 @@ export default {
                     toastr.error("Please enter old bill number", "Error");
                     return;
                 }
-            }
-
-            if (confirm("Do you want to send SMS notification to customer")) {
-                send_sms = true;
             }
 
             this.isDisabled = true;
