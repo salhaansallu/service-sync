@@ -183,6 +183,18 @@
                                             </select>
                                         </div>
                                     </div>
+                                    <div class="col-md-3">
+                                        <div class="form-group">
+                                            <label>Service Warranty <span class="text-danger">*</span></label>
+                                            <select name="service_warranty" class="form-control" required>
+                                                <option @if($repairs->service_warranty == "0") selected @endif value="0">No service warranty</option>
+                                                <option @if($repairs->service_warranty == "1") selected @endif value="1">1 Month</option>
+                                                <option @if($repairs->service_warranty == "3") selected @endif value="3">3 Months</option>
+                                                <option @if($repairs->service_warranty == "6") selected @endif value="6">6 Months</option>
+                                                <option @if($repairs->service_warranty == "12") selected @endif value="12">1 Year</option>
+                                            </select>
+                                        </div>
+                                    </div>
                                 </div>
                                 <button type="submit" id="update_btn" class="btn btn-primary mr-2">Update</button>
                                 @if ($repairs->paid_at != null)

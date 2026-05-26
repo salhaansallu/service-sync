@@ -132,8 +132,10 @@ class PosDataController extends Controller
             $total = 0;
             $advance = 0;
             $delivery = sanitize($request['delivery']);
-            $warranty = sanitize($request['warranty']);
+            $warranty = sanitize($request['warranty'] ?? 0);
+            $service_warranty = sanitize($request['service_warranty'] ?? 0);
             $signature = isset($request['signature']) ? sanitize($request['signature']) : '';
+            $askReview = true;
 
             $rand = date('d-m-Y-h-i-s') . '-' . rand(0, 9999999) . '.pdf';
             $inName = str_replace(' ', '-', str_replace('.', '-', $bill_no[0])) . '-Delivery-' . $rand;
@@ -143,29 +145,44 @@ class PosDataController extends Controller
                 $total += Repairs::where('bill_no', $id)->sum('total');
                 $advance += Repairs::where('bill_no', $id)->sum('advance');
 
-                Repairs::where('bill_no', $id)->update([
+                $reps =  Repairs::where('bill_no', $id)->first();
+
+                if ($reps && $reps->status == 'Return') {
+                    $askReview = false;
+                }
+
+                $reps->update([
                     "status" => "Delivered",
                     "updated_at" => date('d-m-Y H:i:s'),
                     "invoice" => "checkout/" . $inName,
                     "paid_at" => Carbon::now(),
                     "delivery" => $delivery,
                     "warranty" => $warranty,
+                    "service_warranty" => $service_warranty,
                     "signature" => $signature,
                 ]);
 
-                // Create warranty record if warranty months > 0
-                if ($warranty > 0) {
+                // Create warranty record if parts or service warranty months > 0
+                if ($warranty > 0 || $service_warranty > 0) {
                     $repair = Repairs::where('bill_no', $id)->first();
                     if ($repair) {
                         $customer = customers::where('id', $repair->customer)->first();
 
                         if ($customer) {
                             // Get product name from model_no or use generic name
-                            $productName = !empty($repair->model_no) ? $repair->model_no : 'TV Repair Service';
+                            $productName = !empty($repair->model_no) ? $repair->model_no : 'Repair Service';
 
-                            // Calculate expiry date based on warranty months
+                            $coverage = [];
+                            if ((int)$warranty > 0) {
+                                $coverage[] = $warranty . ' Months Parts Warranty';
+                            }
+                            if ((int)$service_warranty > 0) {
+                                $coverage[] = $service_warranty . ' Months Service Warranty';
+                            }
+
+                            // Use the later expiry when both warranty types are available.
                             $purchaseDate = Carbon::now();
-                            $expiryDate = Carbon::now()->addMonths((int)$warranty);
+                            $expiryDate = Carbon::now()->addMonths(max((int)$warranty, (int)$service_warranty));
 
                             // Create warranty record
                             WarrantyRecord::create([
@@ -175,7 +192,7 @@ class PosDataController extends Controller
                                 'product_name' => $productName,
                                 'purchase_date' => $purchaseDate,
                                 'expiry_date' => $expiryDate,
-                                'coverage_type' => $warranty . ' Months Warranty',
+                                'coverage_type' => implode(', ', $coverage),
                                 'notes' => 'Auto-generated from POS checkout. Repair completed.',
                                 'is_active' => true,
                             ]);
@@ -235,6 +252,14 @@ class PosDataController extends Controller
                         $n8nRepair = Repairs::where('bill_no', $value)->first();
 
                         if ($n8nRepair) {
+                            $warrantyDisplay = [];
+                            if ((int)$warranty > 0) {
+                                $warrantyDisplay[] = $warranty . ' Months Parts Warranty';
+                            }
+                            if ((int)$service_warranty > 0) {
+                                $warrantyDisplay[] = $service_warranty . ' Months Service Warranty';
+                            }
+
                             $response = Http::post('https://vmi3085336.contaboserver.net/webhook/aba879e6-3b03-480f-9e60-031b943bb15c', [
                                 'bill_no' => $n8nRepair->bill_no,
                                 'serial_no' => $n8nRepair->serial_no,
@@ -242,9 +267,13 @@ class PosDataController extends Controller
                                 'fault' => $n8nRepair->fault,
                                 'advance' => $n8nRepair->advance,
                                 'total' => $n8nRepair->total,
-                                'warranty' => $warranty.' Months',
+                                'warranty' => count($warrantyDisplay) > 0 ? implode(', ', $warrantyDisplay) : 'No Warranty',
+                                'service_warranty' => $service_warranty.' Months',
                                 'customer_name' => $customer->name,
                                 'customer_phone' => $customer->phone,
+                                'received_date' => $n8nRepair->created_at,
+                                'delivered_date' => $n8nRepair->paid_at,
+                                'ask_review' => $askReview,
                             ]);
                         }
                     }

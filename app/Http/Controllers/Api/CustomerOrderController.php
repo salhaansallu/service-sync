@@ -240,6 +240,7 @@ class CustomerOrderController extends Controller
             $data['note'] = $repair->note;
             $data['technician'] = $repair->techie;
             $data['warranty'] = $repair->warranty;
+            $data['serviceWarranty'] = $repair->service_warranty;
             $data['paidDate'] = $repair->paid_date;
             $data['repairedDate'] = $repair->repaired_date;
             $data['hasMultipleFault'] = $repair->has_multiple_fault;

@@ -14,13 +14,14 @@
                     </div>
                     <div class="name text-center">Add product</div>
                 </div>
-                <div :class="'product ' + pro['status']" v-for="pro in products" :ref="pro['sku']">
-                    <div class="img" @click="selectProduct(pro['sku'])">
+                <div :class="'product ' + pro['status']" v-for="pro in products" :key="productSelectionKey(pro)"
+                    :ref="productSelectionKey(pro)">
+                    <div class="img" @click="selectProduct(productSelectionKey(pro))">
                         <img :src="productImage(pro)" alt="">
                     </div>
-                    <div class="name" @click="selectProduct(pro['sku'])">{{ pro['pro_name'] }}</div>
-                    <div class="sku" @click="selectProduct(pro['sku'])">Code: {{ pro['sku'] }} | QTY: {{ pro['qty'] }}</div>
-                    <div class="price" @click="selectProduct(pro['sku'])">{{ currency(pro['price'], posData.currency) }}
+                    <div class="name" @click="selectProduct(productSelectionKey(pro))">{{ formatProductLabel(pro) }}</div>
+                    <div class="sku" @click="selectProduct(productSelectionKey(pro))">Code: {{ pro['sku'] }} | QTY: {{ pro['qty'] }}</div>
+                    <div class="price" @click="selectProduct(productSelectionKey(pro))">{{ currency(pro['price'], posData.currency) }}
                     </div>
                 </div>
             </div>
@@ -41,22 +42,22 @@
             </div>
 
             <div id="order-wrap" class="order-wrap" ref="order_wrap">
-                <div class="orders" v-for="order in selectedProduct">
+                <div class="orders" v-for="order in selectedProduct" :key="order['selection_key']">
                     <div class="row m-0">
                         <div class="col col-10">
                             <div class="orderlist">
                                 <img :src="productImage(order)" alt="">
                                 <div class="dtl">
-                                    <div class="name">{{ order['pro_name'] }}</div>
-                                    <div class="price"><input type="text" class="price border-0 w-100 text-primary" @change="productPriceChange($event, order['sku'])" style="background: none; outline: none;" :value="currency(parseFloat(order['price']), '')"></div>
+                                    <div class="name">{{ formatProductLabel(order) }}</div>
+                                    <div class="price"><input type="text" class="price border-0 w-100 text-primary" @change="productPriceChange($event, order['selection_key'])" style="background: none; outline: none;" :value="currency(parseFloat(order['price']), '')"></div>
                                     <!-- <div class="price" v-if="order['discount'] == 0">{{ currency(parseFloat(order['price']) * parseFloat(order['qty']), posData.currency) }}</div>
                                     <div class="price" v-if="order['discount'] > 0">{{ currency(parseFloat(order['discounted_price']) * parseFloat(order['qty']), posData.currency) }}</div> -->
                                 </div>
                                 <div class="qty">
-                                    <i class="fa-solid fa-minus" @click="updateQTY(order['sku'], '-')"></i>
-                                    <input type="number" :ref="'qty' + order['sku']" value="1"
-                                        @focus="$event.target.select();" @keyup="directUpdateQty($event, order['sku'])">
-                                    <i class="fa-solid fa-plus" @click="updateQTY(order['sku'], '+')"></i>
+                                    <i class="fa-solid fa-minus" @click="updateQTY(order['selection_key'], '-')"></i>
+                                    <input type="number" :ref="'qty' + order['selection_key']" value="1"
+                                        @focus="$event.target.select();" @keyup="directUpdateQty($event, order['selection_key'])">
+                                    <i class="fa-solid fa-plus" @click="updateQTY(order['selection_key'], '+')"></i>
                                 </div>
                             </div>
 
@@ -72,7 +73,7 @@
                             </div> -->
                         </div>
                         <div class="col col-2">
-                            <i class="fa-solid fa-xmark" @click="removeProduct(order['sku'])"></i>
+                            <i class="fa-solid fa-xmark" @click="removeProduct(order['selection_key'])"></i>
                         </div>
                     </div>
                 </div>
@@ -273,6 +274,12 @@ export default {
     methods: {
         currency,
         printJS,
+        productSelectionKey(product) {
+            return (product['source'] || 'local') + ':' + (product['id'] ?? product['sku']);
+        },
+        formatProductLabel(product) {
+            return product['pro_name'] + (product['source'] === '3rd_party' ? ' (Fix AI)' : '');
+        },
         loadModal(action) {
             $("#loadingModal").modal(action);
         },
@@ -365,7 +372,7 @@ export default {
         },
         updateOrder(sku, key, val) {
             this.selectedProduct.forEach(element => {
-                if (element['sku'] == sku) {
+                if (element['selection_key'] == sku) {
                     element[key] = val;
                     return false;
                 }
@@ -383,21 +390,25 @@ export default {
                 pro = this.proBackup;
                 var singlePro = pro.filter(item => item['sku'] == this.$refs['searchbar'].value);
                 if (singlePro.length == 1) {
-                    this.selectProduct(singlePro[0]['sku']);
+                    this.selectProduct(this.productSelectionKey(singlePro[0]));
                 }
             }
             else {
                 pro = this.tempProducts;
-                this.products = pro.filter(item => item['pro_name'].toLowerCase().includes(this.$refs['searchbar'].value.toLowerCase()) || item['sku'].toLowerCase().includes(this.$refs['searchbar'].value.toLowerCase()));
+                this.products = pro.filter(item =>
+                    item['pro_name'].toLowerCase().includes(this.$refs['searchbar'].value.toLowerCase()) ||
+                    item['sku'].toLowerCase().includes(this.$refs['searchbar'].value.toLowerCase()) ||
+                    this.formatProductLabel(item).toLowerCase().includes(this.$refs['searchbar'].value.toLowerCase())
+                );
             }
         },
         removeProduct(pro) {
             this.selectedProduct = this.selectedProduct.filter(function (obj) {
-                return obj.sku !== pro;
+                return obj.selection_key !== pro;
             });
 
             this.products.forEach(element => {
-                if (element['sku'] == pro) {
+                if (this.productSelectionKey(element) == pro) {
                     element["status"] = "";
                     return false;
                 }
@@ -405,14 +416,14 @@ export default {
             this.updateProductDetails();
         },
         selectProduct(pro) {
-            var has = this.selectedProduct.filter(item => item['sku'] == pro).length > 0;
+            var has = this.selectedProduct.filter(item => item['selection_key'] == pro).length > 0;
 
             if (has) {
                 this.removeProduct(pro);
             }
             else {
                 this.products.forEach(element => {
-                    if (element['sku'] == pro) {
+                    if (this.productSelectionKey(element) == pro) {
                         var temp_pro = [];
                         element["status"] = "active";
                         temp_pro['pro_name'] = element['pro_name'];
@@ -422,6 +433,7 @@ export default {
                         temp_pro['price'] = element['price'];
                         temp_pro['cost'] = element['cost'];
                         temp_pro['source'] = element['source'] || 'local';
+                        temp_pro['selection_key'] = this.productSelectionKey(element);
                         temp_pro['qty'] = 1;
                         temp_pro['discount'] = 0;
                         temp_pro['discounted_price'] = 0;
@@ -441,11 +453,11 @@ export default {
                 if (val == "") {
                     this.updateOrder(sku, 'qty', 0)
                     val = 0;
-                    this.$refs.service.select();
+                    this.$refs.cashin.select();
                     return true;
                 }
                 this.updateOrder(sku, 'qty', e.target.value)
-                this.$refs.service.select();
+                this.$refs.cashin.select();
                 return true;
             }
         },
@@ -508,6 +520,7 @@ export default {
                 temp_pro['price'] = parseFloat(price);
                 temp_pro['cost'] = parseFloat(cost);
                 temp_pro['source'] = 'temp';
+                temp_pro['selection_key'] = this.productSelectionKey(temp_pro);
                 temp_pro['qty'] = 1;
                 temp_pro['discount'] = 0;
                 temp_pro['discounted_price'] = 0;
@@ -546,7 +559,7 @@ export default {
         updateProductDetails(totalOly = false) {
             if (totalOly == false) {
                 this.selectedProduct.forEach(ele => {
-                    var qty = this.$refs['qty' + ele['sku']][0];
+                    var qty = this.$refs['qty' + ele['selection_key']][0];
                     //var dis = this.$refs['dis' + ele['sku']][0];
                     //var dis_mod = this.$refs['dis_mod' + ele['sku']][0];
                     var dis_mod = 'amt';

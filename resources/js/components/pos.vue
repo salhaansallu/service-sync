@@ -225,6 +225,28 @@
                 </div>
                 <div class="row row-cols-2">
                     <div class="col">
+                        Service Warranty
+                    </div>
+                    <div class="col">
+                        <select name="" ref="order_service_warranty">
+                            <option value="0">No service warranty</option>
+                            <option value="1">1 Months</option>
+                            <option value="2">2 Months</option>
+                            <option value="3">3 Months</option>
+                            <option value="4">4 Months</option>
+                            <option value="5">5 Months</option>
+                            <option value="6">6 Months</option>
+                            <option value="7">7 Months</option>
+                            <option value="8">8 Months</option>
+                            <option value="9">9 Months</option>
+                            <option value="10">10 Months</option>
+                            <option value="11">11 Months</option>
+                            <option value="12">1 Years</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="row row-cols-2">
+                    <div class="col">
                         Delivery
                     </div>
                     <div class="col">
@@ -1483,6 +1505,7 @@ export default {
             this.$refs["balance"].innerText = "LKR 0.00";
             this.$refs["order_delivery"].value = "LKR 0.00";
             this.$refs["order_warranty"].value = "0";
+            this.$refs["order_service_warranty"].value = "0";
             this.paymentMethod("cash");
         },
         get_total() {
@@ -1517,6 +1540,7 @@ export default {
                 var repair = [];
                 var order_delivery = this.$refs.order_delivery.value == "" ? 0 : this.$refs.order_delivery.value;
                 var order_warranty = this.$refs.order_warranty.value;
+                var order_service_warranty = this.$refs.order_service_warranty.value;
 
                 if (parseFloat(cashin) < parseFloat(total) && (payment == "cash")) {
                     if (confirm('Are you sure you want to add remaining as credit?')) {
@@ -1544,6 +1568,7 @@ export default {
                             cashin: cashin,
                             delivery: order_delivery,
                             warranty: order_warranty,
+                            service_warranty: order_service_warranty,
                             signature: signDataURL
                         }
                     }).catch(function (error) {

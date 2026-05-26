@@ -661,6 +661,7 @@ class RepairsController extends Controller
 
                             $repair->pos_code = company()->pos_code;
                             $repair->warranty = 0;
+                            $repair->service_warranty = 0;
 
                             if ($repair->save()) {
 
@@ -687,6 +688,7 @@ class RepairsController extends Controller
                                         'multiple_fault' => json_encode($faults),
                                         'customer_name' => $customerData->name,
                                         'customer_phone' => $customerData->phone,
+                                        'received_date' => $repair->created_at
                                     ]);
                                 }
 
@@ -809,6 +811,7 @@ class RepairsController extends Controller
             $commission = sanitize($request->input('commission'));
             $cashier = sanitize($request->input('cashier'));
             $warranty = sanitize($request->input('warranty'));
+            $service_warranty = sanitize($request->input('service_warranty'));
             $spares = [];
             if ($request->has('spares')) {
                 foreach ($request->input('spares') as $key => $val) {
@@ -858,6 +861,7 @@ class RepairsController extends Controller
                 "spares" => json_encode($spares),
                 "status" => $status,
                 "warranty" => $warranty,
+                "service_warranty" => $service_warranty,
                 "type" => $move_type,
                 "updated_at" => date('Y-m-d H:i:s'),
             ]);

@@ -193,7 +193,7 @@
                                     if (item["status"] == "Delivered") {
                                         row += `<a class="view_invoice badge bg-warning mr-2" data-toggle="tooltip"
                                                 data-placement="top" title="Check Warranty"
-                                                data-original-title="Check Warranty" href="javascript:void(0)" onclick="checkWarranty(`+item['warranty']+`, '`+item['paid_at']+`')">
+                                                data-original-title="Check Warranty" href="javascript:void(0)" onclick="checkWarranty(`+item['warranty']+`, `+item['service_warranty']+`, '`+item['paid_at']+`')">
                                                 <i class="fa-solid fa-award"></i></a>`;
                                     }
                                     row += '</td></tr>';
@@ -231,15 +231,29 @@
             return newDate;
         }
 
-        function checkWarranty(days, paid) {
-            if (days > 0) {
-                if (new Date() >= addMonths(new Date(paid), days)) {
-                    alert('Warranty for this product has expired');
-                } else {
-                    alert('This product has warranty for ' + days + ' month(s). and expires on ' + addMonths(new Date(paid), days).toLocaleDateString());
-                }
+        function checkWarranty(warrantyMonths, serviceWarrantyMonths, paid) {
+            const messages = [];
+            const today = new Date();
+            const paidDate = new Date(paid);
+
+            if (warrantyMonths > 0) {
+                const expiry = addMonths(paidDate, warrantyMonths);
+                messages.push(today >= expiry
+                    ? 'Parts warranty has expired'
+                    : 'Parts warranty: ' + warrantyMonths + ' month(s), expires on ' + expiry.toLocaleDateString());
+            }
+
+            if (serviceWarrantyMonths > 0) {
+                const expiry = addMonths(paidDate, serviceWarrantyMonths);
+                messages.push(today >= expiry
+                    ? 'Service warranty has expired'
+                    : 'Service warranty: ' + serviceWarrantyMonths + ' month(s), expires on ' + expiry.toLocaleDateString());
+            }
+
+            if (messages.length > 0) {
+                alert(messages.join('\n'));
             } else {
-                alert('This product has no warranty');
+                alert('This product has no parts or service warranty');
             }
         }
     </script>

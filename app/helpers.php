@@ -915,7 +915,7 @@ function generateInvoice($order_id, $inName, $bill_type)
                 $delivery = $temp_order->delivery;
                 $total += $temp_order->total;
                 $advance += $temp_order->advance;
-                $orders[] = array("id" => $id, "total" => $temp_order->total, "advance" => $temp_order->advance, "model" => $temp_order->model_no, "serial" => $temp_order->serial_no, 'warranty' => $temp_order->warranty, 'signature'=>$temp_order->signature);
+                $orders[] = array("id" => $id, "total" => $temp_order->total, "advance" => $temp_order->advance, "model" => $temp_order->model_no, "serial" => $temp_order->serial_no, 'warranty' => $temp_order->warranty, 'service_warranty' => $temp_order->service_warranty, 'signature'=>$temp_order->signature);
             }
         }
 
@@ -928,7 +928,7 @@ function generateInvoice($order_id, $inName, $bill_type)
             $total += $temp_order->total;
             $delivery = $temp_order->delivery;
             $advance += $temp_order->advance;
-            $orders[] = array("id" => $order_id, "total" => $temp_order->total, "advance" => $temp_order->advance, "model" => $temp_order->model_no, "serial" => $temp_order->serial_no, 'warranty' => $temp_order->warranty, 'signature'=>$temp_order->signature);
+            $orders[] = array("id" => $order_id, "total" => $temp_order->total, "advance" => $temp_order->advance, "model" => $temp_order->model_no, "serial" => $temp_order->serial_no, 'warranty' => $temp_order->warranty, 'service_warranty' => $temp_order->service_warranty, 'signature'=>$temp_order->signature);
         }
 
         $repairs = Repairs::where('bill_no', $order_id)->where('pos_code', $company->pos_code)->get()[0];
@@ -1144,7 +1144,7 @@ function generateInvoice($order_id, $inName, $bill_type)
             <p style="font-size: 14px; text-align: left;font-weight: bold; border-bottom: 1px solid #000;padding-bottom: 5px;">Warranty Disclaimer</p>
         ';
 
-        if ($orders[0]["warranty"] == 0) {
+        if ($orders[0]["warranty"] == 0 && $orders[0]["service_warranty"] == 0) {
             $html .= '
                 <table style="width: 100%; border-collapse: collapse;">
                     <tr>
@@ -1154,12 +1154,19 @@ function generateInvoice($order_id, $inName, $bill_type)
                     </tr>
                 </table>
             ';
-        } elseif ($orders[0]["warranty"] > 0) {
+        } else {
+            $warrantyText = [];
+            if ($orders[0]["warranty"] > 0) {
+                $warrantyText[] = $orders[0]["warranty"] . ' month(s) parts warranty';
+            }
+            if ($orders[0]["service_warranty"] > 0) {
+                $warrantyText[] = $orders[0]["service_warranty"] . ' month(s) service warranty';
+            }
             $html .= '
                 <table style="width: 100%; border-collapse: collapse;">
                     <tr>
                         <td style="font-size: 14px; text-align: left;">
-                            This product includes a warranty valid for ' . $orders[0]["warranty"] . ' months from the date of recived. For detailed terms and conditions, please contact us.
+                            This repair includes ' . implode(' and ', $warrantyText) . ' from the date of recived. For detailed terms and conditions, please contact us.
                         </td>
                     </tr>
                 </table>
@@ -1229,7 +1236,7 @@ function generateThermalInvoice($order_id, $inName, $bill_type)
                 $total += $temp_order->total;
                 $delivery = $temp_order->delivery;
                 $advance += $temp_order->advance;
-                $orders[] = array("id" => $id, "total" => $temp_order->total, "advance" => $temp_order->advance, "model" => $temp_order->model_no, "serial" => $temp_order->serial_no, 'warranty' => $temp_order->warranty, "fault" => $temp_order->fault, 'has_multiple_fault'=>$temp_order->has_multiple_fault, 'multiple_fault'=> $temp_order->multiple_fault, 'signature'=>$temp_order->signature);
+                $orders[] = array("id" => $id, "total" => $temp_order->total, "advance" => $temp_order->advance, "model" => $temp_order->model_no, "serial" => $temp_order->serial_no, 'warranty' => $temp_order->warranty, 'service_warranty' => $temp_order->service_warranty, "fault" => $temp_order->fault, 'has_multiple_fault'=>$temp_order->has_multiple_fault, 'multiple_fault'=> $temp_order->multiple_fault, 'signature'=>$temp_order->signature);
             }
         }
 
@@ -1246,7 +1253,7 @@ function generateThermalInvoice($order_id, $inName, $bill_type)
             $total += $temp_order->total;
             $delivery = $temp_order->delivery;
             $advance += $temp_order->advance;
-            $orders[] = array("id" => $order_id, "total" => $temp_order->total, "advance" => $temp_order->advance, "model" => $temp_order->model_no, "serial" => $temp_order->serial_no, 'warranty' => $temp_order->warranty, "fault" => $temp_order->fault, 'has_multiple_fault'=>$temp_order->has_multiple_fault, 'multiple_fault'=> $temp_order->multiple_fault, 'signature'=>$temp_order->signature);
+            $orders[] = array("id" => $order_id, "total" => $temp_order->total, "advance" => $temp_order->advance, "model" => $temp_order->model_no, "serial" => $temp_order->serial_no, 'warranty' => $temp_order->warranty, 'service_warranty' => $temp_order->service_warranty, "fault" => $temp_order->fault, 'has_multiple_fault'=>$temp_order->has_multiple_fault, 'multiple_fault'=> $temp_order->multiple_fault, 'signature'=>$temp_order->signature);
         }
 
         $repairs = Repairs::where('bill_no', $order_id)->get()[0];
@@ -1536,7 +1543,7 @@ function generateThermalInvoice($order_id, $inName, $bill_type)
             <p style="font-size: 12px; text-align: left;font-weight: bold; border-bottom: 1px solid #000;">Warranty Disclaimer</p>
         ';
 
-        if ($orders[0]["warranty"] == 0) {
+        if ($orders[0]["warranty"] == 0 && $orders[0]["service_warranty"] == 0) {
             $html .= '
                 <table style="width: 100%; border-collapse: collapse;">
                     <tr>
@@ -1546,12 +1553,19 @@ function generateThermalInvoice($order_id, $inName, $bill_type)
                     </tr>
                 </table>
             ';
-        } elseif ($orders[0]["warranty"] > 0) {
+        } else {
+            $warrantyText = [];
+            if ($orders[0]["warranty"] > 0) {
+                $warrantyText[] = $orders[0]["warranty"] . ' month(s) parts warranty';
+            }
+            if ($orders[0]["service_warranty"] > 0) {
+                $warrantyText[] = $orders[0]["service_warranty"] . ' month(s) service warranty';
+            }
             $html .= '
                 <table style="width: 100%; border-collapse: collapse;">
                     <tr>
                         <td style="font-size: 14px; text-align: left;">
-                            This product includes a warranty valid for ' . $orders[0]["warranty"] . ' months from the date of recived. For detailed terms and conditions, please contact us.
+                            This repair includes ' . implode(' and ', $warrantyText) . ' from the date of recived. For detailed terms and conditions, please contact us.
                         </td>
                     </tr>
                 </table>
