@@ -684,6 +684,8 @@ class RepairsController extends Controller
                                         'model_no' => $model_no,
                                         'fault' => $fault,
                                         'advance' => $advance,
+                                        'note' => $note,
+                                        'signature' => $signature,
                                         'has_multiple_faults' => $has_multiple_faults,
                                         'multiple_fault' => json_encode($faults),
                                         'customer_name' => $customerData->name,

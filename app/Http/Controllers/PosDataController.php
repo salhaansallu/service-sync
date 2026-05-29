@@ -275,6 +275,8 @@ class PosDataController extends Controller
                                 'delivered_date' => $n8nRepair->paid_at,
                                 'ask_review' => $askReview,
                                 'note' => $n8nRepair->note,
+                                'signature' => $n8nRepair->signature,
+                                'technician_name' => getUser($n8nRepair->techie)->fname?? 'N/A'
                                 'delivery_charge' => $n8nRepair->delivery,
                             ]);
                         }
