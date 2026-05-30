@@ -129,7 +129,15 @@
                                                 <label>Current Images</label>
                                                 <div class="d-flex flex-wrap gap-3">
                                                     @foreach ($existingImages as $image)
-                                                        <img src="{{ productImage($image) }}" alt="Product image" style="width: 110px; height: 110px; object-fit: cover; border-radius: 8px; border: 1px solid #ddd; margin-right: 12px; margin-bottom: 12px;">
+                                                        <div style="margin-right: 12px; margin-bottom: 12px;">
+                                                            <img src="{{ productImage($image) }}" alt="Product image" style="width: 110px; height: 110px; object-fit: cover; border-radius: 8px; border: 1px solid #ddd; display: block; margin-bottom: 8px;">
+                                                            @if ($image !== 'placeholder.svg')
+                                                                <label class="mb-0" style="font-size: 13px;">
+                                                                    <input type="checkbox" name="remove_existing_images[]" value="{{ $image }}">
+                                                                    Remove image
+                                                                </label>
+                                                            @endif
+                                                        </div>
                                                     @endforeach
                                                 </div>
                                             </div>

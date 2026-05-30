@@ -255,6 +255,7 @@ class ProductsController extends Controller
             $existingProduct = Products::where('id', $id)->where('pos_code', company()->pos_code)->first();
             $imageName = $existingProduct ? $existingProduct->pro_image : "placeholder.svg";
             $imageNames = $existingProduct ? $existingProduct->getImageList() : [$imageName];
+            $removedImages = $request->input('remove_existing_images', []);
 
             $id_verify = Products::where('id', $id)->where('pos_code', company()->pos_code)->get();
 
@@ -282,9 +283,28 @@ class ProductsController extends Controller
                 return response(json_encode(array("error" => 1, "msg" => $exception->getMessage())));
             }
 
+            if (!is_array($removedImages)) {
+                $removedImages = [];
+            }
+
+            $removedImages = array_values(array_filter(array_map(function ($image) {
+                return sanitize($image);
+            }, $removedImages)));
+
+            if (count($removedImages) > 0) {
+                $imageNames = array_values(array_filter($imageNames, function ($image) use ($removedImages) {
+                    return !in_array($image, $removedImages, true);
+                }));
+            }
+
             if (count($uploadedImages) > 0) {
-                $imageNames = $uploadedImages;
-                $imageName = $uploadedImages[0];
+                $imageNames = array_merge($imageNames, $uploadedImages);
+            }
+
+            if (count($imageNames) === 0) {
+                $imageName = 'placeholder.svg';
+            } else {
+                $imageName = $imageNames[0];
             }
 
             // if ($category != "other" && getCategory($category)->pos_code != company()->pos_code) {
@@ -304,7 +324,7 @@ class ProductsController extends Controller
                 "price" => $price,
                 "qty" => $stock,
                 "pro_image" => $imageName,
-                "pro_images" => json_encode($imageNames),
+                "pro_images" => count($imageNames) > 0 ? json_encode($imageNames) : null,
                 "supplier" => $supplier,
                 "category" => $category,
             ]);
