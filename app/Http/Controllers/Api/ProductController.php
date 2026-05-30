@@ -84,7 +84,7 @@ class ProductController extends Controller
             'modelNumber' => $product->sku,
             'price' => (float) $product->price,
             'stock' => (int) $product->qty,
-            'images' => [$product->pro_image],
+            'images' => $product->getImageList(),
             'isActive' => true,
             'createdAt' => $product->created_at->toIso8601String(),
             'updatedAt' => $product->updated_at->toIso8601String(),
@@ -96,5 +96,16 @@ class ProductController extends Controller
         }
 
         return $data;
+    }
+
+    public function n8n_get(Request $request)
+    {
+        $products = Products::query();
+
+        if ($request->has('category')) {
+            $products->where('category', sanitize($request->input('category')));
+        }
+
+        return response()->json($products->get(), 200);
     }
 }

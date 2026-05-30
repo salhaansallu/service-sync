@@ -113,11 +113,28 @@
 
                                     <div class="col-md-6">
                                         <div class="form-group">
-                                            <label>Image</label>
-                                            <input type="file" class="form-control image-file" name="product_image"
-                                                accept="image/*" id="product_image">
+                                            <label>Images</label>
+                                            <input type="file" class="form-control image-file" name="product_images[]"
+                                                accept="image/*" id="product_images" multiple>
+                                            <small class="text-muted">You can select multiple product images. The first image will be used as the main image.</small>
                                         </div>
                                     </div>
+
+                                    @isset($product)
+                                        @php
+                                            $existingImages = method_exists($product, 'getImageList') ? $product->getImageList() : [($product->pro_image ?? 'placeholder.svg')];
+                                        @endphp
+                                        <div class="col-12">
+                                            <div class="form-group">
+                                                <label>Current Images</label>
+                                                <div class="d-flex flex-wrap gap-3">
+                                                    @foreach ($existingImages as $image)
+                                                        <img src="{{ productImage($image) }}" alt="Product image" style="width: 110px; height: 110px; object-fit: cover; border-radius: 8px; border: 1px solid #ddd; margin-right: 12px; margin-bottom: 12px;">
+                                                    @endforeach
+                                                </div>
+                                            </div>
+                                        </div>
+                                    @endisset
                                 </div>
                                 <button type="submit" id="save_btn" class="btn btn-primary mr-2">@isset($product) Update product @else Add Product @endisset</button>
                             </form>

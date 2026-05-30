@@ -28,7 +28,7 @@ class CartController extends Controller
                     'id' => 'product_' . $item->product->id,
                     'name' => $item->product->pro_name,
                     'price' => (float) $item->product->price,
-                    'images' => [$item->product->pro_image],
+                    'images' => $item->product->getImageList(),
                     'stock' => (int) $item->product->qty,
                 ],
                 'quantity' => $item->quantity,

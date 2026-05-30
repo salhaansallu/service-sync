@@ -9,6 +9,39 @@ use Illuminate\Support\Facades\Auth;
 
 class ProductsController extends Controller
 {
+    private function productImageUploadPath(): string
+    {
+        return env('APP_ENV') == 'production'
+            ? '/var/www/image.nmsware.com/products/'
+            : public_path('assets/images/products');
+    }
+
+    private function uploadProductImages(Request $request, string $code): array
+    {
+        if (!$request->hasFile('product_images')) {
+            return [];
+        }
+
+        $images = [];
+
+        foreach ($request->file('product_images') as $index => $image) {
+            if (!$image || !$image->isValid()) {
+                continue;
+            }
+
+            $extension = strtolower($image->getClientOriginalExtension());
+            if (!in_array($extension, ['png', 'jpeg', 'jpg'])) {
+                throw new \InvalidArgumentException("Please select only 'png', 'jpeg', or 'jpg' images");
+            }
+
+            $imageName = time() . $index . str_replace(' ', '', $code) . '.' . $image->extension();
+            $image->move($this->productImageUploadPath(), $imageName);
+            $images[] = $imageName;
+        }
+
+        return $images;
+    }
+
     /**
      * Display a listing of the resource.
      */
@@ -123,6 +156,7 @@ class ProductsController extends Controller
             $supplier = sanitize($request->input('supplier'));
             $category = sanitize($request->input('category'));
             $imageName = "placeholder.svg";
+            $imageNames = [];
 
             $code_verify = Products::where('sku', $code)->get();
 
@@ -146,14 +180,14 @@ class ProductsController extends Controller
                 return response(json_encode(array("error" => 1, "msg" => "Invalid Supplier")));
             }
 
-            if ($request->hasFile('product_image')) {
-                $extension = $request->file('product_image')->getClientOriginalExtension();
-                if (in_array($extension, array('png', 'jpeg', 'jpg'))) {
-                    $imageName = time() . str_replace(' ', '', $code) . '.' . $request->product_image->extension();
-                    $request->product_image->move(public_path('assets/images/products'), $imageName);
-                } else {
-                    return response(json_encode(array("error" => 1, "msg" => "Please select 'png', 'jpeg', or 'jpg' type image")));
-                }
+            try {
+                $imageNames = $this->uploadProductImages($request, $code);
+            } catch (\InvalidArgumentException $exception) {
+                return response(json_encode(array("error" => 1, "msg" => $exception->getMessage())));
+            }
+
+            if (count($imageNames) > 0) {
+                $imageName = $imageNames[0];
             }
 
             $product = new Products();
@@ -163,6 +197,7 @@ class ProductsController extends Controller
             $product->price = $price;
             $product->qty = $stock;
             $product->pro_image = $imageName;
+            $product->pro_images = count($imageNames) > 0 ? $imageNames : [$imageName];
             $product->pos_code = company()->pos_code;
             $product->supplier = $supplier;
             $product->category = $category;
@@ -217,7 +252,9 @@ class ProductsController extends Controller
             (float)$stock = sanitize($request->input('stock'));
             $supplier = sanitize($request->input('supplier'));
             $category = sanitize($request->input('category'));
-            $imageName = "placeholder.svg";
+            $existingProduct = Products::where('id', $id)->where('pos_code', company()->pos_code)->first();
+            $imageName = $existingProduct ? $existingProduct->pro_image : "placeholder.svg";
+            $imageNames = $existingProduct ? $existingProduct->getImageList() : [$imageName];
 
             $id_verify = Products::where('id', $id)->where('pos_code', company()->pos_code)->get();
 
@@ -239,14 +276,15 @@ class ProductsController extends Controller
                 return response(json_encode(array("error" => 1, "msg" => "Please Fill All Required Fields Marked As '*'")));
             }
 
-            if ($request->hasFile('product_image')) {
-                $extension = $request->file('product_image')->getClientOriginalExtension();
-                if (in_array($extension, array('png', 'jpeg', 'jpg'))) {
-                    $imageName = time() . str_replace(' ', '', $code) . '.' . $request->product_image->extension();
-                    $request->product_image->move(env('APP_ENV')=='production'? '/var/www/image.nmsware.com/products/' : public_path('assets/images/products'), $imageName);
-                } else {
-                    return response(json_encode(array("error" => 1, "msg" => "Please select 'png', 'jpeg', or 'jpg' type image")));
-                }
+            try {
+                $uploadedImages = $this->uploadProductImages($request, $code);
+            } catch (\InvalidArgumentException $exception) {
+                return response(json_encode(array("error" => 1, "msg" => $exception->getMessage())));
+            }
+
+            if (count($uploadedImages) > 0) {
+                $imageNames = $uploadedImages;
+                $imageName = $uploadedImages[0];
             }
 
             // if ($category != "other" && getCategory($category)->pos_code != company()->pos_code) {
@@ -259,28 +297,17 @@ class ProductsController extends Controller
 
             $product = '';
 
-            if ($request->hasFile('product_image')) {
-                $product = Products::where('id', $id)->update([
-                    "pro_name" => $name,
-                    "sku" => $code,
-                    "cost" => $cost,
-                    "price" => $price,
-                    "qty" => $stock,
-                    "pro_image" => $imageName,
-                    "supplier" => $supplier,
-                    "category" => $category,
-                ]);
-            } else {
-                $product = Products::where('id', $id)->update([
-                    "pro_name" => $name,
-                    "sku" => $code,
-                    "cost" => $cost,
-                    "price" => $price,
-                    "qty" => $stock,
-                    "supplier" => $supplier,
-                    "category" => $category,
-                ]);
-            }
+            $product = Products::where('id', $id)->update([
+                "pro_name" => $name,
+                "sku" => $code,
+                "cost" => $cost,
+                "price" => $price,
+                "qty" => $stock,
+                "pro_image" => $imageName,
+                "pro_images" => json_encode($imageNames),
+                "supplier" => $supplier,
+                "category" => $category,
+            ]);
 
             if ($product) {
                 return response(json_encode(array("error" => 0, "msg" => "Product Updated Successfully", 'sku' => $code)));
@@ -311,7 +338,7 @@ class ProductsController extends Controller
     public function sync(Request $request)
     {
         if (sanitize($request->key) == env('WEBSITE_KEY')) {
-            $products = Products::all(['pro_name', 'price', 'qty', 'sku', 'pro_image']);
+            $products = Products::all(['pro_name', 'price', 'qty', 'sku', 'pro_image', 'pro_images']);
             $results = [];
 
             return response(json_encode(array('error' => 0, 'products' => $products)));
