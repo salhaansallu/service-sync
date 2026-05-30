@@ -55,6 +55,56 @@ class PosDataController extends Controller
         return defaultValues();
     }
 
+    public static function convertSignatureToWhite(?string $signature): string
+    {
+        if (
+            empty($signature) ||
+            !function_exists('imagecreatefromstring') ||
+            !preg_match('/^data:image\/png;base64,/', $signature)
+        ) {
+            return (string) $signature;
+        }
+
+        $imageData = base64_decode(preg_replace('/^data:image\/png;base64,/', '', $signature), true);
+        if ($imageData === false) {
+            return (string) $signature;
+        }
+
+        $image = @imagecreatefromstring($imageData);
+        if ($image === false) {
+            return (string) $signature;
+        }
+
+        imagesavealpha($image, true);
+        imagealphablending($image, false);
+
+        $width = imagesx($image);
+        $height = imagesy($image);
+
+        for ($x = 0; $x < $width; $x++) {
+            for ($y = 0; $y < $height; $y++) {
+                $rgba = imagecolorat($image, $x, $y);
+                $alpha = ($rgba >> 24) & 0x7F;
+
+                if ($alpha < 127) {
+                    $white = imagecolorallocatealpha($image, 255, 255, 255, $alpha);
+                    imagesetpixel($image, $x, $y, $white);
+                }
+            }
+        }
+
+        ob_start();
+        imagepng($image);
+        $whiteImage = ob_get_clean();
+        imagedestroy($image);
+
+        if ($whiteImage === false) {
+            return (string) $signature;
+        }
+
+        return 'data:image/png;base64,' . base64_encode($whiteImage);
+    }
+
     public static function check($plan_verify = false)
     {
         if ($plan_verify) {
@@ -275,8 +325,8 @@ class PosDataController extends Controller
                                 'delivered_date' => $n8nRepair->paid_at,
                                 'ask_review' => $askReview,
                                 'note' => $n8nRepair->note,
-                                'signature' => $n8nRepair->signature,
-                                'technician_name' => getUser($n8nRepair->techie)->fname?? 'N/A'
+                                'signature' => self::convertSignatureToWhite($n8nRepair->signature),
+                                'technician_name' => getUser($n8nRepair->techie)->fname?? 'N/A',
                                 'delivery_charge' => $n8nRepair->delivery,
                             ]);
                         }
