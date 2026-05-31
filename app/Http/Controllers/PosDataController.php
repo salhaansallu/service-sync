@@ -500,6 +500,10 @@ class PosDataController extends Controller
                         'customer' => getCustomer($customer),
                         'cash_paid' => $cashin,
                         'products' => $invoice_pro,
+                        'created_at' => Carbon::today(),
+                        'due_balance' => Credit::where('customer_id', $customer)
+                            ->where('ammount', '>', 0)
+                            ->sum('ammount'),
                     ]);
 
                     Repairs::where('bill_no', $bill_no)->where('pos_code', company()->pos_code)->update([
