@@ -1569,6 +1569,10 @@ export default {
             }
         },
         async PlaceOrder() {
+            if (this.isDisabled) {
+                return;
+            }
+
             var total = this.$refs.total.value;
             var model_no = this.new_bill == true ? this.$refs.model_no.value : '';
             var serial_no = this.new_bill == true ? this.$refs.serial_no.value : '';
@@ -1630,79 +1634,77 @@ export default {
 
             //const signDataURL = this.signaturePad.toDataURL('image/png');
 
-            const { data } = await axios.post('/other-pos/new_order?source=other-pos', {
-                total: total,
-                model_no: model_no,
-                serial_no: serial_no,
-                fault: fault,
-                advance: advance,
-                note: note.replace(/\r?\n/g, '\n'),
-                customer: customer,
-                customer_name: customer_name,
-                customer_phone: customer_phone,
-                partner: partner,
-                cashier_no: cashier_no,
-                bill_type: bill_type,
-                parent_bill_no: parent_bill_no,
-                new_order_qty: new_order_qty,
-                has_multiple_faults: this.multipleFult,
-                faults: JSON.stringify(faults),
-                send_sms: send_sms,
-                //signature: signDataURL,
-            }).catch(function (error) {
-                if (error.response) {
-                    this.getSignaure('hide');
-                    this.loadModal("hide");
-                }
-            });
-            this.loadModal("hide");
-            this.isDisabled = false;
+            try {
+                const { data } = await axios.post('/other-pos/new_order?source=other-pos', {
+                    total: total,
+                    model_no: model_no,
+                    serial_no: serial_no,
+                    fault: fault,
+                    advance: advance,
+                    note: note.replace(/\r?\n/g, '\n'),
+                    customer: customer,
+                    customer_name: customer_name,
+                    customer_phone: customer_phone,
+                    partner: partner,
+                    cashier_no: cashier_no,
+                    bill_type: bill_type,
+                    parent_bill_no: parent_bill_no,
+                    new_order_qty: new_order_qty,
+                    has_multiple_faults: this.multipleFult,
+                    faults: JSON.stringify(faults),
+                    send_sms: send_sms,
+                    //signature: signDataURL,
+                });
 
-            if (data.error == "0") {
-                this.loadModal("hide");
-                this.getSignaure('hide');
-                this.clearSignature();
-                toastr.success(data.msg, "Success");
-                //printJS(data.invoiceURL);
-                this.$refs.bill_type.value = "new-order";
-                if (!this.new_bill) {
-                    this.$refs.parent_bill_no.value = '';
+                if (data.error == "0") {
+                    this.loadModal("hide");
+                    this.getSignaure('hide');
+                    this.clearSignature();
+                    toastr.success(data.msg, "Success");
+                    //printJS(data.invoiceURL);
+                    this.$refs.bill_type.value = "new-order";
+                    if (!this.new_bill) {
+                        this.$refs.parent_bill_no.value = '';
+                    }
+                    else {
+                        this.$refs.model_no.value = "";
+                        this.$refs.serial_no.value = "";
+                        this.$refs.customer.value = "";
+                        this.$refs.new_bill_customer_name.value = "";
+                        this.$refs.new_bill_customer_phone.value = "";
+                    }
+                    this.$refs.partner.value = "";
+                    $(this.$refs.partner).val("").trigger("change");
+                    this.new_bill = true;
+                    this.$refs.total.value = "0";
+                    this.$refs.fault.value = "";
+                    this.$refs.advance.value = "0";
+                    this.$refs.new_order_qty.value = "1";
+                    this.$refs.finish_note.value = "";
+                    this.$refs.cashier_no.value = "";
+                    this.newOrder('hide');
+                    this.getCashierModel('hide');
+                    this.getRepairs();
+                    this.reloadPOS();
+                    if (data.sticker.generated) {
+                        printJS(data.sticker.url);
+                    }
+                    window.open(data.invoiceURL, '_blank');
+                    setTimeout(() => { this.fetchWhatsappStatuses(); }, 10000);
                 }
                 else {
-                    this.$refs.model_no.value = "";
-                    this.$refs.serial_no.value = "";
-                    this.$refs.customer.value = "";
-                    this.$refs.new_bill_customer_name.value = "";
-                    this.$refs.new_bill_customer_phone.value = "";
+                    this.loadModal("hide");
+                    this.getSignaure('hide');
+                    toastr.error(data.msg, "Error");
                 }
-                this.$refs.partner.value = "";
-                $(this.$refs.partner).val("").trigger("change");
-                this.new_bill = true;
-                this.$refs.total.value = "0";
-                this.$refs.fault.value = "";
-                this.$refs.advance.value = "0";
-                this.$refs.new_order_qty.value = "1";
-                this.$refs.finish_note.value = "";
-                this.$refs.cashier_no.value = "";
-                this.newOrder('hide');
-                this.getCashierModel('hide');
-                this.getRepairs();
-                this.reloadPOS();
-                this.isDisabled = false;
-                if (data.sticker.generated) {
-                    printJS(data.sticker.url);
-                }
-                window.open(data.invoiceURL, '_blank');
-                setTimeout(() => { this.fetchWhatsappStatuses(); }, 10000);
-            }
-            else {
+            } catch (error) {
                 this.loadModal("hide");
                 this.getSignaure('hide');
-                toastr.error(data.msg, "Error");
+                toastr.error(error?.response?.data?.msg || "Something went wrong", "Error");
+            } finally {
+                this.loadModal("hide");
                 this.isDisabled = false;
             }
-            this.loadModal("hide");
-            this.isDisabled = false;
         },
         async createCustomer() {
             var name = this.$refs.cus_name.value;

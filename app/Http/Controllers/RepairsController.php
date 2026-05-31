@@ -22,6 +22,16 @@ use SMS;
 
 class RepairsController extends Controller
 {
+    private function nextRepairBillNumber(): int
+    {
+        $latestRepair = Repairs::select('id', 'bill_no')
+            ->orderByDesc('id')
+            ->lockForUpdate()
+            ->first();
+
+        return $latestRepair ? ((int) $latestRepair->bill_no + 1) : 1001;
+    }
+
     /**
      * Display a listing of the resource.
      */
@@ -622,96 +632,100 @@ class RepairsController extends Controller
                 if ($new_order_qty > 0) {
                     for ($i = 0; $i < $new_order_qty; $i++) {
                         try {
-                            $getBillNo = Repairs::orderBy('id', 'DESC')->first();
-                            $bill_no = $getBillNo != null ? (int)$getBillNo->bill_no + 1 : 1001;
-
+                            $lineTotal = $total;
                             if ($has_multiple_faults) {
+                                $lineTotal = 0;
                                 foreach ($faults as $key => $faultItem) {
                                     if (!is_numeric($faultItem->price)) {
                                         return response(json_encode(array("error" => 1, "msg" => "Some faults contain invalid price format")));
                                     }
 
-                                    $totalAmount += $faultItem->price;
+                                    $lineTotal += $faultItem->price;
                                 }
                             }
 
-                            $repair = new Repairs();
-                            $repair->bill_no = $bill_no;
-                            $repair->model_no = $model_no;
-                            $repair->serial_no = $serial_no;
-                            $repair->fault = $fault;
-                            $repair->has_multiple_fault = $has_multiple_faults ? 'Y' : 'N';
-                            $repair->multiple_fault = json_encode($faults);
-                            $repair->note = $note;
-                            $repair->advance = $advance;
-                            $repair->total = $has_multiple_faults ? $totalAmount : $total;
-                            $repair->customer = $customerData->id;
-                            $repair->partner = $partner == "" ? 0 : $partner;
-                            $repair->cashier = $cashier_no;
-                            $repair->techie = '';
-                            $repair->status = "Pending";
-                            $repair->parent = $bill_type == 'new-order' ? NULL : $parent_bill_no;
-                            $repair->signature = $signature;
+                            $repair = null;
+                            $bill_no = null;
 
-                            if (isset($_GET['source']) && sanitize($_GET['source']) == "other-pos") {
-                                $repair->type = "other";
-                            } else {
-                                $repair->type = "repair";
+                            DB::transaction(function () use (&$repair, &$bill_no, $model_no, $serial_no, $fault, $has_multiple_faults, $faults, $note, $advance, $lineTotal, $customerData, $partner, $cashier_no, $bill_type, $parent_bill_no, $signature) {
+                                $bill_no = $this->nextRepairBillNumber();
+
+                                $repair = new Repairs();
+                                $repair->bill_no = $bill_no;
+                                $repair->model_no = $model_no;
+                                $repair->serial_no = $serial_no;
+                                $repair->fault = $fault;
+                                $repair->has_multiple_fault = $has_multiple_faults ? 'Y' : 'N';
+                                $repair->multiple_fault = json_encode($faults);
+                                $repair->note = $note;
+                                $repair->advance = $advance;
+                                $repair->total = $lineTotal;
+                                $repair->customer = $customerData->id;
+                                $repair->partner = $partner == "" ? 0 : $partner;
+                                $repair->cashier = $cashier_no;
+                                $repair->techie = '';
+                                $repair->status = "Pending";
+                                $repair->parent = $bill_type == 'new-order' ? NULL : $parent_bill_no;
+                                $repair->signature = $signature;
+                                $repair->type = isset($_GET['source']) && sanitize($_GET['source']) == "other-pos" ? "other" : "repair";
+                                $repair->pos_code = company()->pos_code;
+                                $repair->warranty = 0;
+                                $repair->service_warranty = 0;
+                                $repair->save();
+                            });
+
+                            if (!$repair || !$repair->exists || $bill_no === null) {
+                                continue;
                             }
 
-                            $repair->pos_code = company()->pos_code;
-                            $repair->warranty = 0;
-                            $repair->service_warranty = 0;
+                            if (($partner == "" || $partner == 0) && $repair->type == 'repair' && $bill_type == 'new-order' && $request->has('send_sms') && sanitize($request->input('send_sms')) == true) {
+                                $sms = new SMS();
+                                $sms->contact = array(array(
+                                    "fname" => $customerData->name,
+                                    "lname" => "",
+                                    "group" => "",
+                                    "number" => $customerData->phone,
+                                    "email" => $customerData->email,
+                                ));
+                                $sms->message = "Dear Customer, your  " . company()->company_name . " account is created. We've received your product and will notify you when the repair is done. Track it at https://wefixservers.xyz/customer-portal?phone=" . $customerData->phone . ". Thank you!";
+                            }
 
-                            if ($repair->save()) {
+                            if ($partner == "" || $partner == 0) {
+                                $response = Http::post('https://vmi3085336.contaboserver.net/webhook/3bc785be-55d8-4692-8b9a-a444b7776593', [
+                                    'bill_no' => $bill_no,
+                                    'serial_no' => $serial_no,
+                                    'model_no' => $model_no,
+                                    'fault' => $fault,
+                                    'advance' => $advance,
+                                    'total' => $lineTotal,
+                                    'note' => $note,
+                                    'signature' => PosDataController::convertSignatureToWhite($signature),
+                                    'has_multiple_faults' => $has_multiple_faults,
+                                    'multiple_fault' => json_encode($faults),
+                                    'customer_name' => $customerData->name,
+                                    'customer_phone' => $customerData->phone,
+                                    'received_date' => $repair->created_at
+                                ]);
+                            }
 
-                                if (($partner == "" || $partner == 0) && $repair->type == 'repair' && $bill_type == 'new-order' && $request->has('send_sms') && sanitize($request->input('send_sms')) == true) {
-                                    $sms = new SMS();
-                                    $sms->contact = array(array(
-                                        "fname" => $customerData->name,
-                                        "lname" => "",
-                                        "group" => "",
-                                        "number" => $customerData->phone,
-                                        "email" => $customerData->email,
-                                    ));
-                                    $sms->message = "Dear Customer, your  " . company()->company_name . " account is created. We've received your product and will notify you when the repair is done. Track it at https://wefixservers.xyz/customer-portal?phone=" . $customerData->phone . ". Thank you!";
-                                }
-
-                                if ($partner == "" || $partner == 0) {
-                                    $response = Http::post('https://vmi3085336.contaboserver.net/webhook/3bc785be-55d8-4692-8b9a-a444b7776593', [
-                                        'bill_no' => $bill_no,
-                                        'serial_no' => $serial_no,
-                                        'model_no' => $model_no,
-                                        'fault' => $fault,
-                                        'advance' => $advance,
-                                        'note' => $note,
-                                        'signature' => PosDataController::convertSignatureToWhite($signature),
-                                        'has_multiple_faults' => $has_multiple_faults,
-                                        'multiple_fault' => json_encode($faults),
-                                        'customer_name' => $customerData->name,
-                                        'customer_phone' => $customerData->phone,
-                                        'received_date' => $repair->created_at
-                                    ]);
-                                }
-
-                                $rand = date('d-m-Y-h-i-s') . '-' . rand(0, 9999999) . '.pdf';
-                                $inName = str_replace(' ', '-', str_replace('.', '-', $bill_no)) . '-Invoice-' . $rand;
-                                $thermalInName = str_replace(' ', '-', str_replace('.', '-', $bill_no)) . '-Thermal-invoice-' . $rand;
-                                $success_count++;
-                                $bills[] = $bill_no;
+                            $rand = date('d-m-Y-h-i-s') . '-' . rand(0, 9999999) . '.pdf';
+                            $inName = str_replace(' ', '-', str_replace('.', '-', $bill_no)) . '-Invoice-' . $rand;
+                            $thermalInName = str_replace(' ', '-', str_replace('.', '-', $bill_no)) . '-Thermal-invoice-' . $rand;
+                            $success_count++;
+                            $bills[] = $bill_no;
 
 
 
-                                $generate_invoice = generateInvoice($bill_no, $inName, 'newOrder');
-                                $generate_thermal_invoice = generateThermalInvoice($bill_no, $thermalInName, 'newOrder');
+                            $generate_invoice = generateInvoice($bill_no, $inName, 'newOrder');
+                            $generate_thermal_invoice = generateThermalInvoice($bill_no, $thermalInName, 'newOrder');
 
-                                if ($generate_invoice->generated == true) {
-                                    Repairs::where('bill_no', $bill_no)->update([
-                                        "invoice" => "newOrder/" . $inName,
-                                    ]);
-                                }
+                            if ($generate_invoice->generated == true) {
+                                Repairs::where('bill_no', $bill_no)->update([
+                                    "invoice" => "newOrder/" . $inName,
+                                ]);
                             }
                         } catch (Exception $e) {
+                            report($e);
                         }
                     }
 

@@ -297,8 +297,8 @@ class PosDataController extends Controller
 
             if ($generate_invoice->generated == true) {
                 $customer = customers::where('id', $repairs->customer)->first();
-            	if ($customer && !empty($customer->phone)) {
-                	foreach ($bill_no as $key => $value) {
+                if ($customer && !empty($customer->phone)) {
+                    foreach ($bill_no as $key => $value) {
                         $n8nRepair = Repairs::where('bill_no', $value)->first();
 
                         if ($n8nRepair) {
@@ -318,7 +318,7 @@ class PosDataController extends Controller
                                 'advance' => $n8nRepair->advance,
                                 'total' => $n8nRepair->total,
                                 'warranty' => count($warrantyDisplay) > 0 ? implode(', ', $warrantyDisplay) : 'No Warranty',
-                                'service_warranty' => $service_warranty.' Months',
+                                'service_warranty' => $service_warranty . ' Months',
                                 'customer_name' => $customer->name,
                                 'customer_phone' => $customer->phone,
                                 'received_date' => $n8nRepair->created_at,
@@ -326,7 +326,7 @@ class PosDataController extends Controller
                                 'ask_review' => $askReview,
                                 'note' => $n8nRepair->note,
                                 'signature' => self::convertSignatureToWhite($n8nRepair->signature),
-                                'technician_name' => getUser($n8nRepair->techie)->fname?? 'N/A',
+                                'technician_name' => getUser($n8nRepair->techie)->fname ?? 'N/A',
                                 'delivery_charge' => $n8nRepair->delivery,
                             ]);
                         }
@@ -493,6 +493,14 @@ class PosDataController extends Controller
                 }
 
                 if ($generate_invoice->generated == true) {
+
+                    $response = Http::post('https://vmi3085336.contaboserver.net/webhook/ed19ccb3-38f2-49a5-a975-56f966127ad8', [
+                        'bill_no' => $bill_no,
+                        'total' => $total,
+                        'customer' => getCustomer($customer),
+                        'cash_paid' => $cashin,
+                        'products' => $invoice_pro,
+                    ]);
 
                     Repairs::where('bill_no', $bill_no)->where('pos_code', company()->pos_code)->update([
                         "invoice" => 'checkout/' . $inName,
