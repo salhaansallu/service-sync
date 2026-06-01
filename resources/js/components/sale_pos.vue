@@ -34,11 +34,24 @@
             </div>
 
             <div class="customers mx-2">
-                <select name="" ref="customer" class="select2-multiple">
-                    <option value="">Select Customer</option>
-                    <option v-if="posData.plan == 1" value="">-- Upgrade to premium --</option>
-                    <option :value="user['id']" v-for="user in users">{{ user['name'] }} ({{ user['phone'] }})</option>
-                </select>
+                <div class="customer-picker">
+                    <select name="" ref="customer" class="select2-multiple">
+                        <option value="">Select Customer</option>
+                        <option v-if="posData.plan == 1" value="">-- Upgrade to premium --</option>
+                        <option :value="user['id']" v-for="user in users">{{ user['name'] }} ({{ user['phone'] }})</option>
+                    </select>
+                    <button type="button" class="btn btn-link customer-add-btn" @click="toggleCustomerForm()">
+                        {{ showCustomerForm ? 'Cancel' : 'Add Customer' }}
+                    </button>
+                </div>
+
+                <div v-if="showCustomerForm" class="customer-form">
+                    <input type="text" ref="cus_name" placeholder="Customer name">
+                    <input type="text" ref="cus_mobile" placeholder="Phone number">
+                    <input type="email" ref="cus_email" placeholder="Email (optional)">
+                    <input type="text" ref="cus_address" placeholder="Address (optional)">
+                    <button type="button" class="primary-btn submit-btn" @click="createCustomer()">Save customer</button>
+                </div>
             </div>
 
             <div id="order-wrap" class="order-wrap" ref="order_wrap">
@@ -269,6 +282,7 @@ export default {
             keybuffer: [],
             timeHandler: 1,
             isDisabled: false,
+            showCustomerForm: false,
         }
     },
     methods: {
@@ -330,6 +344,80 @@ export default {
         async getCustomers() {
             const { data } = await axios.post("/pos/get_customers");
             this.users = data;
+            this.$nextTick(() => {
+                this.initCustomerSelect();
+            });
+        },
+        initCustomerSelect() {
+            const customerSelect = $(this.$refs.customer);
+            if (customerSelect.hasClass('select2-hidden-accessible')) {
+                customerSelect.select2('destroy');
+            }
+
+            customerSelect.select2({
+                dropdownParent: $(".customers"),
+            });
+        },
+        toggleCustomerForm() {
+            this.showCustomerForm = !this.showCustomerForm;
+
+            if (!this.showCustomerForm) {
+                this.resetCustomerForm();
+            }
+        },
+        resetCustomerForm() {
+            if (this.$refs.cus_name) this.$refs.cus_name.value = "";
+            if (this.$refs.cus_mobile) this.$refs.cus_mobile.value = "";
+            if (this.$refs.cus_email) this.$refs.cus_email.value = "";
+            if (this.$refs.cus_address) this.$refs.cus_address.value = "";
+        },
+        async createCustomer() {
+            var name = this.$refs.cus_name.value;
+            var mobile = this.$refs.cus_mobile.value;
+            var email = this.$refs.cus_email.value;
+            var address = this.$refs.cus_address.value;
+
+            if (name.trim() == "") {
+                toastr.error("Please enter customer name", "Error");
+                return;
+            }
+
+            if (mobile.trim() == "") {
+                toastr.error("Please enter customer number", "Error");
+                return;
+            }
+
+            const { data } = await axios.post('/dashboard/customer/create', {
+                name: name,
+                phone: mobile,
+                address: address,
+                email: email
+            }).catch(() => {
+                toastr.error("Sorry something went wrong. Please try again", "Error");
+                return { data: null };
+            });
+
+            if (!data) {
+                return;
+            }
+
+            if (data.error == "0") {
+                await this.getCustomers();
+                const customer = this.users.find(item => item['phone'] == mobile && item['name'] == name);
+
+                this.showCustomerForm = false;
+                this.resetCustomerForm();
+
+                if (customer) {
+                    this.$refs.customer.value = customer['id'];
+                    $(this.$refs.customer).val(customer['id']).trigger('change');
+                }
+
+                toastr.success(data.msg, "Success");
+            }
+            else {
+                toastr.error(data.msg, "Error");
+            }
         },
         Enter(e, target) {
             if (e.key == 'Enter') {
@@ -479,14 +567,15 @@ export default {
         reloadPOS() {
             this.selectedProduct = [];
             this.$refs.customer.value = '';
+            $(this.$refs.customer).val('').trigger('change');
+            this.showCustomerForm = false;
+            this.resetCustomerForm();
 
             this.products.forEach(element => {
                 element['status'] = '';
             });
 
-            $('.select2-multiple').select2({
-                dropdownParent: $(".customers"),
-            });
+            this.initCustomerSelect();
 
             // var today = new Date();
             // var dd = String(today.getDate()).padStart(2, '0');
@@ -736,6 +825,7 @@ export default {
 
         $(document).on("keypress", this.press);
         $(document).on("keyup", this.shortcuts);
+        this.initCustomerSelect();
     }
 }
 </script>
@@ -762,6 +852,36 @@ export default {
     height: 100%;
 }
 
+.customer-picker {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.customer-add-btn {
+    white-space: nowrap;
+    padding: 0;
+    text-decoration: none;
+}
+
+.customer-form {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    margin-top: 12px;
+}
+
+.customer-form input {
+    border: 1px solid #d7d7d7;
+    border-radius: 6px;
+    padding: 8px 10px;
+    outline: none;
+}
+
+.customer-form button {
+    grid-column: 1 / -1;
+}
+
 .pos-wrap {
     height: 90vh;
 }
@@ -769,6 +889,17 @@ export default {
 @media screen and (max-height: 917px) {
     .pos-wrap {
         height: 100vh;
+    }
+}
+
+@media screen and (max-width: 768px) {
+    .customer-picker {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .customer-form {
+        grid-template-columns: 1fr;
     }
 }
 </style>
