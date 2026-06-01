@@ -889,7 +889,9 @@ class DashboardController extends Controller
                                 $productSales['unknown'] += $product->unit * $product->qty;
                             }
                             else {
-                                $productSales[$prodData->category ?? 'unknown'] += $product->unit * $product->qty;
+                                if (isset($productSales[$prodData->category])) {
+                                    $productSales[$prodData->category ?? 'unknown'] += $product->unit * $product->qty;
+                                }
                             }
                         }
                     }
