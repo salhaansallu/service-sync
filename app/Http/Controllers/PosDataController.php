@@ -301,7 +301,7 @@ class PosDataController extends Controller
                     foreach ($bill_no as $key => $value) {
                         $n8nRepair = Repairs::where('bill_no', $value)->first();
 
-                        if ($n8nRepair) {
+                        if ($n8nRepair && $n8nRepair->type == 'repair') {
                             $warrantyDisplay = [];
                             if ((int)$warranty > 0) {
                                 $warrantyDisplay[] = $warranty . ' Months Parts Warranty';

@@ -690,7 +690,7 @@ class RepairsController extends Controller
                                 $sms->message = "Dear Customer, your  " . company()->company_name . " account is created. We've received your product and will notify you when the repair is done. Track it at https://wefixservers.xyz/customer-portal?phone=" . $customerData->phone . ". Thank you!";
                             }
 
-                            if ($partner == "" || $partner == 0) {
+                            if (($partner == "" || $partner == 0) && isset($_GET['source']) && sanitize($_GET['source']) != "other-pos") {
                                 $response = Http::post('https://vmi3085336.contaboserver.net/webhook/3bc785be-55d8-4692-8b9a-a444b7776593', [
                                     'bill_no' => $bill_no,
                                     'serial_no' => $serial_no,
