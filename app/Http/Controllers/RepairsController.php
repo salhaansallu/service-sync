@@ -23,6 +23,7 @@ use SMS;
 class RepairsController extends Controller
 {
     private const NEW_ORDER_WEBHOOK_URL = 'https://vmi3085336.contaboserver.net/webhook/3bc785be-55d8-4692-8b9a-a444b7776593';
+    private const DELIVERY_WEBHOOK_URL = 'https://vmi3085336.contaboserver.net/webhook/aba879e6-3b03-480f-9e60-031b943bb15c';
 
     private function nextRepairBillNumber(): int
     {
@@ -71,6 +72,53 @@ class RepairsController extends Controller
         return [
             'error' => 0,
             'msg' => 'Webhook triggered successfully',
+        ];
+    }
+
+    private function triggerDeliveryWebhook(Repairs $repair): array
+    {
+        $customerData = customers::find($repair->customer);
+
+        if (!$customerData) {
+            return [
+                'error' => 1,
+                'msg' => 'Customer not found for this repair',
+            ];
+        }
+
+        $warrantyDisplay = [];
+
+        if ((int) $repair->warranty > 0) {
+            $warrantyDisplay[] = $repair->warranty . ' Months Parts Warranty';
+        }
+
+        if ((int) $repair->service_warranty > 0) {
+            $warrantyDisplay[] = $repair->service_warranty . ' Months Service Warranty';
+        }
+
+        Http::post(self::DELIVERY_WEBHOOK_URL, [
+            'bill_no' => $repair->bill_no,
+            'serial_no' => $repair->serial_no,
+            'model_no' => $repair->model_no,
+            'fault' => $repair->fault,
+            'advance' => $repair->advance,
+            'total' => $repair->total,
+            'warranty' => count($warrantyDisplay) > 0 ? implode(', ', $warrantyDisplay) : 'No Warranty',
+            'service_warranty' => $repair->service_warranty . ' Months',
+            'customer_name' => $customerData->name,
+            'customer_phone' => $customerData->phone,
+            'received_date' => $repair->created_at,
+            'delivered_date' => $repair->paid_at,
+            'ask_review' => true,
+            'note' => $repair->note,
+            'signature' => PosDataController::convertSignatureToWhite($repair->signature),
+            'technician_name' => getUser($repair->techie)->fname ?? 'N/A',
+            'delivery_charge' => $repair->delivery,
+        ]);
+
+        return [
+            'error' => 0,
+            'msg' => 'Delivery webhook triggered successfully',
         ];
     }
 
@@ -317,6 +365,10 @@ class RepairsController extends Controller
                     'error' => 1,
                     'msg' => 'Repair not found',
                 ]);
+            }
+
+            if ($repair->status === 'Delivered') {
+                return response()->json($this->triggerDeliveryWebhook($repair));
             }
 
             return response()->json($this->triggerNewOrderWebhook($repair));
