@@ -75,6 +75,12 @@
                                                         onclick="ViewInvoice('{{ printInvoice($item->invoice) }}')"><i
                                                             class="fa-regular fa-eye"></i></a>
 
+                                                    <a class="badge bg-info mr-2" data-toggle="tooltip"
+                                                        data-placement="top" title="Trigger Webhook"
+                                                        data-original-title="Trigger Webhook" href="javascript:void(0)"
+                                                        onclick="triggerWebhook('{{ $item->bill_no }}')"><i
+                                                            class="fa-solid fa-paper-plane"></i></a>
+
                                                     @if ($item->status == 'Delivered')
                                                         <a class="badge bg-warning mr-2" data-toggle="tooltip"
                                                             data-placement="top" title="Check Warranty"
@@ -137,6 +143,30 @@
             } else {
                 toastr.error("Invoice not found", "Error");
             }
+            return 0;
+        }
+
+        function triggerWebhook(billNo) {
+            $.ajax({
+                type: "post",
+                url: "/pos/trigger_webhook",
+                data: {
+                    bill_no: billNo,
+                    _token: '{{ csrf_token() }}'
+                },
+                dataType: "json",
+                success: function(response) {
+                    if (response.error == 0) {
+                        toastr.success(response.msg, "Success");
+                    } else {
+                        toastr.error(response.msg, "Error");
+                    }
+                },
+                error: function() {
+                    toastr.error("Unable to trigger webhook", "Error");
+                }
+            });
+
             return 0;
         }
 

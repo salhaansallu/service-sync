@@ -161,6 +161,8 @@
                                 <li><a href="javascript:void(0)"
                                         @click="openWhatsapp(searchCustomer(repair.customer)['phone'], repair.invoice)">Send
                                         Invoice on WhatsApp</a></li>
+                                <li><a href="javascript:void(0)"
+                                        @click="triggerWebhook(repair.bill_no)">Trigger Webhook</a></li>
                                 <li @click="finishOrder('show', repair.bill_no)"
                                     v-if="repair.status == 'Pending' || repair.status == 'Awaiting Parts'"><a
                                         href="javascript:void(0)">Update Order Status</a></li>
@@ -2018,6 +2020,26 @@ export default {
         openWhatsapp(number, invoice) {
             var text = "Click on the link to get your PDF invoice copy \nhttps://wefixservers.xyz/invoice/" + invoice;
             window.open('https://wa.me/' + reformatPhoneNumbers(number) + "?text=" + encodeURIComponent(text));
+        },
+        async triggerWebhook(bill_no) {
+            this.loadModal("show");
+
+            try {
+                const { data } = await axios.post("/pos/trigger_webhook", {
+                    bill_no: bill_no,
+                });
+
+                if (data.error == "0" || data.error === 0) {
+                    toastr.success(data.msg, "Success");
+                }
+                else {
+                    toastr.error(data.msg, "Error");
+                }
+            } catch (error) {
+                toastr.error("Unable to trigger webhook", "Error");
+            } finally {
+                this.loadModal("hide");
+            }
         },
         async filterStatus() {
             this.repairs = this.proBackup;

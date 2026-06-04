@@ -22,6 +22,8 @@ use SMS;
 
 class RepairsController extends Controller
 {
+    private const NEW_ORDER_WEBHOOK_URL = 'https://vmi3085336.contaboserver.net/webhook/3bc785be-55d8-4692-8b9a-a444b7776593';
+
     private function nextRepairBillNumber(): int
     {
         $latestRepair = Repairs::select('id', 'bill_no')
@@ -30,6 +32,46 @@ class RepairsController extends Controller
             ->first();
 
         return $latestRepair ? ((int) $latestRepair->bill_no + 1) : 1001;
+    }
+
+    private function triggerNewOrderWebhook(Repairs $repair): array
+    {
+        if (($repair->partner ?? 0) != 0) {
+            return [
+                'error' => 1,
+                'msg' => 'Webhook is only available for direct repair orders',
+            ];
+        }
+
+        $customerData = customers::find($repair->customer);
+
+        if (!$customerData) {
+            return [
+                'error' => 1,
+                'msg' => 'Customer not found for this repair',
+            ];
+        }
+
+        Http::post(self::NEW_ORDER_WEBHOOK_URL, [
+            'bill_no' => $repair->bill_no,
+            'serial_no' => $repair->serial_no,
+            'model_no' => $repair->model_no,
+            'fault' => $repair->fault,
+            'advance' => $repair->advance,
+            'total' => $repair->total,
+            'note' => $repair->note,
+            'signature' => PosDataController::convertSignatureToWhite($repair->signature),
+            'has_multiple_faults' => $repair->has_multiple_fault,
+            'multiple_fault' => $repair->multiple_fault,
+            'customer_name' => $customerData->name,
+            'customer_phone' => $customerData->phone,
+            'received_date' => $repair->created_at,
+        ]);
+
+        return [
+            'error' => 0,
+            'msg' => 'Webhook triggered successfully',
+        ];
     }
 
     /**
@@ -259,6 +301,32 @@ class RepairsController extends Controller
             $response['error'] = 1;
             $response['msg'] = "not_logged_in";
             return response(json_encode($response));
+        }
+    }
+
+    public function triggerWebhook(Request $request)
+    {
+        try {
+            $billNo = sanitize($request->input('bill_no'));
+            $repair = Repairs::where('bill_no', $billNo)
+                ->where('pos_code', company()->pos_code)
+                ->first();
+
+            if (!$repair) {
+                return response()->json([
+                    'error' => 1,
+                    'msg' => 'Repair not found',
+                ]);
+            }
+
+            return response()->json($this->triggerNewOrderWebhook($repair));
+        } catch (Exception $e) {
+            report($e);
+
+            return response()->json([
+                'error' => 1,
+                'msg' => 'Unable to trigger webhook',
+            ]);
         }
     }
 
@@ -691,21 +759,7 @@ class RepairsController extends Controller
                             }
 
                             if (($partner == "" || $partner == 0) && isset($_GET['source']) && sanitize($_GET['source']) != "other-pos") {
-                                $response = Http::post('https://vmi3085336.contaboserver.net/webhook/3bc785be-55d8-4692-8b9a-a444b7776593', [
-                                    'bill_no' => $bill_no,
-                                    'serial_no' => $serial_no,
-                                    'model_no' => $model_no,
-                                    'fault' => $fault,
-                                    'advance' => $advance,
-                                    'total' => $lineTotal,
-                                    'note' => $note,
-                                    'signature' => PosDataController::convertSignatureToWhite($signature),
-                                    'has_multiple_faults' => $has_multiple_faults,
-                                    'multiple_fault' => json_encode($faults),
-                                    'customer_name' => $customerData->name,
-                                    'customer_phone' => $customerData->phone,
-                                    'received_date' => $repair->created_at
-                                ]);
+                                    $this->triggerNewOrderWebhook($repair);
                             }
 
                             $rand = date('d-m-Y-h-i-s') . '-' . rand(0, 9999999) . '.pdf';
