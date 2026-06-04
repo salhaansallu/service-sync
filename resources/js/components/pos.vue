@@ -162,7 +162,7 @@
                                         @click="openWhatsapp(searchCustomer(repair.customer)['phone'], repair.invoice)">Send
                                         Invoice on WhatsApp</a></li>
                                 <li><a href="javascript:void(0)"
-                                        @click="triggerWebhook(repair.bill_no)">Trigger Webhook</a></li>
+                                        @click="triggerWebhook(repair.bill_no)">WhatsApp Invoice</a></li>
                                 <li @click="finishOrder('show', repair.bill_no)"
                                     v-if="repair.status == 'Pending' || repair.status == 'Awaiting Parts'"><a
                                         href="javascript:void(0)">Update Order Status</a></li>
