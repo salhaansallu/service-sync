@@ -3243,6 +3243,148 @@ function generateLowStockReport($low, $inName = 'low-stock-report.pdf')
     return (object)array('generated' => true, 'url' => $inName);
 }
 
+function generateDetailedSalesReport($sales, $fromDate, $toDate, $inName = 'sales-detailed-report.pdf')
+{
+    $company = PosDataController::company();
+    $totalSales = 0;
+    $totalCost = 0;
+    $totalProfit = 0;
+    $rows = '';
+
+    foreach ($sales as $sale) {
+        $customer = getCustomer($sale->customer);
+        $cashier = getUser($sale->cashier);
+        $products = json_decode(htmlspecialchars_decode($sale->products), true);
+        $products = is_array($products) ? $products : [];
+
+        $productRows = '';
+        foreach ($products as $product) {
+            $name = isset($product['name']) ? htmlspecialchars((string)$product['name']) : 'N/A';
+            $sku = isset($product['sku']) ? htmlspecialchars((string)$product['sku']) : 'N/A';
+            $qty = isset($product['qty']) ? (float)$product['qty'] : 0;
+            $unit = isset($product['unit']) ? (float)$product['unit'] : 0;
+            $lineTotal = $qty * $unit;
+
+            $productRows .= '
+                <tr>
+                    <td style="padding: 6px; border: 1px solid #ddd;">' . $name . '</td>
+                    <td style="padding: 6px; border: 1px solid #ddd;">' . $sku . '</td>
+                    <td style="padding: 6px; border: 1px solid #ddd; text-align: right;">' . $qty . '</td>
+                    <td style="padding: 6px; border: 1px solid #ddd; text-align: right;">' . currency($unit, '') . '</td>
+                    <td style="padding: 6px; border: 1px solid #ddd; text-align: right;">' . currency($lineTotal, '') . '</td>
+                </tr>
+            ';
+        }
+
+        if ($productRows === '') {
+            $productRows = '
+                <tr>
+                    <td colspan="5" style="padding: 6px; border: 1px solid #ddd; text-align: center;">No line items found</td>
+                </tr>
+            ';
+        }
+
+        $profit = (float)$sale->total - (float)$sale->cost;
+        $totalSales += (float)$sale->total;
+        $totalCost += (float)$sale->cost;
+        $totalProfit += $profit;
+
+        $rows .= '
+            <div style="margin-bottom: 24px; page-break-inside: avoid;">
+                <table style="width: 100%; border-collapse: collapse; margin-bottom: 10px;">
+                    <tr style="background-color: #f4f4f4;">
+                        <th style="padding: 8px; border: 1px solid #ddd; text-align: left;">Bill No</th>
+                        <th style="padding: 8px; border: 1px solid #ddd; text-align: left;">Customer</th>
+                        <th style="padding: 8px; border: 1px solid #ddd; text-align: left;">Cashier</th>
+                        <th style="padding: 8px; border: 1px solid #ddd; text-align: left;">Date</th>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px; border: 1px solid #ddd;">' . htmlspecialchars((string)$sale->bill_no) . '</td>
+                        <td style="padding: 8px; border: 1px solid #ddd;">' . htmlspecialchars(($customer->name ?? 'N/A')) . '</td>
+                        <td style="padding: 8px; border: 1px solid #ddd;">' . htmlspecialchars(($cashier->fname ?? 'N/A')) . '</td>
+                        <td style="padding: 8px; border: 1px solid #ddd;">' . date('Y-m-d H:i:s', strtotime($sale->created_at)) . '</td>
+                    </tr>
+                </table>
+
+                <table style="width: 100%; border-collapse: collapse; margin-bottom: 10px;">
+                    <tr>
+                        <td style="padding: 8px; border: 1px solid #ddd;"><strong>Total</strong><br>' . currency($sale->total, $company->currency) . '</td>
+                        <td style="padding: 8px; border: 1px solid #ddd;"><strong>Cost</strong><br>' . currency($sale->cost, $company->currency) . '</td>
+                        <td style="padding: 8px; border: 1px solid #ddd;"><strong>Profit</strong><br>' . currency($profit, $company->currency) . '</td>
+                    </tr>
+                </table>
+
+                <table style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr style="background-color: #f9f9f9;">
+                            <th style="padding: 6px; border: 1px solid #ddd; text-align: left;">Item</th>
+                            <th style="padding: 6px; border: 1px solid #ddd; text-align: left;">SKU</th>
+                            <th style="padding: 6px; border: 1px solid #ddd; text-align: right;">Qty</th>
+                            <th style="padding: 6px; border: 1px solid #ddd; text-align: right;">Unit Price</th>
+                            <th style="padding: 6px; border: 1px solid #ddd; text-align: right;">Line Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ' . $productRows . '
+                    </tbody>
+                </table>
+            </div>
+        ';
+    }
+
+    $html = '
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Detailed Sales Report</title>
+            <style>
+                @page {
+                    margin: 18px;
+                    width: 210mm;
+                }
+                body {
+                    font-family: Arial, sans-serif;
+                    font-size: 12px;
+                    color: #111;
+                }
+            </style>
+        </head>
+        <body>
+            <div style="text-align: center; margin-bottom: 20px;">
+                <h2 style="margin: 0 0 8px 0;">Detailed Sales Report</h2>
+                <div>' . htmlspecialchars($company->company_name ?? 'POS') . '</div>
+                <div>Date Range: ' . htmlspecialchars((string)$fromDate) . ' to ' . htmlspecialchars((string)$toDate) . '</div>
+            </div>
+
+            <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+                <tr style="background-color: #f4f4f4;">
+                    <th style="padding: 8px; border: 1px solid #ddd; text-align: right;">Total Sales</th>
+                    <th style="padding: 8px; border: 1px solid #ddd; text-align: right;">Total Cost</th>
+                    <th style="padding: 8px; border: 1px solid #ddd; text-align: right;">Total Profit</th>
+                </tr>
+                <tr>
+                    <td style="padding: 8px; border: 1px solid #ddd; text-align: right;">' . currency($totalSales, $company->currency) . '</td>
+                    <td style="padding: 8px; border: 1px solid #ddd; text-align: right;">' . currency($totalCost, $company->currency) . '</td>
+                    <td style="padding: 8px; border: 1px solid #ddd; text-align: right;">' . currency($totalProfit, $company->currency) . '</td>
+                </tr>
+            </table>
+
+            ' . $rows . '
+        </body>
+        </html>
+    ';
+
+    $pdf = new Dompdf();
+    $pdf->setPaper('A4', 'portrait');
+    $pdf->loadHtml($html, 'UTF-8');
+    $pdf->render();
+    $path = public_path('invoice/' . $inName);
+    file_put_contents($path, $pdf->output());
+
+    return (object)array('generated' => true, 'url' => '/invoice/' . $inName);
+}
+
 function sendInvitation($email)
 {
     $verify = User::where('email', $email)->get();

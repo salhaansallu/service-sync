@@ -334,17 +334,34 @@ class RepairsController extends Controller
             $fromDate = date("Y-m-d") . " 00:00:00";
             $toDate = date("Y-m-d") . " 23:59:59";
             $status = $request->has('status') ? sanitize($request->input('status')) : '';
+            $type = $request->has('type') ? sanitize($request->input('type')) : 'repair';
+
+            if (!in_array($type, ['repair', 'sale'], true)) {
+                $type = 'repair';
+            }
 
             if ($request->has("fromDate") && $request->has("toDate")) {
                 $fromDate = date("Y-m-d", strtotime(sanitize($request->input("fromDate")))) . " 00:00:00";
                 $toDate = date("Y-m-d", strtotime(sanitize($request->input("toDate")))) . " 23:59:59";
             }
 
-            if (!empty($status)) {
-                return response(json_encode(Repairs::where('pos_code', PosDataController::company()->pos_code)->where('type', '=', 'repair')->where('status', '=', $status)->whereNull('parent')->whereBetween('created_at', [$fromDate, $toDate])->orderBy('customer', 'DESC')->get()));
+            $query = Repairs::where('pos_code', PosDataController::company()->pos_code)
+                ->where('type', '=', $type)
+                ->whereBetween('created_at', [$fromDate, $toDate]);
+
+            if ($type === 'repair') {
+                $query->whereNull('parent');
             }
 
-            return response(json_encode(Repairs::where('pos_code', PosDataController::company()->pos_code)->where('type', '=', 'repair')->where('status', '!=', 'Delivered')->whereBetween('created_at', [$fromDate, $toDate])->orderBy('customer', 'DESC')->get()));
+            if (!empty($status)) {
+                return response(json_encode($query->where('status', '=', $status)->orderBy('customer', 'DESC')->get()));
+            }
+
+            if ($type === 'repair') {
+                $query->where('status', '!=', 'Delivered');
+            }
+
+            return response(json_encode($query->orderBy('customer', 'DESC')->get()));
         } else {
             $response['error'] = 1;
             $response['msg'] = "not_logged_in";
@@ -810,7 +827,7 @@ class RepairsController extends Controller
                                 $sms->message = "Dear Customer, your  " . company()->company_name . " account is created. We've received your product and will notify you when the repair is done. Track it at https://wefixservers.xyz/customer-portal?phone=" . $customerData->phone . ". Thank you!";
                             }
 
-                            if (($partner == "" || $partner == 0) && isset($_GET['source']) && sanitize($_GET['source']) != "other-pos") {
+                            if (($partner == "" || $partner == 0) && (empty($_GET['source']) || (isset($_GET['source']) && sanitize($_GET['source']) != "other-pos"))) {
                                     $this->triggerNewOrderWebhook($repair);
                             }
 
@@ -1128,6 +1145,74 @@ class RepairsController extends Controller
 
             return response(json_encode(['error' => 0, 'report' => asset($generate->url)]));
         }
+    }
+
+    public function downloadDetailedReport(Request $request)
+    {
+        if (!(Auth::check() && PosDataController::check())) {
+            return response()->json([
+                'error' => 1,
+                'msg' => 'Not logged in',
+            ], 401);
+        }
+
+        $type = $request->has('type') ? sanitize($request->input('type')) : 'repair';
+        if ($type !== 'sale') {
+            return response()->json([
+                'error' => 1,
+                'msg' => 'Detailed report is available only for sales',
+            ], 422);
+        }
+
+        $billNos = $request->input('bill_nos', []);
+        if (!is_array($billNos) || count($billNos) === 0) {
+            return response()->json([
+                'error' => 1,
+                'msg' => 'No sales selected for the report',
+            ], 422);
+        }
+
+        $sanitizedBillNos = array_values(array_filter(array_map(function ($billNo) {
+            return sanitize($billNo);
+        }, $billNos)));
+
+        if (count($sanitizedBillNos) === 0) {
+            return response()->json([
+                'error' => 1,
+                'msg' => 'No valid sales selected for the report',
+            ], 422);
+        }
+
+        $fromDate = $request->has('fromDate') ? sanitize($request->input('fromDate')) : date('Y-m-d');
+        $toDate = $request->has('toDate') ? sanitize($request->input('toDate')) : date('Y-m-d');
+
+        $sales = Repairs::where('pos_code', company()->pos_code)
+            ->where('type', 'sale')
+            ->whereIn('bill_no', $sanitizedBillNos)
+            ->orderBy('created_at', 'ASC')
+            ->get();
+
+        if ($sales->count() === 0) {
+            return response()->json([
+                'error' => 1,
+                'msg' => 'No sales found for the selected report',
+            ], 404);
+        }
+
+        $fileName = 'sales-detailed-report-' . date('Y-m-d-H-i-s') . '.pdf';
+        $report = generateDetailedSalesReport($sales, $fromDate, $toDate, $fileName);
+
+        if (!$report->generated) {
+            return response()->json([
+                'error' => 1,
+                'msg' => 'Unable to generate detailed report',
+            ], 500);
+        }
+
+        return response()->json([
+            'error' => 0,
+            'report' => asset($report->url),
+        ]);
     }
 
     public function n8n_get(Request $request)

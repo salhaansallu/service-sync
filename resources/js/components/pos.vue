@@ -45,16 +45,16 @@
             <div class="favourits">
                 <select @change="filterStatus()" name="" ref="statusFilter"
                     class="form-control border-0 outline-0 text-secondary text-center" style="box-shadow: none;">
-                    <option value="">All Repairs</option>
-                    <option value="Pending">Pending Repairs</option>
-                    <option value="Repaired">Repaired Repairs</option>
-                    <option value="Awaiting Parts">Awaiting Parts</option>
-                    <option value="Customer Pending">Customer Pending</option>
-                    <option value="Delivered">Delivered</option>
+                    <option value="">{{ isSalesView ? 'All Sales' : 'All Repairs' }}</option>
+                    <option v-if="!isSalesView" value="Pending">Pending Repairs</option>
+                    <option v-if="!isSalesView" value="Repaired">Repaired Repairs</option>
+                    <option v-if="!isSalesView" value="Awaiting Parts">Awaiting Parts</option>
+                    <option v-if="!isSalesView" value="Customer Pending">Customer Pending</option>
+                    <option value="Delivered">{{ isSalesView ? 'Delivered Sales' : 'Delivered' }}</option>
                 </select>
             </div>
 
-            <div class="favourits">
+            <div v-if="!isSalesView" class="favourits">
                 <select @change="filterPartner()" name="" ref="partnerFilter"
                     class="form-control border-0 outline-0 text-secondary text-center" style="box-shadow: none;">
                     <option value="">-- Select Partner --</option>
@@ -63,9 +63,11 @@
             </div>
 
             <div class="favourits">
+                <div v-if="isSalesView" class="form-text text-center mb-1">Filter by cashier</div>
+                <div v-else class="form-text text-center mb-1">Filter by technician</div>
                 <select @change="techieFilter()" name="" ref="techieField"
                     class="form-control border-0 outline-0 text-secondary text-center" style="box-shadow: none;">
-                    <option value="">-- Select Technician --</option>
+                    <option value="">{{ isSalesView ? '-- Select Cashier --' : '-- Select Technician --' }}</option>
                     <option v-for="cashier in cashiers" :value="cashier.user_id">{{ cashier.fname }}</option>
                 </select>
             </div>
@@ -94,12 +96,24 @@
 
                 <div class="filter d-flex gap-2">
                     <div class="input">
+                        <label for="" class="mx-1">Type </label>
+                        <select ref="recordTypeFilter" v-model="recordTypeFilter" style="width: 120px;" @change="onRecordTypeChange()">
+                            <option value="repair">Repairs</option>
+                            <option value="sale">Sales</option>
+                        </select>
+                    </div>
+                    <div class="input">
                         <label for="" class="mx-1">From </label>
                         <input type="date" ref="ordersFromDate" style="width: 120px;" @change="FilterRepairs()">
                     </div>
                     <div class="input">
                         <label for="" class="mx-2">To </label>
                         <input type="date" ref="ordersToDate" style="width: 120px;" @change="FilterRepairs()">
+                    </div>
+                    <div v-if="isSalesView" class="input">
+                        <button class="primary-btn border-only submit-btn" type="button" @click="downloadDetailedReport()">
+                            Detailed Report
+                        </button>
                     </div>
                 </div>
             </div>
@@ -130,12 +144,12 @@
                                 <span>{{ repair.bill_no }}</span>
                             </div>
                             <div class="col-2 form-text mt-0 d-flex align-items-center control-text-overflow">{{
-                                repair.model_no }}</div>
+                                displayModelNo(repair) }}</div>
                             <div style="width: 100px;"
                                 class="col-2 form-text mt-0 d-flex align-items-center control-text-overflow">{{
-                                    repair.serial_no }}</div>
+                                    displaySerialNo(repair) }}</div>
                             <div class="col-2 form-text mt-0 d-flex align-items-center control-text-overflow">{{
-                                repair.fault }}</div>
+                                displayFault(repair) }}</div>
                             <div class="col-2 form-text mt-0 d-flex align-items-center control-text-overflow">
                                 <span :style="getWhatsappStatusColor(repair.bill_no)">{{
                                     searchCustomer(repair.customer)["phone"] }}</span>&nbsp;({{
@@ -147,7 +161,7 @@
 
                             <div style="width: 100px;"
                                 class="col-2 form-text mt-0 d-flex align-items-center control-text-overflow">
-                                {{ searchTechnician(repair.techie)["fname"] }}</div>
+                                {{ displayAssignee(repair) }}</div>
 
                             <div class="col-1 form-text mt-0 d-flex align-items-center control-text-overflow"
                                 style="width: 50px;" v-if="bulkInvoiceList.includes(repair.bill_no)"><i
@@ -155,27 +169,27 @@
                         </div>
                         <div class="context_menu" :id="'order_wrap_' + repair.bill_no" style="display: none;">
                             <ul>
-                                <li><a href="javascript:void(0)" @click="editRepair(repair.id)">Edit Repair</a></li>
+                                <li v-if="!isSaleRecord(repair)"><a href="javascript:void(0)" @click="editRepair(repair.id)">Edit Repair</a></li>
                                 <li><a href="javascript:void(0)" @click="printInvoice(repair.invoice)">Open Invoice</a>
                                 </li>
-                                <li><a href="javascript:void(0)"
+                                <li v-if="!isSaleRecord(repair)"><a href="javascript:void(0)"
                                         @click="openWhatsapp(searchCustomer(repair.customer)['phone'], repair.invoice)">Send
                                         Invoice on WhatsApp</a></li>
-                                <li><a href="javascript:void(0)"
+                                <li v-if="!isSaleRecord(repair)"><a href="javascript:void(0)"
                                         @click="triggerWebhook(repair.bill_no)">WhatsApp Invoice</a></li>
                                 <li @click="finishOrder('show', repair.bill_no)"
-                                    v-if="repair.status == 'Pending' || repair.status == 'Awaiting Parts'"><a
+                                    v-if="!isSaleRecord(repair) && (repair.status == 'Pending' || repair.status == 'Awaiting Parts')"><a
                                         href="javascript:void(0)">Update Order Status</a></li>
-                                <li v-if="repair.status == 'Pending'"><a href="javascript:void(0)"
+                                <li v-if="!isSaleRecord(repair) && repair.status == 'Pending'"><a href="javascript:void(0)"
                                         @click="selectForUpdate(repair.bill_no)">Select For Bulk Update</a></li>
-                                <li v-if="repair.status == 'Return'"><a href="javascript:void(0)"
+                                <li v-if="!isSaleRecord(repair) && repair.status == 'Return'"><a href="javascript:void(0)"
                                         @click="selectProduct(repair.bill_no)">Checkout Order</a></li>
-                                <li v-if="repair.status == 'Repaired' || repair.status == 'Customer Pending'"><a
+                                <li v-if="!isSaleRecord(repair) && (repair.status == 'Repaired' || repair.status == 'Customer Pending')"><a
                                         href="javascript:void(0)" @click="selectProduct(repair.bill_no)">Checkout
                                         Order</a></li>
 
                                 <!-- <li v-if="repair.status == 'Delivered'"><a href="javascript:void(0)">Re-service</a></li> -->
-                                <li v-if="repair.status == 'Pending'"><a href="javascript:void(0)"
+                                <li v-if="!isSaleRecord(repair) && repair.status == 'Pending'"><a href="javascript:void(0)"
                                         @click="bulkInvoiceSelect(repair.bill_no)">{{
                                             bulkInvoiceList.includes(repair.bill_no) ? 'Remove From' : 'Select For' }} Bulk
                                         Invoicing</a></li>
@@ -969,6 +983,7 @@ export default {
             multipleFult: false,
             faultCount: 1,
             selectedFaults: [],
+            recordTypeFilter: 'repair',
             signaturePad: null,
             signatureFor: null,
             whatsappStatuses: {},
@@ -981,14 +996,51 @@ export default {
         thirdPartySpares() {
             return this.Spares.filter(spare => spare.source === '3rd_party');
         },
+        isSalesView() {
+            return this.recordTypeFilter === 'sale';
+        },
     },
     methods: {
         currency,
         printJS,
         reformatPhoneNumbers,
         isNumber,
+        isSaleRecord(repair) {
+            return repair.type === 'sale';
+        },
+        getRepairRequestType() {
+            return this.recordTypeFilter;
+        },
         formatSpareLabel(spare) {
             return spare.pro_name + (spare.source === '3rd_party' ? ' (Fix AI)' : '');
+        },
+        displayModelNo(repair) {
+            if (this.isSaleRecord(repair)) {
+                return 'Sale';
+            }
+
+            return repair.model_no;
+        },
+        displaySerialNo(repair) {
+            if (this.isSaleRecord(repair)) {
+                return '-';
+            }
+
+            return repair.serial_no;
+        },
+        displayFault(repair) {
+            if (this.isSaleRecord(repair)) {
+                return 'Sales invoice';
+            }
+
+            return repair.fault;
+        },
+        displayAssignee(repair) {
+            if (this.isSaleRecord(repair)) {
+                return this.searchTechnician(repair.cashier)["fname"];
+            }
+
+            return this.searchTechnician(repair.techie)["fname"];
         },
         openMenu(menuID) {
             $('#' + menuID).toggle();
@@ -1295,6 +1347,48 @@ export default {
         async getRepairs() {
             this.FilterRepairs()
         },
+        async downloadDetailedReport() {
+            if (!this.isSalesView) {
+                toastr.error('Detailed report is available only for sales', 'Error');
+                return;
+            }
+
+            if (this.repairs.length === 0) {
+                toastr.error('No sales found for the selected filters', 'Error');
+                return;
+            }
+
+            this.loadModal("show");
+
+            try {
+                const { data } = await axios.post('/pos/download_detailed_report', {
+                    type: this.getRepairRequestType(),
+                    fromDate: this.$refs.ordersFromDate.value,
+                    toDate: this.$refs.ordersToDate.value,
+                    bill_nos: this.repairs.map(item => item.bill_no),
+                });
+
+                if (data.error == 0 || data.error == '0') {
+                    window.open(data.report, '_blank');
+                    return;
+                }
+
+                toastr.error(data.msg || 'Unable to generate report', 'Error');
+            } catch (error) {
+                toastr.error('Unable to generate report', 'Error');
+            } finally {
+                this.loadModal("hide");
+            }
+        },
+        async onRecordTypeChange() {
+            this.$refs.statusFilter.value = '';
+            if (this.$refs.partnerFilter) {
+                this.$refs.partnerFilter.value = '';
+            }
+            this.$refs.techieField.value = '';
+            this.$refs.searchbar.value = '';
+            await this.FilterRepairs();
+        },
         async getCustomers() {
             const { data } = await axios.post("/pos/get_customers");
             this.users = data;
@@ -1391,7 +1485,13 @@ export default {
             else {
                 if (this.$refs.searchType.value == 'repairs') {
                     pro = this.proBackup;
-                    this.repairs = pro.filter(item => item['model_no'].toLowerCase().includes(this.$refs['searchbar'].value.toLowerCase()) || item['bill_no'].toLowerCase().includes(this.$refs['searchbar'].value.toLowerCase()));
+                    this.repairs = pro.filter(item => {
+                        const searchKey = this.$refs['searchbar'].value.toLowerCase();
+                        const modelNo = item['model_no'] ? item['model_no'].toLowerCase() : '';
+                        const billNo = item['bill_no'] ? item['bill_no'].toLowerCase() : '';
+
+                        return modelNo.includes(searchKey) || billNo.includes(searchKey);
+                    });
                 }
                 else {
                     pro = this.proBackup;
@@ -1941,7 +2041,8 @@ export default {
                 if (fromDate <= toDate) {
                     const { data } = await axios.post("/pos/get_repairs", {
                         fromDate: fromDate,
-                        toDate: toDate
+                        toDate: toDate,
+                        type: this.getRepairRequestType(),
                     });
                     this.repairs = data;
                     this.proBackup = data;
@@ -2057,6 +2158,7 @@ export default {
                             fromDate: fromDate,
                             toDate: toDate,
                             status: 'Delivered',
+                            type: this.getRepairRequestType(),
                         });
                         this.repairs = data;
                     }
@@ -2083,7 +2185,8 @@ export default {
         techieFilter() {
             this.repairs = this.proBackup;
             if (this.$refs.techieField.value != "") {
-                this.repairs = this.repairs.filter(item => item['techie'] == this.$refs.techieField.value);
+                const key = this.isSalesView ? 'cashier' : 'techie';
+                this.repairs = this.repairs.filter(item => item[key] == this.$refs.techieField.value);
             }
         },
         openContext(bill, event) {
