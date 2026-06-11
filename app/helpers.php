@@ -3243,7 +3243,7 @@ function generateLowStockReport($low, $inName = 'low-stock-report.pdf')
     return (object)array('generated' => true, 'url' => $inName);
 }
 
-function generateDetailedSalesReport($sales, $fromDate, $toDate, $inName = 'sales-detailed-report.pdf')
+function generateDetailedSalesExcelReport($sales, $fromDate, $toDate, $inName = 'sales-detailed-report.xml')
 {
     $company = PosDataController::company();
     $totalSales = 0;
@@ -3251,136 +3251,150 @@ function generateDetailedSalesReport($sales, $fromDate, $toDate, $inName = 'sale
     $totalProfit = 0;
     $rows = '';
 
+    $escape = function ($value) {
+        return htmlspecialchars((string) $value, ENT_QUOTES | ENT_XML1, 'UTF-8');
+    };
+
     foreach ($sales as $sale) {
         $customer = getCustomer($sale->customer);
         $cashier = getUser($sale->cashier);
         $products = json_decode(htmlspecialchars_decode($sale->products), true);
         $products = is_array($products) ? $products : [];
 
-        $productRows = '';
-        foreach ($products as $product) {
-            $name = isset($product['name']) ? htmlspecialchars((string)$product['name']) : 'N/A';
-            $sku = isset($product['sku']) ? htmlspecialchars((string)$product['sku']) : 'N/A';
-            $qty = isset($product['qty']) ? (float)$product['qty'] : 0;
-            $unit = isset($product['unit']) ? (float)$product['unit'] : 0;
-            $lineTotal = $qty * $unit;
-
-            $productRows .= '
-                <tr>
-                    <td style="padding: 6px; border: 1px solid #ddd;">' . $name . '</td>
-                    <td style="padding: 6px; border: 1px solid #ddd;">' . $sku . '</td>
-                    <td style="padding: 6px; border: 1px solid #ddd; text-align: right;">' . $qty . '</td>
-                    <td style="padding: 6px; border: 1px solid #ddd; text-align: right;">' . currency($unit, '') . '</td>
-                    <td style="padding: 6px; border: 1px solid #ddd; text-align: right;">' . currency($lineTotal, '') . '</td>
-                </tr>
-            ';
-        }
-
-        if ($productRows === '') {
-            $productRows = '
-                <tr>
-                    <td colspan="5" style="padding: 6px; border: 1px solid #ddd; text-align: center;">No line items found</td>
-                </tr>
-            ';
-        }
-
         $profit = (float)$sale->total - (float)$sale->cost;
         $totalSales += (float)$sale->total;
         $totalCost += (float)$sale->cost;
         $totalProfit += $profit;
 
-        $rows .= '
-            <div style="margin-bottom: 24px; page-break-inside: avoid;">
-                <table style="width: 100%; border-collapse: collapse; margin-bottom: 10px;">
-                    <tr style="background-color: #f4f4f4;">
-                        <th style="padding: 8px; border: 1px solid #ddd; text-align: left;">Bill No</th>
-                        <th style="padding: 8px; border: 1px solid #ddd; text-align: left;">Customer</th>
-                        <th style="padding: 8px; border: 1px solid #ddd; text-align: left;">Cashier</th>
-                        <th style="padding: 8px; border: 1px solid #ddd; text-align: left;">Date</th>
-                    </tr>
-                    <tr>
-                        <td style="padding: 8px; border: 1px solid #ddd;">' . htmlspecialchars((string)$sale->bill_no) . '</td>
-                        <td style="padding: 8px; border: 1px solid #ddd;">' . htmlspecialchars(($customer->name ?? 'N/A')) . '</td>
-                        <td style="padding: 8px; border: 1px solid #ddd;">' . htmlspecialchars(($cashier->fname ?? 'N/A')) . '</td>
-                        <td style="padding: 8px; border: 1px solid #ddd;">' . date('Y-m-d H:i:s', strtotime($sale->created_at)) . '</td>
-                    </tr>
-                </table>
+        if (count($products) === 0) {
+            $rows .= '
+                <Row>
+                    <Cell><Data ss:Type="String">' . $escape($sale->bill_no) . '</Data></Cell>
+                    <Cell><Data ss:Type="String">' . $escape($customer->name ?? 'N/A') . '</Data></Cell>
+                    <Cell><Data ss:Type="String">' . $escape($cashier->fname ?? 'N/A') . '</Data></Cell>
+                    <Cell><Data ss:Type="String">' . $escape(date('Y-m-d H:i:s', strtotime($sale->created_at))) . '</Data></Cell>
+                    <Cell><Data ss:Type="String">N/A</Data></Cell>
+                    <Cell><Data ss:Type="String">N/A</Data></Cell>
+                    <Cell><Data ss:Type="Number">0</Data></Cell>
+                    <Cell><Data ss:Type="Number">0</Data></Cell>
+                    <Cell><Data ss:Type="Number">0</Data></Cell>
+                    <Cell><Data ss:Type="Number">' . (float) $sale->total . '</Data></Cell>
+                    <Cell><Data ss:Type="Number">' . (float) $sale->cost . '</Data></Cell>
+                    <Cell><Data ss:Type="Number">' . (float) $profit . '</Data></Cell>
+                </Row>
+            ';
+            continue;
+        }
 
-                <table style="width: 100%; border-collapse: collapse; margin-bottom: 10px;">
-                    <tr>
-                        <td style="padding: 8px; border: 1px solid #ddd;"><strong>Total</strong><br>' . currency($sale->total, $company->currency) . '</td>
-                        <td style="padding: 8px; border: 1px solid #ddd;"><strong>Cost</strong><br>' . currency($sale->cost, $company->currency) . '</td>
-                        <td style="padding: 8px; border: 1px solid #ddd;"><strong>Profit</strong><br>' . currency($profit, $company->currency) . '</td>
-                    </tr>
-                </table>
+        foreach ($products as $product) {
+            $name = isset($product['name']) ? $product['name'] : 'N/A';
+            $sku = isset($product['sku']) ? $product['sku'] : 'N/A';
+            $qty = isset($product['qty']) ? (float) $product['qty'] : 0;
+            $unit = isset($product['unit']) ? (float) $product['unit'] : 0;
+            $lineTotal = $qty * $unit;
 
-                <table style="width: 100%; border-collapse: collapse;">
-                    <thead>
-                        <tr style="background-color: #f9f9f9;">
-                            <th style="padding: 6px; border: 1px solid #ddd; text-align: left;">Item</th>
-                            <th style="padding: 6px; border: 1px solid #ddd; text-align: left;">SKU</th>
-                            <th style="padding: 6px; border: 1px solid #ddd; text-align: right;">Qty</th>
-                            <th style="padding: 6px; border: 1px solid #ddd; text-align: right;">Unit Price</th>
-                            <th style="padding: 6px; border: 1px solid #ddd; text-align: right;">Line Total</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ' . $productRows . '
-                    </tbody>
-                </table>
-            </div>
-        ';
+            $rows .= '
+                <Row>
+                    <Cell><Data ss:Type="String">' . $escape($sale->bill_no) . '</Data></Cell>
+                    <Cell><Data ss:Type="String">' . $escape($customer->name ?? 'N/A') . '</Data></Cell>
+                    <Cell><Data ss:Type="String">' . $escape($cashier->fname ?? 'N/A') . '</Data></Cell>
+                    <Cell><Data ss:Type="String">' . $escape(date('Y-m-d H:i:s', strtotime($sale->created_at))) . '</Data></Cell>
+                    <Cell><Data ss:Type="String">' . $escape($name) . '</Data></Cell>
+                    <Cell><Data ss:Type="String">' . $escape($sku) . '</Data></Cell>
+                    <Cell><Data ss:Type="Number">' . $qty . '</Data></Cell>
+                    <Cell><Data ss:Type="Number">' . $unit . '</Data></Cell>
+                    <Cell><Data ss:Type="Number">' . $lineTotal . '</Data></Cell>
+                    <Cell><Data ss:Type="Number">' . (float) $sale->total . '</Data></Cell>
+                    <Cell><Data ss:Type="Number">' . (float) $sale->cost . '</Data></Cell>
+                    <Cell><Data ss:Type="Number">' . (float) $profit . '</Data></Cell>
+                </Row>
+            ';
+        }
     }
 
-    $html = '
-        <html lang="en">
-        <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Detailed Sales Report</title>
-            <style>
-                @page {
-                    margin: 18px;
-                    width: 210mm;
-                }
-                body {
-                    font-family: Arial, sans-serif;
-                    font-size: 12px;
-                    color: #111;
-                }
-            </style>
-        </head>
-        <body>
-            <div style="text-align: center; margin-bottom: 20px;">
-                <h2 style="margin: 0 0 8px 0;">Detailed Sales Report</h2>
-                <div>' . htmlspecialchars($company->company_name ?? 'POS') . '</div>
-                <div>Date Range: ' . htmlspecialchars((string)$fromDate) . ' to ' . htmlspecialchars((string)$toDate) . '</div>
-            </div>
+    $xml = '<?xml version="1.0" encoding="UTF-8"?>' . "\n" .
+        '<?mso-application progid="Excel.Sheet"?>' . "\n" .
+        '<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
+            xmlns:o="urn:schemas-microsoft-com:office:office"
+            xmlns:x="urn:schemas-microsoft-com:office:excel"
+            xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"
+            xmlns:html="http://www.w3.org/TR/REC-html40">
+            <DocumentProperties xmlns="urn:schemas-microsoft-com:office:office">
+                <Author>Codex</Author>
+                <LastAuthor>Codex</LastAuthor>
+                <Created>' . gmdate('Y-m-d\TH:i:s\Z') . '</Created>
+                <Company>' . $escape($company->company_name ?? 'POS') . '</Company>
+                <Version>16.00</Version>
+            </DocumentProperties>
+            <Styles>
+                <Style ss:ID="Header">
+                    <Font ss:Bold="1"/>
+                    <Interior ss:Color="#D9EAF7" ss:Pattern="Solid"/>
+                </Style>
+                <Style ss:ID="Title">
+                    <Font ss:Bold="1" ss:Size="14"/>
+                </Style>
+                <Style ss:ID="NumberCell">
+                    <NumberFormat ss:Format="Standard"/>
+                </Style>
+            </Styles>
+            <Worksheet ss:Name="Sales Report">
+                <Table>
+                    <Column ss:Width="90"/>
+                    <Column ss:Width="160"/>
+                    <Column ss:Width="120"/>
+                    <Column ss:Width="125"/>
+                    <Column ss:Width="200"/>
+                    <Column ss:Width="110"/>
+                    <Column ss:Width="60"/>
+                    <Column ss:Width="80"/>
+                    <Column ss:Width="85"/>
+                    <Column ss:Width="85"/>
+                    <Column ss:Width="85"/>
+                    <Column ss:Width="85"/>
+                    <Row>
+                        <Cell ss:StyleID="Title"><Data ss:Type="String">Detailed Sales Report</Data></Cell>
+                    </Row>
+                    <Row>
+                        <Cell><Data ss:Type="String">Company</Data></Cell>
+                        <Cell><Data ss:Type="String">' . $escape($company->company_name ?? 'POS') . '</Data></Cell>
+                    </Row>
+                    <Row>
+                        <Cell><Data ss:Type="String">From Date</Data></Cell>
+                        <Cell><Data ss:Type="String">' . $escape($fromDate) . '</Data></Cell>
+                        <Cell><Data ss:Type="String">To Date</Data></Cell>
+                        <Cell><Data ss:Type="String">' . $escape($toDate) . '</Data></Cell>
+                    </Row>
+                    <Row>
+                        <Cell><Data ss:Type="String">Total Sales</Data></Cell>
+                        <Cell><Data ss:Type="Number">' . $totalSales . '</Data></Cell>
+                        <Cell><Data ss:Type="String">Total Cost</Data></Cell>
+                        <Cell><Data ss:Type="Number">' . $totalCost . '</Data></Cell>
+                        <Cell><Data ss:Type="String">Total Profit</Data></Cell>
+                        <Cell><Data ss:Type="Number">' . $totalProfit . '</Data></Cell>
+                    </Row>
+                    <Row/>
+                    <Row ss:StyleID="Header">
+                        <Cell><Data ss:Type="String">Bill No</Data></Cell>
+                        <Cell><Data ss:Type="String">Customer</Data></Cell>
+                        <Cell><Data ss:Type="String">Cashier</Data></Cell>
+                        <Cell><Data ss:Type="String">Sale Date</Data></Cell>
+                        <Cell><Data ss:Type="String">Item Name</Data></Cell>
+                        <Cell><Data ss:Type="String">SKU</Data></Cell>
+                        <Cell><Data ss:Type="String">Qty</Data></Cell>
+                        <Cell><Data ss:Type="String">Unit Price</Data></Cell>
+                        <Cell><Data ss:Type="String">Line Total</Data></Cell>
+                        <Cell><Data ss:Type="String">Sale Total</Data></Cell>
+                        <Cell><Data ss:Type="String">Sale Cost</Data></Cell>
+                        <Cell><Data ss:Type="String">Sale Profit</Data></Cell>
+                    </Row>
+                    ' . $rows . '
+                </Table>
+            </Worksheet>
+        </Workbook>';
 
-            <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
-                <tr style="background-color: #f4f4f4;">
-                    <th style="padding: 8px; border: 1px solid #ddd; text-align: right;">Total Sales</th>
-                    <th style="padding: 8px; border: 1px solid #ddd; text-align: right;">Total Cost</th>
-                    <th style="padding: 8px; border: 1px solid #ddd; text-align: right;">Total Profit</th>
-                </tr>
-                <tr>
-                    <td style="padding: 8px; border: 1px solid #ddd; text-align: right;">' . currency($totalSales, $company->currency) . '</td>
-                    <td style="padding: 8px; border: 1px solid #ddd; text-align: right;">' . currency($totalCost, $company->currency) . '</td>
-                    <td style="padding: 8px; border: 1px solid #ddd; text-align: right;">' . currency($totalProfit, $company->currency) . '</td>
-                </tr>
-            </table>
-
-            ' . $rows . '
-        </body>
-        </html>
-    ';
-
-    $pdf = new Dompdf();
-    $pdf->setPaper('A4', 'portrait');
-    $pdf->loadHtml($html, 'UTF-8');
-    $pdf->render();
     $path = public_path('invoice/' . $inName);
-    file_put_contents($path, $pdf->output());
+    file_put_contents($path, $xml);
 
     return (object)array('generated' => true, 'url' => '/invoice/' . $inName);
 }

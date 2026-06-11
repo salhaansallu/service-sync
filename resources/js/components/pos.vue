@@ -112,7 +112,7 @@
                     </div>
                     <div v-if="isSalesView" class="input">
                         <button class="primary-btn border-only submit-btn" type="button" @click="downloadDetailedReport()">
-                            Detailed Report
+                            Export Excel
                         </button>
                     </div>
                 </div>
@@ -1373,9 +1373,9 @@ export default {
                     return;
                 }
 
-                toastr.error(data.msg || 'Unable to generate report', 'Error');
+                toastr.error(data.msg || 'Unable to generate Excel file', 'Error');
             } catch (error) {
-                toastr.error('Unable to generate report', 'Error');
+                toastr.error('Unable to generate Excel file', 'Error');
             } finally {
                 this.loadModal("hide");
             }

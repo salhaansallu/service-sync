@@ -1199,13 +1199,13 @@ class RepairsController extends Controller
             ], 404);
         }
 
-        $fileName = 'sales-detailed-report-' . date('Y-m-d-H-i-s') . '.pdf';
-        $report = generateDetailedSalesReport($sales, $fromDate, $toDate, $fileName);
+        $fileName = 'sales-detailed-report-' . date('Y-m-d-H-i-s') . '.xml';
+        $report = generateDetailedSalesExcelReport($sales, $fromDate, $toDate, $fileName);
 
         if (!$report->generated) {
             return response()->json([
                 'error' => 1,
-                'msg' => 'Unable to generate detailed report',
+                'msg' => 'Unable to generate detailed Excel report',
             ], 500);
         }
 
