@@ -3243,16 +3243,19 @@ function generateLowStockReport($low, $inName = 'low-stock-report.pdf')
     return (object)array('generated' => true, 'url' => $inName);
 }
 
-function generateDetailedSalesExcelReport($sales, $fromDate, $toDate, $inName = 'sales-detailed-report.xml')
+function generateDetailedSalesCsvReport($sales, $fromDate, $toDate, $inName = 'sales-detailed-report.csv')
 {
     $company = PosDataController::company();
     $totalSales = 0;
     $totalCost = 0;
     $totalProfit = 0;
-    $rows = '';
+    $rows = [];
 
     $escape = function ($value) {
-        return htmlspecialchars((string) $value, ENT_QUOTES | ENT_XML1, 'UTF-8');
+        $value = (string) $value;
+        $value = str_replace('"', '""', $value);
+
+        return '"' . $value . '"';
     };
 
     foreach ($sales as $sale) {
@@ -3267,22 +3270,20 @@ function generateDetailedSalesExcelReport($sales, $fromDate, $toDate, $inName = 
         $totalProfit += $profit;
 
         if (count($products) === 0) {
-            $rows .= '
-                <Row>
-                    <Cell><Data ss:Type="String">' . $escape($sale->bill_no) . '</Data></Cell>
-                    <Cell><Data ss:Type="String">' . $escape($customer->name ?? 'N/A') . '</Data></Cell>
-                    <Cell><Data ss:Type="String">' . $escape($cashier->fname ?? 'N/A') . '</Data></Cell>
-                    <Cell><Data ss:Type="String">' . $escape(date('Y-m-d H:i:s', strtotime($sale->created_at))) . '</Data></Cell>
-                    <Cell><Data ss:Type="String">N/A</Data></Cell>
-                    <Cell><Data ss:Type="String">N/A</Data></Cell>
-                    <Cell><Data ss:Type="Number">0</Data></Cell>
-                    <Cell><Data ss:Type="Number">0</Data></Cell>
-                    <Cell><Data ss:Type="Number">0</Data></Cell>
-                    <Cell><Data ss:Type="Number">' . (float) $sale->total . '</Data></Cell>
-                    <Cell><Data ss:Type="Number">' . (float) $sale->cost . '</Data></Cell>
-                    <Cell><Data ss:Type="Number">' . (float) $profit . '</Data></Cell>
-                </Row>
-            ';
+            $rows[] = implode(',', [
+                $escape($sale->bill_no),
+                $escape($customer->name ?? 'N/A'),
+                $escape($cashier->fname ?? 'N/A'),
+                $escape(date('Y-m-d H:i:s', strtotime($sale->created_at))),
+                $escape('N/A'),
+                $escape('N/A'),
+                0,
+                0,
+                0,
+                (float) $sale->total,
+                (float) $sale->cost,
+                (float) $profit,
+            ]);
             continue;
         }
 
@@ -3293,108 +3294,47 @@ function generateDetailedSalesExcelReport($sales, $fromDate, $toDate, $inName = 
             $unit = isset($product['unit']) ? (float) $product['unit'] : 0;
             $lineTotal = $qty * $unit;
 
-            $rows .= '
-                <Row>
-                    <Cell><Data ss:Type="String">' . $escape($sale->bill_no) . '</Data></Cell>
-                    <Cell><Data ss:Type="String">' . $escape($customer->name ?? 'N/A') . '</Data></Cell>
-                    <Cell><Data ss:Type="String">' . $escape($cashier->fname ?? 'N/A') . '</Data></Cell>
-                    <Cell><Data ss:Type="String">' . $escape(date('Y-m-d H:i:s', strtotime($sale->created_at))) . '</Data></Cell>
-                    <Cell><Data ss:Type="String">' . $escape($name) . '</Data></Cell>
-                    <Cell><Data ss:Type="String">' . $escape($sku) . '</Data></Cell>
-                    <Cell><Data ss:Type="Number">' . $qty . '</Data></Cell>
-                    <Cell><Data ss:Type="Number">' . $unit . '</Data></Cell>
-                    <Cell><Data ss:Type="Number">' . $lineTotal . '</Data></Cell>
-                    <Cell><Data ss:Type="Number">' . (float) $sale->total . '</Data></Cell>
-                    <Cell><Data ss:Type="Number">' . (float) $sale->cost . '</Data></Cell>
-                    <Cell><Data ss:Type="Number">' . (float) $profit . '</Data></Cell>
-                </Row>
-            ';
+            $rows[] = implode(',', [
+                $escape($sale->bill_no),
+                $escape($customer->name ?? 'N/A'),
+                $escape($cashier->fname ?? 'N/A'),
+                $escape(date('Y-m-d H:i:s', strtotime($sale->created_at))),
+                $escape($name),
+                $escape($sku),
+                $qty,
+                $unit,
+                $lineTotal,
+                (float) $sale->total,
+                (float) $sale->cost,
+                (float) $profit,
+            ]);
         }
     }
 
-    $xml = '<?xml version="1.0" encoding="UTF-8"?>' . "\n" .
-        '<?mso-application progid="Excel.Sheet"?>' . "\n" .
-        '<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
-            xmlns:o="urn:schemas-microsoft-com:office:office"
-            xmlns:x="urn:schemas-microsoft-com:office:excel"
-            xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"
-            xmlns:html="http://www.w3.org/TR/REC-html40">
-            <DocumentProperties xmlns="urn:schemas-microsoft-com:office:office">
-                <Author>Codex</Author>
-                <LastAuthor>Codex</LastAuthor>
-                <Created>' . gmdate('Y-m-d\TH:i:s\Z') . '</Created>
-                <Company>' . $escape($company->company_name ?? 'POS') . '</Company>
-                <Version>16.00</Version>
-            </DocumentProperties>
-            <Styles>
-                <Style ss:ID="Header">
-                    <Font ss:Bold="1"/>
-                    <Interior ss:Color="#D9EAF7" ss:Pattern="Solid"/>
-                </Style>
-                <Style ss:ID="Title">
-                    <Font ss:Bold="1" ss:Size="14"/>
-                </Style>
-                <Style ss:ID="NumberCell">
-                    <NumberFormat ss:Format="Standard"/>
-                </Style>
-            </Styles>
-            <Worksheet ss:Name="Sales Report">
-                <Table>
-                    <Column ss:Width="90"/>
-                    <Column ss:Width="160"/>
-                    <Column ss:Width="120"/>
-                    <Column ss:Width="125"/>
-                    <Column ss:Width="200"/>
-                    <Column ss:Width="110"/>
-                    <Column ss:Width="60"/>
-                    <Column ss:Width="80"/>
-                    <Column ss:Width="85"/>
-                    <Column ss:Width="85"/>
-                    <Column ss:Width="85"/>
-                    <Column ss:Width="85"/>
-                    <Row>
-                        <Cell ss:StyleID="Title"><Data ss:Type="String">Detailed Sales Report</Data></Cell>
-                    </Row>
-                    <Row>
-                        <Cell><Data ss:Type="String">Company</Data></Cell>
-                        <Cell><Data ss:Type="String">' . $escape($company->company_name ?? 'POS') . '</Data></Cell>
-                    </Row>
-                    <Row>
-                        <Cell><Data ss:Type="String">From Date</Data></Cell>
-                        <Cell><Data ss:Type="String">' . $escape($fromDate) . '</Data></Cell>
-                        <Cell><Data ss:Type="String">To Date</Data></Cell>
-                        <Cell><Data ss:Type="String">' . $escape($toDate) . '</Data></Cell>
-                    </Row>
-                    <Row>
-                        <Cell><Data ss:Type="String">Total Sales</Data></Cell>
-                        <Cell><Data ss:Type="Number">' . $totalSales . '</Data></Cell>
-                        <Cell><Data ss:Type="String">Total Cost</Data></Cell>
-                        <Cell><Data ss:Type="Number">' . $totalCost . '</Data></Cell>
-                        <Cell><Data ss:Type="String">Total Profit</Data></Cell>
-                        <Cell><Data ss:Type="Number">' . $totalProfit . '</Data></Cell>
-                    </Row>
-                    <Row/>
-                    <Row ss:StyleID="Header">
-                        <Cell><Data ss:Type="String">Bill No</Data></Cell>
-                        <Cell><Data ss:Type="String">Customer</Data></Cell>
-                        <Cell><Data ss:Type="String">Cashier</Data></Cell>
-                        <Cell><Data ss:Type="String">Sale Date</Data></Cell>
-                        <Cell><Data ss:Type="String">Item Name</Data></Cell>
-                        <Cell><Data ss:Type="String">SKU</Data></Cell>
-                        <Cell><Data ss:Type="String">Qty</Data></Cell>
-                        <Cell><Data ss:Type="String">Unit Price</Data></Cell>
-                        <Cell><Data ss:Type="String">Line Total</Data></Cell>
-                        <Cell><Data ss:Type="String">Sale Total</Data></Cell>
-                        <Cell><Data ss:Type="String">Sale Cost</Data></Cell>
-                        <Cell><Data ss:Type="String">Sale Profit</Data></Cell>
-                    </Row>
-                    ' . $rows . '
-                </Table>
-            </Worksheet>
-        </Workbook>';
+    $csv = chr(239) . chr(187) . chr(191);
+    $csv .= implode(',', [$escape('Detailed Sales Report')]) . "\r\n";
+    $csv .= implode(',', [$escape('Company'), $escape($company->company_name ?? 'POS')]) . "\r\n";
+    $csv .= implode(',', [$escape('From Date'), $escape($fromDate), $escape('To Date'), $escape($toDate)]) . "\r\n";
+    $csv .= implode(',', [$escape('Total Sales'), $totalSales, $escape('Total Cost'), $totalCost, $escape('Total Profit'), $totalProfit]) . "\r\n";
+    $csv .= "\r\n";
+    $csv .= implode(',', [
+        $escape('Bill No'),
+        $escape('Customer'),
+        $escape('Cashier'),
+        $escape('Sale Date'),
+        $escape('Item Name'),
+        $escape('SKU'),
+        $escape('Qty'),
+        $escape('Unit Price'),
+        $escape('Line Total'),
+        $escape('Sale Total'),
+        $escape('Sale Cost'),
+        $escape('Sale Profit'),
+    ]) . "\r\n";
+    $csv .= implode("\r\n", $rows);
 
     $path = public_path('invoice/' . $inName);
-    file_put_contents($path, $xml);
+    file_put_contents($path, $csv);
 
     return (object)array('generated' => true, 'url' => '/invoice/' . $inName);
 }
