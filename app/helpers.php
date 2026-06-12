@@ -1635,9 +1635,14 @@ function generateThermalInvoice($order_id, $inName, $bill_type)
 function generateThermalSticker($order_id, $inName)
 {
     $repair = Repairs::where('bill_no', $order_id)->first();
+
+    if ($repair == null) {
+        return (object)array('generated' => false, 'url' => '/invoice/' . $inName);
+    }
+
     $customer = getCustomer($repair->customer);
 
-    if ($repair == null || $customer->name == '') {
+    if ($customer->name == '') {
         return (object)array('generated' => false, 'url' => '/invoice/' . $inName);
     }
 
@@ -1651,36 +1656,60 @@ function generateThermalSticker($order_id, $inName)
             <title>Repair Sticker</title>
             <style>
                 @page {
-                    margin: 10px;
-                    height: auto;
-                    width: 80mm;
-                 }
-                body { margin: 10px; }
+                    margin: 2mm;
+                    size: 50mm 25mm;
+                }
+                body {
+                    margin: 0;
+                    font-family: Arial, sans-serif;
+                    font-size: 8px;
+                    line-height: 1.15;
+                }
+                .sticker-title {
+                    text-align: center;
+                    margin: 0 0 2mm;
+                    font-size: 11px;
+                    font-weight: bold;
+                }
+                .sticker-table {
+                    width: 100%;
+                    border-collapse: collapse;
+                    table-layout: fixed;
+                }
+                .sticker-table td {
+                    padding: 0.5mm 0;
+                    vertical-align: top;
+                    word-wrap: break-word;
+                }
+                .sticker-label {
+                    width: 38%;
+                    font-weight: bold;
+                }
+                .sticker-value {
+                    text-align: right;
+                }
             </style>
         </head>
-        <body style="font-family: Arial, sans-serif;">
+        <body>
 
-            <h3 style="text-align: center; margin: 10px 0;">' . $order_id . '</h3>
+            <div class="sticker-title">' . $order_id . '</div>
 
-            <table style="width: 100%; border-collapse: collapse;">
+            <table class="sticker-table">
                 <tr>
-                    <td style="font-size: 12px;padding: 5px 0; font-weight: bold;" colspan="2">Repair details</td>
+                    <td class="sticker-label">Customer</td>
+                    <td class="sticker-value">' . $customer->name . '</td>
                 </tr>
                 <tr>
-                    <td style="font-size: 12px;">Customer Name:</td>
-                    <td style="font-size: 12px; text-align: right;">' . $customer->name . '</td>
+                    <td class="sticker-label">Mobile</td>
+                    <td class="sticker-value">' . $customer->phone . '</td>
                 </tr>
                 <tr>
-                    <td style="font-size: 12px;">Customer Mobile:</td>
-                    <td style="font-size: 12px; text-align: right; font-size: 11px;">' . $customer->phone . '</td>
+                    <td class="sticker-label">Fault</td>
+                    <td class="sticker-value">' . $repair->fault . '</td>
                 </tr>
                 <tr>
-                    <td style="font-size: 12px;">Fault:</td>
-                    <td style="font-size: 12px; text-align: right;">' . $repair->fault . '</td>
-                </tr>
-                <tr>
-                    <td style="font-size: 12px;">Date:</td>
-                    <td style="font-size: 12px; text-align: right;">' . date('d m Y', strtotime($repair->created_at)) . '</td>
+                    <td class="sticker-label">Date</td>
+                    <td class="sticker-value">' . date('d/m/Y', strtotime($repair->created_at)) . '</td>
                 </tr>
             </table>
         </body>
@@ -1688,7 +1717,7 @@ function generateThermalSticker($order_id, $inName)
     ';
 
     $pdf = new Dompdf();
-    $pdf->setPaper([0, 0, 230, 230]);
+    $pdf->setPaper([0, 0, 141.73, 70.87]);
     $pdf->loadHtml($html, 'UTF-8');
     $pdf->render();
     $path = public_path('invoice/' . $inName);

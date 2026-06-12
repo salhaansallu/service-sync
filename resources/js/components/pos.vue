@@ -1970,7 +1970,7 @@ export default {
                     if (data.sticker.generated) {
                         printJS(data.sticker.url);
                     }
-                    window.open(data.invoiceURL, '_blank');
+                    //window.open(data.invoiceURL, '_blank');
                     setTimeout(() => { this.fetchWhatsappStatuses(); }, 10000);
                 }
                 else {
