@@ -290,6 +290,15 @@
                     </div>
                 </div>
 
+                <div class="row row-cols-2" v-if="selectedCustomerDue > 0">
+                    <div class="col">
+                        Credit Due
+                    </div>
+                    <div class="col">
+                        {{ currency(selectedCustomerDue, posData.currency) }}
+                    </div>
+                </div>
+
                 <div class="row row-cols-2 order-total">
                     <div class="col">
                         Total
@@ -999,6 +1008,14 @@ export default {
         isSalesView() {
             return this.recordTypeFilter === 'sale';
         },
+        selectedCustomerDue() {
+            if (!this.selectedCustomer || this.selectedRepair.length === 0) {
+                return 0;
+            }
+
+            const customer = this.users.find(item => item.id == this.selectedCustomer);
+            return customer && customer.due_balance ? parseFloat(customer.due_balance) : 0;
+        },
     },
     methods: {
         currency,
@@ -1535,6 +1552,10 @@ export default {
                 return obj.bill_no !== pro;
             });
 
+            if (this.selectedRepair.length === 0) {
+                this.selectedCustomer = 0;
+            }
+
             this.repairs.forEach(element => {
                 if (element['bill_no'] == pro) {
                     element["selectStatus"] = "";
@@ -1590,6 +1611,7 @@ export default {
         },
         reloadPOS() {
             this.selectedRepair = [];
+            this.selectedCustomer = 0;
 
             this.repairs.forEach(element => {
                 if (element["selectStatus"] != undefined) {

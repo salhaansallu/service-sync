@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 session_start();
 
+use App\Models\Credit;
 use App\Models\customers;
 use App\Models\Repairs;
 use Carbon\Carbon;
@@ -30,7 +31,17 @@ class CustomersController extends Controller
     public function getCustomers() {
         $response = [];
         if (PosDataController::check()) {
-            return response(json_encode(customers::all()));
+            $customers = customers::where('pos_code', company()->pos_code)->get();
+
+            $customers->transform(function ($customer) {
+                $customer->due_balance = Credit::where('customer_id', $customer->id)
+                    ->where('ammount', '>', 0)
+                    ->sum('ammount');
+
+                return $customer;
+            });
+
+            return response(json_encode($customers));
         }
         else {
             $response ['error'] = 1;

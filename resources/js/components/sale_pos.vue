@@ -101,6 +101,15 @@
                         LKR 0.00
                     </div>
                 </div>
+
+                <div class="row row-cols-2" v-if="selectedCustomerDue > 0">
+                    <div class="col">
+                        Credit Due
+                    </div>
+                    <div class="col">
+                        {{ currency(selectedCustomerDue, posData.currency) }}
+                    </div>
+                </div>
                 <!-- <div class="row row-cols-2">
                     <div class="col col-6">
                         Service charge
@@ -283,7 +292,18 @@ export default {
             timeHandler: 1,
             isDisabled: false,
             showCustomerForm: false,
+            selectedCustomerId: 0,
         }
+    },
+    computed: {
+        selectedCustomerDue() {
+            if (!this.selectedCustomerId) {
+                return 0;
+            }
+
+            const customer = this.users.find(item => item.id == this.selectedCustomerId);
+            return customer && customer.due_balance ? parseFloat(customer.due_balance) : 0;
+        },
     },
     methods: {
         currency,
@@ -357,6 +377,10 @@ export default {
             customerSelect.select2({
                 dropdownParent: $(".customers"),
             });
+
+            customerSelect.off('change.salePosCustomer').on('change.salePosCustomer', () => {
+                this.selectedCustomerId = customerSelect.val() || 0;
+            });
         },
         toggleCustomerForm() {
             this.showCustomerForm = !this.showCustomerForm;
@@ -411,6 +435,7 @@ export default {
                 if (customer) {
                     this.$refs.customer.value = customer['id'];
                     $(this.$refs.customer).val(customer['id']).trigger('change');
+                    this.selectedCustomerId = customer['id'];
                 }
 
                 toastr.success(data.msg, "Success");
@@ -568,6 +593,7 @@ export default {
             this.selectedProduct = [];
             this.$refs.customer.value = '';
             $(this.$refs.customer).val('').trigger('change');
+            this.selectedCustomerId = 0;
             this.showCustomerForm = false;
             this.resetCustomerForm();
 
