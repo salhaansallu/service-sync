@@ -1672,7 +1672,7 @@ function generateThermalSticker($order_id, $inName)
                     font-weight: bold;
                 }
                 .sticker-table {
-                    width: 100%;
+                    width: 80%;
                     border-collapse: collapse;
                     table-layout: fixed;
                 }
