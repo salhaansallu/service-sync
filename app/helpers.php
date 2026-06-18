@@ -743,7 +743,7 @@ function getDeliveryStatus($bill)
 
 function getQuotationURL($q_no)
 {
-    return asset('quotations/' . str_replace([' ', '.', "'", '"'], ['', '', "", ''], $q_no) .'.pdf');
+    return asset('quotations/' . str_replace([' ', '.', "'", '"'], ['', '', "", ''], $q_no) . '.pdf');
 }
 
 function partner()
@@ -915,7 +915,7 @@ function generateInvoice($order_id, $inName, $bill_type)
                 $delivery = $temp_order->delivery;
                 $total += $temp_order->total;
                 $advance += $temp_order->advance;
-                $orders[] = array("id" => $id, "total" => $temp_order->total, "advance" => $temp_order->advance, "model" => $temp_order->model_no, "serial" => $temp_order->serial_no, 'warranty' => $temp_order->warranty, 'service_warranty' => $temp_order->service_warranty, 'signature'=>$temp_order->signature);
+                $orders[] = array("id" => $id, "total" => $temp_order->total, "advance" => $temp_order->advance, "model" => $temp_order->model_no, "serial" => $temp_order->serial_no, 'warranty' => $temp_order->warranty, 'service_warranty' => $temp_order->service_warranty, 'signature' => $temp_order->signature);
             }
         }
 
@@ -928,7 +928,7 @@ function generateInvoice($order_id, $inName, $bill_type)
             $total += $temp_order->total;
             $delivery = $temp_order->delivery;
             $advance += $temp_order->advance;
-            $orders[] = array("id" => $order_id, "total" => $temp_order->total, "advance" => $temp_order->advance, "model" => $temp_order->model_no, "serial" => $temp_order->serial_no, 'warranty' => $temp_order->warranty, 'service_warranty' => $temp_order->service_warranty, 'signature'=>$temp_order->signature);
+            $orders[] = array("id" => $order_id, "total" => $temp_order->total, "advance" => $temp_order->advance, "model" => $temp_order->model_no, "serial" => $temp_order->serial_no, 'warranty' => $temp_order->warranty, 'service_warranty' => $temp_order->service_warranty, 'signature' => $temp_order->signature);
         }
 
         $repairs = Repairs::where('bill_no', $order_id)->where('pos_code', $company->pos_code)->get()[0];
@@ -1205,7 +1205,7 @@ function generateInvoice($order_id, $inName, $bill_type)
     // $printer = new Printer($connector);
 
     $order_id = is_array($order_id) ? $order_id[0] : $order_id;
-    $inName = empty($inName) ? $order_id."-Invoice-".date("d-m-Y-H-i-s")."-".rand(1111,99999).".pdf" : $inName;
+    $inName = empty($inName) ? $order_id . "-Invoice-" . date("d-m-Y-H-i-s") . "-" . rand(1111, 99999) . ".pdf" : $inName;
 
     $pdf = new Dompdf();
     $pdf->setPaper("A4", "portrait");
@@ -1236,7 +1236,7 @@ function generateThermalInvoice($order_id, $inName, $bill_type)
                 $total += $temp_order->total;
                 $delivery = $temp_order->delivery;
                 $advance += $temp_order->advance;
-                $orders[] = array("id" => $id, "total" => $temp_order->total, "advance" => $temp_order->advance, "model" => $temp_order->model_no, "serial" => $temp_order->serial_no, 'warranty' => $temp_order->warranty, 'service_warranty' => $temp_order->service_warranty, "fault" => $temp_order->fault, 'has_multiple_fault'=>$temp_order->has_multiple_fault, 'multiple_fault'=> $temp_order->multiple_fault, 'signature'=>$temp_order->signature);
+                $orders[] = array("id" => $id, "total" => $temp_order->total, "advance" => $temp_order->advance, "model" => $temp_order->model_no, "serial" => $temp_order->serial_no, 'warranty' => $temp_order->warranty, 'service_warranty' => $temp_order->service_warranty, "fault" => $temp_order->fault, 'has_multiple_fault' => $temp_order->has_multiple_fault, 'multiple_fault' => $temp_order->multiple_fault, 'signature' => $temp_order->signature);
             }
         }
 
@@ -1253,7 +1253,7 @@ function generateThermalInvoice($order_id, $inName, $bill_type)
             $total += $temp_order->total;
             $delivery = $temp_order->delivery;
             $advance += $temp_order->advance;
-            $orders[] = array("id" => $order_id, "total" => $temp_order->total, "advance" => $temp_order->advance, "model" => $temp_order->model_no, "serial" => $temp_order->serial_no, 'warranty' => $temp_order->warranty, 'service_warranty' => $temp_order->service_warranty, "fault" => $temp_order->fault, 'has_multiple_fault'=>$temp_order->has_multiple_fault, 'multiple_fault'=> $temp_order->multiple_fault, 'signature'=>$temp_order->signature);
+            $orders[] = array("id" => $order_id, "total" => $temp_order->total, "advance" => $temp_order->advance, "model" => $temp_order->model_no, "serial" => $temp_order->serial_no, 'warranty' => $temp_order->warranty, 'service_warranty' => $temp_order->service_warranty, "fault" => $temp_order->fault, 'has_multiple_fault' => $temp_order->has_multiple_fault, 'multiple_fault' => $temp_order->multiple_fault, 'signature' => $temp_order->signature);
         }
 
         $repairs = Repairs::where('bill_no', $order_id)->get()[0];
@@ -1363,8 +1363,8 @@ function generateThermalInvoice($order_id, $inName, $bill_type)
         foreach (json_decode($order['multiple_fault']) as $key => $fault) {
             $tempHtml .= '
                 <tr>
-                    <td style="width: 50%;">'.$fault->fault.':</td>
-                    <td style="width: 50%;">'.currency($fault->price, '').'</td>
+                    <td style="width: 50%;">' . $fault->fault . ':</td>
+                    <td style="width: 50%;">' . currency($fault->price, '') . '</td>
                 </tr>
             ';
         }
@@ -1374,9 +1374,9 @@ function generateThermalInvoice($order_id, $inName, $bill_type)
                 <td style="font-size: 14px; padding-top: 5px;" colspan="4"><span style="margin-right: 5px;">' . $key + 1 . '. </span> <span style="margin-right: 10px;">' . $order["id"] . ' - ' . $order["model"] . ' (' . $order["serial"] . ')</span></td>
             </tr>
             <tr style="width: 100%;">
-                <td style="font-size: 13px; padding-top: 5px;" colspan="4"><span style="margin-right: 5px;">Fault: </span> <span style="margin-right: 10px; '.($order['has_multiple_fault']? 'd-none' : '').'">' . $order["fault"] . '</span> <div style="'.($order['has_multiple_fault']? '' : 'd-none').'">
+                <td style="font-size: 13px; padding-top: 5px;" colspan="4"><span style="margin-right: 5px;">Fault: </span> <span style="margin-right: 10px; ' . ($order['has_multiple_fault'] ? 'd-none' : '') . '">' . $order["fault"] . '</span> <div style="' . ($order['has_multiple_fault'] ? '' : 'd-none') . '">
                 <table style="width: 100%;">
-                    '.$tempHtml.'
+                    ' . $tempHtml . '
                 </table>
                 </div></td>
             </tr>
@@ -1664,29 +1664,37 @@ function generateThermalSticker($order_id, $inName)
                     font-family: Arial, sans-serif;
                     font-size: 8px;
                     line-height: 1.15;
+                    text-align: center;
                 }
                 .sticker-title {
                     text-align: center;
                     margin: 0 0 2mm;
-                    font-size: 11px;
+                    font-size: 15px;
                     font-weight: bold;
                 }
                 .sticker-table {
                     width: 80%;
                     border-collapse: collapse;
                     table-layout: fixed;
+                    margin: 0 auto;
                 }
                 .sticker-table td {
                     padding: 0.5mm 0;
                     vertical-align: top;
                     word-wrap: break-word;
+                    text-align: center;
                 }
                 .sticker-label {
                     width: 38%;
                     font-weight: bold;
                 }
                 .sticker-value {
-                    text-align: right;
+                    text-align: center;
+                }
+
+                .sticker-value.fs-large {
+                    text-align: center;
+                    font-size: 13px;
                 }
             </style>
         </head>
@@ -1696,19 +1704,15 @@ function generateThermalSticker($order_id, $inName)
 
             <table class="sticker-table">
                 <tr>
-                    <td class="sticker-label">Customer</td>
+                    <td class="sticker-value fs-large">' . $customer->phone . '</td>
+                </tr>
+                <tr>
                     <td class="sticker-value">' . $customer->name . '</td>
                 </tr>
                 <tr>
-                    <td class="sticker-label">Mobile</td>
-                    <td class="sticker-value">' . $customer->phone . '</td>
-                </tr>
-                <tr>
-                    <td class="sticker-label">Fault</td>
                     <td class="sticker-value">' . $repair->fault . '</td>
                 </tr>
                 <tr>
-                    <td class="sticker-label">Date</td>
                     <td class="sticker-value">' . date('d/m/Y', strtotime($repair->created_at)) . '</td>
                 </tr>
             </table>
@@ -3002,8 +3006,8 @@ function generateSalesQuotation($sq_no, $filename = null)
                     <tr>
                         <td style="width:45%;vertical-align:top;border-right:1px solid #cfcfcf;padding-right:14px;">
                             ' . (!empty($headerLogo)
-                                ? '<img src="' . $headerLogo . '" style="height:72px;width:auto;">'
-                                : '<h2 style="margin:0;font-size:26px;letter-spacing:1px;">' . htmlspecialchars($company->company_name) . '</h2>') . '
+        ? '<img src="' . $headerLogo . '" style="height:72px;width:auto;">'
+        : '<h2 style="margin:0;font-size:26px;letter-spacing:1px;">' . htmlspecialchars($company->company_name) . '</h2>') . '
                         </td>
                         <td style="vertical-align:top;padding-left:14px;font-size:12px;line-height:1.6;">
                             <p style="margin:0;"><strong>' . htmlspecialchars($company->company_name) . '</strong></p>
