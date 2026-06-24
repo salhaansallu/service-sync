@@ -513,7 +513,7 @@
                             </ul>
                         </li>
 
-                        <li class="{{ isAdmin()? '' : 'd-none' }} {{ Request::is('dashboard/accounts*') ? 'active' : '' }}">
+                        <li class="{{ Request::is('dashboard/accounts*') ? 'active' : '' }}">
                             <a href="#accounts" class="collapsed {{ company()->plan == 1 ? 'no-collapsable' : '' }}"
                                 data-toggle="collapse" aria-expanded="false">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="svg-icon" width="20"
@@ -537,12 +537,13 @@
                             <ul id="accounts"
                                 class="iq-submenu collapse {{ Request::is('dashboard/accounts*') ? 'show' : '' }}"
                                 data-parent="#iq-sidebar-toggle">
-                                <li class="{{ Request::is('/dashboard/accounts/repair') ? 'active' : '' }}">
+
+                                <li class="{{ user()->type == 'tv-repair' || isAdmin()? '' : 'd-none' }} {{ Request::is('/dashboard/accounts/repair') ? 'active' : '' }}">
                                     <a href="/dashboard/accounts/repair">
                                         <i class="fa-solid fa-minus"></i><span>TV Repair Summery</span>
                                     </a>
                                 </li>
-                                <li class="{{ Request::is('/dashboard/accounts/other') ? 'active' : '' }}">
+                                <li class="{{ user()->type == 'other-repair' || isAdmin()? '' : 'd-none' }} {{ Request::is('/dashboard/accounts/other') ? 'active' : '' }}">
                                     <a href="/dashboard/accounts/other">
                                         <i class="fa-solid fa-minus"></i><span>Other Repair Summery</span>
                                     </a>

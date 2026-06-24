@@ -1669,7 +1669,7 @@ function generateThermalSticker($order_id, $inName)
                 .sticker-title {
                     text-align: center;
                     margin: 0 0 2mm;
-                    font-size: 15px;
+                    font-size: 18px;
                     font-weight: bold;
                 }
                 .sticker-table {
@@ -1711,9 +1711,6 @@ function generateThermalSticker($order_id, $inName)
                 </tr>
                 <tr>
                     <td class="sticker-value">' . $repair->fault . '</td>
-                </tr>
-                <tr>
-                    <td class="sticker-value">' . date('d/m/Y', strtotime($repair->created_at)) . '</td>
                 </tr>
             </table>
         </body>
