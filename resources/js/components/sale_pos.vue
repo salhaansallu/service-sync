@@ -54,6 +54,17 @@
                 </div>
             </div>
 
+            <div class="px-2 mb-2">
+                <div class="row row-cols-2 align-items-center">
+                    <div class="col">
+                        Checkout Date
+                    </div>
+                    <div class="col">
+                        <input type="date" class="form-control" v-model="checkoutDate">
+                    </div>
+                </div>
+            </div>
+
             <div id="order-wrap" class="order-wrap" ref="order_wrap">
                 <div class="orders" v-for="order in selectedProduct" :key="order['selection_key']">
                     <div class="row m-0">
@@ -271,6 +282,15 @@ import { validateName, checkEmpty, validateCountry, validatePhone, getUrlParam, 
 import axios from 'axios';
 import printJS from 'print-js';
 
+const formatLocalDate = () => {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+
+    return `${year}-${month}-${day}`;
+};
+
 export default {
     props: ['app_url', 'third_party_token'],
     data() {
@@ -293,6 +313,7 @@ export default {
             isDisabled: false,
             showCustomerForm: false,
             selectedCustomerId: 0,
+            checkoutDate: formatLocalDate(),
         }
     },
     computed: {
@@ -596,6 +617,7 @@ export default {
             this.selectedCustomerId = 0;
             this.showCustomerForm = false;
             this.resetCustomerForm();
+            this.checkoutDate = formatLocalDate();
 
             this.products.forEach(element => {
                 element['status'] = '';
@@ -756,6 +778,7 @@ export default {
                             customer: customer,
                             cashin: cashin,
                             sale_type: sale_type,
+                            checkout_date: this.checkoutDate || formatLocalDate(),
                         }
                     }).catch(function (error) {
                         if (error.response) {

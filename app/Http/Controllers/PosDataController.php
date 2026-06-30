@@ -358,6 +358,7 @@ class PosDataController extends Controller
             $request = filter_var_array($request->input('params'), FILTER_SANITIZE_STRING);
             $cashin = sanitize($request['cashin']);
             $sale_type = sanitize($request['sale_type']);
+            $checkoutDate = sanitize($request['checkout_date'] ?? '');
             $spares = $request['products'];
             $customer = sanitize($request['customer']);
             $bill_no = 1001;
@@ -368,6 +369,15 @@ class PosDataController extends Controller
             $parts = [];
             $invoice_pro = [];
             $third_party_products = [];
+            $checkoutAt = Carbon::now();
+
+            if (!empty($checkoutDate)) {
+                try {
+                    $checkoutAt = Carbon::createFromFormat('Y-m-d', $checkoutDate)->setTimeFromTimeString(Carbon::now()->format('H:i:s'));
+                } catch (\Exception $e) {
+                    $checkoutAt = Carbon::now();
+                }
+            }
 
             if ($sale_type != "online" && $sale_type != "instore") {
                 return response(json_encode(array("error" => 1, "msg" => "Invalid Sale Type")));
@@ -435,6 +445,8 @@ class PosDataController extends Controller
                 $credit->ammount = $total - $cashin;
                 $credit->pos_code = $this->company()->pos_code;
                 $credit->order_id = $bill_no;
+                $credit->created_at = $checkoutAt;
+                $credit->updated_at = $checkoutAt;
                 $credit->save();
             }
 
@@ -454,6 +466,9 @@ class PosDataController extends Controller
             $repair->type = "sale";
             $repair->products = htmlspecialchars(json_encode($invoice_pro));
             $repair->pos_code = company()->pos_code;
+            $repair->created_at = $checkoutAt;
+            $repair->updated_at = $checkoutAt;
+            $repair->paid_at = $checkoutAt;
 
             if ($repair->save()) {
 
@@ -463,6 +478,8 @@ class PosDataController extends Controller
                     $order->pos_code = company()->pos_code;
                     $order->payment_method = "";
                     $order->status = "Processing";
+                    $order->created_at = $checkoutAt;
+                    $order->updated_at = $checkoutAt;
                     $order->save();
                 }
 
@@ -500,7 +517,7 @@ class PosDataController extends Controller
                         'customer' => getCustomer($customer),
                         'cash_paid' => $cashin,
                         'products' => $invoice_pro,
-                        'created_at' => Carbon::today(),
+                        'created_at' => $checkoutAt,
                         'due_balance' => Credit::where('customer_id', $customer)
                             ->where('ammount', '>', 0)
                             ->sum('ammount'),
