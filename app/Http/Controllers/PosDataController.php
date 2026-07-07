@@ -328,6 +328,9 @@ class PosDataController extends Controller
                                 'signature' => self::convertSignatureToWhite($n8nRepair->signature),
                                 'technician_name' => getUser($n8nRepair->techie)->fname ?? 'N/A',
                                 'delivery_charge' => $n8nRepair->delivery,
+                                'due_balance' => Credit::where('customer_id', $customer->id)
+                                    ->where('ammount', '>', 0)
+                                    ->sum('ammount'),
                             ]);
                         }
                     }
