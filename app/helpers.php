@@ -977,7 +977,7 @@ function generateInvoice($order_id, $inName, $bill_type)
                     </tr>
                     <tr>
                         <td style="padding: 5px; border: 1px solid black;">' . $customer->name . '</td>
-                        <td style="padding: 5px; border: 1px solid black;">' . $customer->phone . '</td>
+                        <td style="padding: 5px; border: 1px solid black;">' . $customer->phone . '/075 139 8670</td>
                         <td style="padding: 5px; border: 1px solid black;">' . $customer->address . '</td>
                     </tr>
                 </table>
@@ -1315,7 +1315,7 @@ function generateThermalInvoice($order_id, $inName, $bill_type)
 
                 <h2 style="margin: 0; margin-top: 10px;">' . $company_name . '</h2>
                 <p style="margin: 2px 0; font-size: 13px;">' . $company_address . '</p>
-                <p style="margin: 2px 0; font-size: 13px;">Tel: ' . $company_phone . '</p>
+                <p style="margin: 2px 0; font-size: 13px;">Tel: ' . $company_phone . '/075 139 8670</p>
                 <p style="margin: 2px 0; font-size: 13px;">' . ($repairs->partner == 0 ? 'www.wefix.lk' : '') . '</p>
             </div>
 
@@ -1771,7 +1771,7 @@ function generateSalesInvoice($order_id, $inName, $products, $cashin)
             <div style="text-align: center; margin-bottom: 20px; margin-top: 30px;">
                 <h1 style="margin: 0;">' . $company_name . '</h1>
                 <p style="margin: 0;">' . $company_address . '</p>
-                <p style="margin: 0;">Tel: ' . $company_phone . '</p>
+                <p style="margin: 0;">Tel: ' . $company_phone . '/075 139 8670</p>
                 <p style="margin: 0;">' . ($repairs->partner == 0 ? 'www.wefix.lk' : '') . '</p>
                 <h2 style="margin: 20px 0;">Sales Note</h2>
             </div>
@@ -1939,7 +1939,7 @@ function generateThermalSalesInvoice($order_id, $inName, $products, $cashin)
             ' . $industry . '
             <hr style="border-width: 2px; border-color: #000;">
             <div style="text-align: center; font-size: 12px; margin-top: 5px;">' . getUserData($company->admin_id)->address . '</div>
-            <div style="text-align: center; font-size: 12px; margin-bottom: 5px;">' . formatPhoneNumber(getUserData($company->admin_id)->phone) . '</div>
+            <div style="text-align: center; font-size: 12px; margin-bottom: 5px;">' . formatPhoneNumber(getUserData($company->admin_id)->phone) . '/075 139 8670</div>
             <hr style="border-width: 1px; border-color: #000; border-style: dashed;">
 
             ' . $title . '
@@ -2133,7 +2133,7 @@ function generateDeliveryInvoice($order_id, $inName)
             ' . $industry . '
             <hr style="border-width: 2px; border-color: #000;">
             <div style="text-align: center; font-size: 12px; margin-top: 5px;">' . getUserData($company->admin_id)->address . '</div>
-            <div style="text-align: center; font-size: 12px; margin-bottom: 5px;">' . formatPhoneNumber(getUserData($company->admin_id)->phone) . '</div>
+            <div style="text-align: center; font-size: 12px; margin-bottom: 5px;">' . formatPhoneNumber(getUserData($company->admin_id)->phone) . '/075 139 8670</div>
             <hr style="border-width: 1px; border-color: #000; border-style: dashed;">
 
             ' . $title . '
@@ -2363,7 +2363,7 @@ function generateCreditPay($totalDue, $paid, $customer, $datetime, $bill_name)
                 <div style="text-align: center;margin-top: 5px; margin-bottom: 5px; font-size: 14px;">' . company()->company_name . '</div>
                 <hr style="border-width: 2px; border-color: #000;">
                 <div style="text-align: center; font-size: 12px; margin-top: 5px;">' . getUserData(company()->admin_id)->address . '</div>
-                <div style="text-align: center; font-size: 12px; margin-bottom: 5px;">' . formatPhoneNumber(getUserData(company()->admin_id)->phone) . '</div>
+                <div style="text-align: center; font-size: 12px; margin-bottom: 5px;">' . formatPhoneNumber(getUserData(company()->admin_id)->phone) . '/075 139 8670</div>
                 <hr style="border-width: 1px; border-color: #000; border-style: dashed;">
                 <div
                     style="text-align: center;margin-top: 10px; font-size: 20px; font-weight: bold;text-transform: uppercase;margin-bottom: 3px;">
