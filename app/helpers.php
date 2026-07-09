@@ -906,6 +906,7 @@ function generateInvoice($order_id, $inName, $bill_type)
     $orders = [];
     $customer = [];
     $repairs = [];
+    $type = '';
 
     if (is_array($order_id)) {
         foreach ($order_id as $key => $id) {
@@ -916,6 +917,7 @@ function generateInvoice($order_id, $inName, $bill_type)
                 $total += $temp_order->total;
                 $advance += $temp_order->advance;
                 $orders[] = array("id" => $id, "total" => $temp_order->total, "advance" => $temp_order->advance, "model" => $temp_order->model_no, "serial" => $temp_order->serial_no, 'warranty' => $temp_order->warranty, 'service_warranty' => $temp_order->service_warranty, 'signature' => $temp_order->signature);
+                $type = $temp_order->type;
             }
         }
 
@@ -929,6 +931,7 @@ function generateInvoice($order_id, $inName, $bill_type)
             $delivery = $temp_order->delivery;
             $advance += $temp_order->advance;
             $orders[] = array("id" => $order_id, "total" => $temp_order->total, "advance" => $temp_order->advance, "model" => $temp_order->model_no, "serial" => $temp_order->serial_no, 'warranty' => $temp_order->warranty, 'service_warranty' => $temp_order->service_warranty, 'signature' => $temp_order->signature);
+            $type = $temp_order->type;
         }
 
         $repairs = Repairs::where('bill_no', $order_id)->where('pos_code', $company->pos_code)->get()[0];
@@ -959,7 +962,7 @@ function generateInvoice($order_id, $inName, $bill_type)
             <div style="text-align: center; margin-bottom: 20px;">
                 <h1 style="margin: 0;">' . $company->company_name . '</h1>
                 <p style="margin: 0;">' . getUserData($company->admin_id)->address . '</p>
-                <p style="margin: 0;">Tel: ' . formatPhoneNumber(getUserData($company->admin_id)->phone) . '</p>
+                <p style="margin: 0;">Tel: ' . formatPhoneNumber(getUserData($company->admin_id)->phone) . ($type == 'other' ? ' / 075 139 8670' : '') . '</p>
                 <p style="margin: 0;">www.wefix.lk</p>
                 <h2 style="margin: 20px 0;">' . $note2 . '</h2>
             </div>
@@ -977,7 +980,7 @@ function generateInvoice($order_id, $inName, $bill_type)
                     </tr>
                     <tr>
                         <td style="padding: 5px; border: 1px solid black;">' . $customer->name . '</td>
-                        <td style="padding: 5px; border: 1px solid black;">' . $customer->phone . '/075 139 8670</td>
+                        <td style="padding: 5px; border: 1px solid black;">' . $customer->phone . '</td>
                         <td style="padding: 5px; border: 1px solid black;">' . $customer->address . '</td>
                     </tr>
                 </table>
@@ -1227,6 +1230,7 @@ function generateThermalInvoice($order_id, $inName, $bill_type)
     $orders = [];
     $customer = [];
     $repairs = [];
+    $type = '';
 
     if (is_array($order_id)) {
         foreach ($order_id as $key => $id) {
@@ -1237,6 +1241,7 @@ function generateThermalInvoice($order_id, $inName, $bill_type)
                 $delivery = $temp_order->delivery;
                 $advance += $temp_order->advance;
                 $orders[] = array("id" => $id, "total" => $temp_order->total, "advance" => $temp_order->advance, "model" => $temp_order->model_no, "serial" => $temp_order->serial_no, 'warranty' => $temp_order->warranty, 'service_warranty' => $temp_order->service_warranty, "fault" => $temp_order->fault, 'has_multiple_fault' => $temp_order->has_multiple_fault, 'multiple_fault' => $temp_order->multiple_fault, 'signature' => $temp_order->signature);
+                $type = $temp_order->type;
             }
         }
 
@@ -1254,6 +1259,7 @@ function generateThermalInvoice($order_id, $inName, $bill_type)
             $delivery = $temp_order->delivery;
             $advance += $temp_order->advance;
             $orders[] = array("id" => $order_id, "total" => $temp_order->total, "advance" => $temp_order->advance, "model" => $temp_order->model_no, "serial" => $temp_order->serial_no, 'warranty' => $temp_order->warranty, 'service_warranty' => $temp_order->service_warranty, "fault" => $temp_order->fault, 'has_multiple_fault' => $temp_order->has_multiple_fault, 'multiple_fault' => $temp_order->multiple_fault, 'signature' => $temp_order->signature);
+            $type = $temp_order->type;
         }
 
         $repairs = Repairs::where('bill_no', $order_id)->get()[0];
@@ -1315,7 +1321,7 @@ function generateThermalInvoice($order_id, $inName, $bill_type)
 
                 <h2 style="margin: 0; margin-top: 10px;">' . $company_name . '</h2>
                 <p style="margin: 2px 0; font-size: 13px;">' . $company_address . '</p>
-                <p style="margin: 2px 0; font-size: 13px;">Tel: ' . $company_phone . '/075 139 8670</p>
+                <p style="margin: 2px 0; font-size: 13px;">Tel: ' . $company_phone . ($type == 'other' ? ' / 075 139 8670' : '') . '</p>
                 <p style="margin: 2px 0; font-size: 13px;">' . ($repairs->partner == 0 ? 'www.wefix.lk' : '') . '</p>
             </div>
 
@@ -1771,7 +1777,7 @@ function generateSalesInvoice($order_id, $inName, $products, $cashin)
             <div style="text-align: center; margin-bottom: 20px; margin-top: 30px;">
                 <h1 style="margin: 0;">' . $company_name . '</h1>
                 <p style="margin: 0;">' . $company_address . '</p>
-                <p style="margin: 0;">Tel: ' . $company_phone . '/075 139 8670</p>
+                <p style="margin: 0;">Tel: ' . $company_phone .'</p>
                 <p style="margin: 0;">' . ($repairs->partner == 0 ? 'www.wefix.lk' : '') . '</p>
                 <h2 style="margin: 20px 0;">Sales Note</h2>
             </div>
@@ -1939,7 +1945,7 @@ function generateThermalSalesInvoice($order_id, $inName, $products, $cashin)
             ' . $industry . '
             <hr style="border-width: 2px; border-color: #000;">
             <div style="text-align: center; font-size: 12px; margin-top: 5px;">' . getUserData($company->admin_id)->address . '</div>
-            <div style="text-align: center; font-size: 12px; margin-bottom: 5px;">' . formatPhoneNumber(getUserData($company->admin_id)->phone) . '/075 139 8670</div>
+            <div style="text-align: center; font-size: 12px; margin-bottom: 5px;">' . formatPhoneNumber(getUserData($company->admin_id)->phone) . '</div>
             <hr style="border-width: 1px; border-color: #000; border-style: dashed;">
 
             ' . $title . '
@@ -2133,7 +2139,7 @@ function generateDeliveryInvoice($order_id, $inName)
             ' . $industry . '
             <hr style="border-width: 2px; border-color: #000;">
             <div style="text-align: center; font-size: 12px; margin-top: 5px;">' . getUserData($company->admin_id)->address . '</div>
-            <div style="text-align: center; font-size: 12px; margin-bottom: 5px;">' . formatPhoneNumber(getUserData($company->admin_id)->phone) . '/075 139 8670</div>
+            <div style="text-align: center; font-size: 12px; margin-bottom: 5px;">' . formatPhoneNumber(getUserData($company->admin_id)->phone) . ($type == 'other' ? ' / 075 139 8670' : '') . '</div>
             <hr style="border-width: 1px; border-color: #000; border-style: dashed;">
 
             ' . $title . '
