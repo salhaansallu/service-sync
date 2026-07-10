@@ -25,6 +25,7 @@ use App\Models\spareSaleHistory;
 use App\Models\supplier;
 use App\Models\User;
 use App\Models\userData;
+use App\Services\SalesExcelExporter;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -451,6 +452,51 @@ class DashboardController extends Controller
 
         //dd($result);
         return response(json_encode($reports));
+    }
+
+    public function exportSalesExcel(Request $request, SalesExcelExporter $exporter)
+    {
+        $fromdate = sanitize($request->input('params')['fromdate'] ?? null);
+        $todate = sanitize($request->input('params')['todate'] ?? null);
+        $customer = sanitize($request->input('params')['customer'] ?? 0);
+        $cashier = sanitize($request->input('params')['cashier'] ?? 0);
+
+        if (empty($fromdate) || empty($todate)) {
+            return response()->json(['error' => 'Please select a valid date range.'], 422);
+        }
+
+        $query = Repairs::where('pos_code', company()->pos_code)
+            ->where('status', 'Delivered')
+            ->whereBetween('paid_at', [date('Y-m-d', strtotime($fromdate)) . ' 00:00:00', date('Y-m-d', strtotime($todate)) . ' 23:59:59']);
+
+        if ($customer != '0' && customers::where('id', $customer)->where('pos_code', company()->pos_code)->exists()) {
+            $query->where('customer', $customer);
+        }
+
+        if ($cashier != '0' && posUsers::where('user_id', $cashier)->where('pos_code', company()->pos_code)->exists()) {
+            $query->where('cashier', $cashier);
+        }
+
+        $sales = $query->get();
+        $rows = $sales->map(function ($sale) {
+            $customerName = optional(customers::find($sale->customer))->name;
+            $cashierName = optional(User::find($sale->cashier))->fname;
+
+            return [
+                'bill_no' => $sale->bill_no,
+                'total' => $sale->total,
+                'cost' => $sale->cost,
+                'profit' => ((float) $sale->total - (float) $sale->cost),
+                'customer' => $customerName ?? $sale->customer,
+                'cashier' => $cashierName ?? $sale->cashier,
+                'created_at' => $sale->created_at,
+                'paid_at' => $sale->paid_at,
+            ];
+        })->toArray();
+
+        $filePath = $exporter->export($rows, 'sales-export-' . date('YmdHis') . '.xlsx');
+
+        return response()->download($filePath)->deleteFileAfterSend(true);
     }
 
     public function getCustomerInvoice(Request $request)

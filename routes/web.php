@@ -240,6 +240,7 @@ Route::prefix('dashboard')->group(function () {
     Route::get('sales-report/customer', [DashboardController::class, 'customerSalesReport']);
     Route::post('/sales/get-products', [DashboardController::class, 'getSalesProducts']);
     Route::post('/sales/get-invoice', [DashboardController::class, 'getSalesInvoice']);
+    Route::post('/sales/export-excel', [DashboardController::class, 'exportSalesExcel']);
     Route::post('/sales/get-customer-invoice', [DashboardController::class, 'getCustomerInvoice']);
     Route::get('sales-report/re-service', [RepairsController::class, 'reServiceListView']);
     Route::get('repair-history/{id}', [RepairsController::class, 'viewHistory']);

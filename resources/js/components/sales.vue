@@ -46,6 +46,12 @@
                                     Filter</button>
                             </div>
                         </div>
+
+                        <div class="col">
+                            <div class="input">
+                                <button class="primary-btn border-only submit-btn mt-3" @click="exportSales()">Export Excel</button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -191,6 +197,52 @@ export default {
             }, 500);
 
             return 0;
+        },
+        async exportSales() {
+            var fromdate = this.$refs.fromdate.value;
+            var todate = this.$refs.todate.value;
+            var customer = this.$refs.customer.value;
+            var cashier = this.$refs.cashier.value;
+
+            if (fromdate == "") {
+                toastr.error('Please select From Date');
+                return false;
+            }
+
+            if (todate == "") {
+                toastr.error('Please select To Date');
+                return false;
+            }
+
+            if (fromdate > todate) {
+                toastr.error('Please select from date lower than to date');
+                return false;
+            }
+
+            try {
+                const response = await axios.post('/dashboard/sales/export-excel', {
+                    params: {
+                        fromdate: fromdate,
+                        todate: todate,
+                        customer: customer,
+                        cashier: cashier,
+                    }
+                }, {
+                    responseType: 'blob'
+                });
+
+                const href = window.URL.createObjectURL(new Blob([response.data]));
+                const link = document.createElement('a');
+                link.href = href;
+                link.setAttribute('download', 'sales-export.xlsx');
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                window.URL.revokeObjectURL(href);
+            } catch (error) {
+                const message = error?.response?.data ? 'Unable to export sales data.' : 'Unable to export sales data.';
+                toastr.error(message);
+            }
         },
     },
     beforeMount() {
