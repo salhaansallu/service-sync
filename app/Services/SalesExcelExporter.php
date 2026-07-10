@@ -6,7 +6,7 @@ use RuntimeException;
 
 class SalesExcelExporter
 {
-    public function export(array $sales, string $fileName = 'sales-export.xlsx'): string
+    public function export(array $sales, string $fileName = 'sales-export.xlsx', ?string $companyName = null): string
     {
         $tempFile = tempnam(sys_get_temp_dir(), 'sales-export-');
         if ($tempFile === false) {
@@ -22,6 +22,9 @@ class SalesExcelExporter
         }
 
         $rows = [];
+        $rows[] = [trim($companyName) ?: 'Sales Export'];
+        $rows[] = ['Generated At', date('Y-m-d H:i:s')];
+        $rows[] = [];
         $rows[] = [
             'Bill No',
             'Customer',
@@ -30,9 +33,12 @@ class SalesExcelExporter
             'Total',
             'Cost',
             'Profit',
+            'Products',
+            'Product Count',
         ];
 
         foreach ($sales as $sale) {
+            $productSummary = $this->buildProductSummary($sale);
             $rows[] = [
                 $this->getValue($sale, 'bill_no'),
                 $this->getValue($sale, 'customer_name', $this->getValue($sale, 'customer')),
@@ -41,6 +47,8 @@ class SalesExcelExporter
                 $this->toNumber($this->getValue($sale, 'total')),
                 $this->toNumber($this->getValue($sale, 'cost')),
                 $this->toNumber($this->getValue($sale, 'profit', $this->toNumber($this->getValue($sale, 'total')) - $this->toNumber($this->getValue($sale, 'cost')))),
+                $productSummary['summary'],
+                $productSummary['count'],
             ];
         }
 
@@ -195,6 +203,71 @@ XML;
   <dcterms:modified xsi:type="dcterms:W3CDTF">{$timestamp}</dcterms:modified>
 </cp:coreProperties>
 XML;
+    }
+
+    private function buildProductSummary($sale): array
+    {
+        $productItems = [];
+
+        foreach (['products', 'spares'] as $field) {
+            $rawValue = $this->getValue($sale, $field);
+            if (empty($rawValue)) {
+                continue;
+            }
+
+            $decoded = $rawValue;
+            if (is_string($decoded)) {
+                $decoded = htmlspecialchars_decode($decoded);
+                $decoded = json_decode($decoded, true);
+            }
+
+            if (!is_array($decoded)) {
+                continue;
+            }
+
+            foreach ($decoded as $item) {
+                if (!is_array($item) && !is_object($item)) {
+                    continue;
+                }
+
+                $name = $this->getValue($item, 'name', $this->getValue($item, 'pro_name', $this->getValue($item, 'product_name')));
+                $sku = $this->getValue($item, 'sku', $this->getValue($item, 'code'));
+                $qty = $this->getValue($item, 'qty', $this->getValue($item, 'quantity', $this->getValue($item, 'unit_qty')));
+                $unitPrice = $this->getValue($item, 'unit', $this->getValue($item, 'price', $this->getValue($item, 'cost')));
+
+                if (empty($name) && empty($sku)) {
+                    continue;
+                }
+
+                $productItems[] = [
+                    'name' => $name ?? 'N/A',
+                    'sku' => $sku ?? 'N/A',
+                    'qty' => $qty ?? 0,
+                    'unit_price' => $unitPrice ?? 0,
+                ];
+            }
+        }
+
+        if (empty($productItems)) {
+            return ['summary' => 'No products', 'count' => 0];
+        }
+
+        $summaryParts = [];
+        foreach (array_slice($productItems, 0, 4) as $productItem) {
+            $name = $productItem['name'];
+            $sku = $productItem['sku'];
+            $qty = $productItem['qty'];
+            $summaryParts[] = $name . ($sku ? ' (' . $sku . ')' : '') . ($qty ? ' x' . $qty : '');
+        }
+
+        if (count($productItems) > 4) {
+            $summaryParts[] = '...';
+        }
+
+        return [
+            'summary' => implode('; ', $summaryParts),
+            'count' => count($productItems),
+        ];
     }
 
     private function getValue($record, string $key, $default = null)

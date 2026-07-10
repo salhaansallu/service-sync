@@ -494,7 +494,7 @@ class DashboardController extends Controller
             ];
         })->toArray();
 
-        $filePath = $exporter->export($rows, 'sales-export-' . date('YmdHis') . '.xlsx');
+        $filePath = $exporter->export($rows, 'sales-export-' . date('YmdHis') . '.xlsx', company()->company_name);
 
         return response()->download($filePath)->deleteFileAfterSend(true);
     }
