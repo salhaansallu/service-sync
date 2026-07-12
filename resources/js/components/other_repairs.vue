@@ -149,6 +149,9 @@
                                 <li><a href="javascript:void(0)" @click="editRepair(repair.id)">Edit Repair</a></li>
                                 <li><a href="javascript:void(0)" @click="printInvoice(repair.invoice)">Open Invoice</a>
                                 </li>
+                                <li>
+                                    <a href="javascript:void(0)" @click="printSticker(repair.bill_no)">Print Sticker</a>
+                                </li>
                                 <li><a href="javascript:void(0)"
                                         @click="openWhatsapp(searchCustomer(repair.customer)['phone'], repair.invoice)">Send
                                         Invoice on WhatsApp</a></li>
@@ -1361,6 +1364,31 @@ export default {
             }
             else {
                 toastr.error("Error generating invoice", "Error");
+            }
+        },
+        async printSticker(bill_no) {
+            if (!bill_no) {
+                toastr.error("Sticker not found", "Error");
+                return;
+            }
+
+            this.loadModal("show");
+
+            try {
+                const { data } = await axios.post("/pos/generate_sticker", {
+                    bill_no: bill_no,
+                });
+
+                if (data.error == 0 || data.error === 0) {
+                    printJS(data.url);
+                }
+                else {
+                    toastr.error(data.msg || "Error generating sticker", "Error");
+                }
+            } catch (error) {
+                toastr.error(error?.response?.data?.msg || "Unable to generate sticker", "Error");
+            } finally {
+                this.loadModal("hide");
             }
         },
         async FilterRepairs() {

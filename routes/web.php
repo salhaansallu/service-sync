@@ -122,6 +122,7 @@ Route::post('/pos/bulk-print', [DashboardController::class, 'generateInvoice']);
 Route::post('/pos/checkout', [PosDataController::class, 'checkout']);
 Route::post('/pos/sales/checkout', [PosDataController::class, 'salesCheckout']);
 Route::post('/pos/getInvoicePDF', [RepairsController::class, 'getInvoicePDF']);
+Route::post('/pos/generate_sticker', [DashboardController::class, 'generateSticker']);
 Route::post('/pos/whatsapp_message_statuses', [RepairsController::class, 'getWhatsappMessageStatuses']);
 Route::post('/pos/trigger_webhook', [RepairsController::class, 'triggerWebhook']);
 Route::post('/pos/download_detailed_report', [RepairsController::class, 'downloadDetailedReport']);

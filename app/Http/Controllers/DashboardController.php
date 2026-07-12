@@ -839,6 +839,20 @@ class DashboardController extends Controller
         return response(json_encode(array("error" => 1, "msg" => "Error generating invoice")));
     }
 
+    public function generateSticker(Request $request)
+    {
+        if (Auth::check() && isCashier()) {
+            $bill_no = sanitize($request->input('bill_no'));
+            $sticker = generateThermalSticker($bill_no, 'temp-sticker');
+
+            if ($sticker->generated == true) {
+                return response(json_encode(array("error" => 0, "msg" => "Sticker generated successfully", "url" => $sticker->url)));
+            }
+        }
+
+        return response(json_encode(array("error" => 1, "msg" => "Error generating sticker")));
+    }
+
     public function accounts(Request $request, $type)
     {
         if (Auth::check() && isCashier()) {
