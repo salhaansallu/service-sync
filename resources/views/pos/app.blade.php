@@ -741,6 +741,15 @@
                         @endif
 
                         @if (isAdmin())
+                        <li class="{{ Request::is('dashboard/referral-coupons*') ? 'active' : '' }}">
+                            <a href="/dashboard/referral-coupons">
+                                <i class="fa-solid fa-ticket"></i>
+                                <span class="ml-4">Referral Coupons</span>
+                            </a>
+                        </li>
+                        @endif
+
+                        @if (isAdmin())
                         <li class="{{ Request::is('dashboard/personal-credit*') ? 'active' : '' }}">
                             <a href="#personalCredit" class="collapsed {{ company()->plan == 1 ? 'no-collapsable' : '' }}"
                                 data-toggle="collapse" aria-expanded="false">

@@ -318,7 +318,7 @@
             <div class="proceed_btn">
                 <div class="row row-cols-1">
                     <div class="col">
-                        <button class="primary-btn submit-btn w-100" @click="proceed()">Checkout</button>
+                        <button class="primary-btn submit-btn w-100" @click="askReferralCoupon()">Checkout</button>
                     </div>
                 </div>
             </div>
@@ -893,6 +893,7 @@ export default {
             selectedFaults: [],
             signaturePad: null,
             whatsappStatuses: {},
+            referralCouponCode: '',
         }
     },
     computed: {
@@ -908,6 +909,23 @@ export default {
         printJS,
         reformatPhoneNumbers,
         isNumber,
+        async askReferralCoupon() {
+            const code = window.prompt('Referral coupon code (leave empty for no coupon):', '');
+            this.referralCouponCode = code === null ? '' : code.trim().toUpperCase();
+
+            if (this.referralCouponCode) {
+                try {
+                    const { data } = await axios.post('/pos/referral-coupons/verify', { code: this.referralCouponCode });
+                    toastr.success(`Referral coupon accepted. Cashback: ${data.coupon.amount}`, 'Coupon');
+                } catch (error) {
+                    toastr.error(error.response?.data?.msg || 'Invalid referral coupon.', 'Coupon');
+                    this.referralCouponCode = '';
+                    return;
+                }
+            }
+
+            this.proceed();
+        },
         formatSpareLabel(spare) {
             return spare.pro_name + (spare.source === '3rd_party' ? ' (Fix AI)' : '');
         },
@@ -1451,6 +1469,7 @@ export default {
                             delivery: order_delivery,
                             warranty: order_warranty,
                             service_warranty: order_service_warranty,
+                            referral_coupon_code: this.referralCouponCode,
                             //signature: signDataURL,
                         }
                     }).catch(function (error) {
@@ -1469,6 +1488,7 @@ export default {
                         this.reloadPOS();
                         this.getSignaure('hide');
                         this.clearSignature();
+                        this.referralCouponCode = '';
                         window.open(data.invoiceURL, '_blank');
                         setTimeout(() => { this.fetchWhatsappStatuses(); }, 10000);
                     }

@@ -317,7 +317,7 @@
                     </div>
                     <div class="col">
                         <input type="number" ref="cashin" value="0"
-                            @keyup="$event.key == 'Enter' ? getSignaure('show', 'checkout') : updateOrder()"
+                            @keyup="$event.key == 'Enter' ? askReferralCoupon() : updateOrder()"
                             @focus="$event.target.select();">
                     </div>
                 </div>
@@ -353,7 +353,7 @@
                 <div class="row row-cols-1">
                     <div class="col">
                         <button class="primary-btn submit-btn w-100"
-                            @click="getSignaure('show', 'checkout')">Checkout</button>
+                            @click="askReferralCoupon()">Checkout</button>
                     </div>
                 </div>
             </div>
@@ -999,6 +999,7 @@ export default {
             signaturePad: null,
             signatureFor: null,
             whatsappStatuses: {},
+            referralCouponCode: '',
         }
     },
     computed: {
@@ -1027,6 +1028,23 @@ export default {
         isNumber,
         isSaleRecord(repair) {
             return repair.type === 'sale';
+        },
+        async askReferralCoupon() {
+            const code = window.prompt('Referral coupon code (leave empty for no coupon):', '');
+            this.referralCouponCode = code === null ? '' : code.trim().toUpperCase();
+
+            if (this.referralCouponCode) {
+                try {
+                    const { data } = await axios.post('/pos/referral-coupons/verify', { code: this.referralCouponCode });
+                    toastr.success(`Referral coupon accepted. Cashback: ${data.coupon.amount}`, 'Coupon');
+                } catch (error) {
+                    toastr.error(error.response?.data?.msg || 'Invalid referral coupon.', 'Coupon');
+                    this.referralCouponCode = '';
+                    return;
+                }
+            }
+
+            this.getSignaure('show', 'checkout');
         },
         getRepairRequestType() {
             return this.recordTypeFilter;
@@ -1725,6 +1743,7 @@ export default {
                             delivery: order_delivery,
                             warranty: order_warranty,
                             service_warranty: order_service_warranty,
+                            referral_coupon_code: this.referralCouponCode,
                             signature: signDataURL
                         }
                     }).catch(function (error) {
@@ -1745,6 +1764,7 @@ export default {
                         this.reloadPOS();
                         window.open(data.invoiceURL, '_blank');
                         this.clearSignature();
+                        this.referralCouponCode = '';
                         setTimeout(() => { this.fetchWhatsappStatuses(); }, 10000);
                     }
                     else {

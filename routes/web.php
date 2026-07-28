@@ -28,6 +28,7 @@ use App\Http\Controllers\PurchasesController;
 use App\Http\Controllers\QuotationsController;
 use App\Http\Controllers\SalesQuotationsController;
 use App\Http\Controllers\RepairsController;
+use App\Http\Controllers\ReferralCouponController;
 use App\Http\Controllers\ShippersController;
 use App\Http\Controllers\SMSController;
 use App\Http\Controllers\SpareSaleHistoryController;
@@ -67,10 +68,10 @@ Route::post('/password/email', [ForgotPasswordController::class, 'sendResetLinkE
 
 //Route::get('/contact', [ContactController::class, 'index'])->name('contact_view');
 Route::get('/invitation/accept/{id}', [PosInvitationController::class, 'index']);
-Route::get('/customer-copy/{type}/{pos_id}/{id}', function ($type, $pos_id, $id){
+Route::get('/customer-copy/{type}/{pos_id}/{id}', function ($type, $pos_id, $id) {
     $order = getOrder($type, $id, $pos_id);
     if ($order->error == 0) {
-        return redirect('/invoice/'.$order->URL);
+        return redirect('/invoice/' . $order->URL);
     }
     return response()->view('errors.404')->setStatusCode(404);
 });
@@ -121,6 +122,7 @@ Route::post('/pos/bulk-print', [DashboardController::class, 'generateInvoice']);
 //Route::post('/pos/remove-favourits', [ProductsController::class, 'removeFavourits']);
 Route::post('/pos/checkout', [PosDataController::class, 'checkout']);
 Route::post('/pos/sales/checkout', [PosDataController::class, 'salesCheckout']);
+Route::post('/pos/referral-coupons/verify', [ReferralCouponController::class, 'verify']);
 Route::post('/pos/getInvoicePDF', [RepairsController::class, 'getInvoicePDF']);
 Route::post('/pos/generate_sticker', [DashboardController::class, 'generateSticker']);
 Route::post('/pos/whatsapp_message_statuses', [RepairsController::class, 'getWhatsappMessageStatuses']);
@@ -163,6 +165,9 @@ Route::get('/', [DashboardController::class, 'dashboard']);
 // });
 
 Route::prefix('dashboard')->group(function () {
+    Route::get('referral-coupons', [ReferralCouponController::class, 'index']);
+    Route::post('referral-coupons', [ReferralCouponController::class, 'store']);
+    Route::post('referral-coupons/{coupon}/paid', [ReferralCouponController::class, 'markPaid']);
     Route::get('products', [DashboardController::class, 'listProducts']);
     Route::get('products/create', [DashboardController::class, 'createProduct']);
     Route::get('products/edit/{id}', [ProductsController::class, 'edit']);
@@ -380,7 +385,7 @@ Route::prefix('customer-portal')->group(function () {
 });
 
 
-Route::get('/signin', function() {
+Route::get('/signin', function () {
     //if (isset($_GET['ref']) && $_GET['ref'] == "get_started") {
     //    login_redirect('/create-account');
     //}

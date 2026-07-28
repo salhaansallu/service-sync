@@ -13,6 +13,8 @@ use App\Models\posData;
 use App\Models\posUsers;
 use App\Models\Products;
 use App\Models\repairCommissions;
+use App\Models\ReferralCoupon;
+use App\Models\ReferralCouponRedemption;
 use App\Models\Repairs;
 use App\Models\WarrantyRecord;
 use App\Models\OrderRequest;
@@ -28,6 +30,36 @@ use SMS;
 
 class PosDataController extends Controller
 {
+    private function redeemReferralCoupon(?string $code, string $billNo): ?string
+    {
+        $code = strtoupper(trim((string) $code));
+        if ($code === '') {
+            return null;
+        }
+
+        return DB::transaction(function () use ($code, $billNo) {
+            $coupon = ReferralCoupon::where('pos_code', company()->pos_code)
+                ->where('code', $code)
+                ->lockForUpdate()
+                ->first();
+
+            if (!$coupon || $coupon->status !== 'active') {
+                return 'Coupon is invalid or has already been redeemed.';
+            }
+
+            $coupon->update(['status' => 'redeemed']);
+            ReferralCouponRedemption::create([
+                'referral_coupon_id' => $coupon->id,
+                'pos_code' => company()->pos_code,
+                'bill_no' => $billNo,
+                'redeemed_by' => Auth::id(),
+                'redeemed_at' => now(),
+            ]);
+
+            return null;
+        });
+    }
+
     /**
      * Display a listing of the resource.
      */
@@ -185,7 +217,18 @@ class PosDataController extends Controller
             $warranty = sanitize($request['warranty'] ?? 0);
             $service_warranty = sanitize($request['service_warranty'] ?? 0);
             $signature = isset($request['signature']) ? sanitize($request['signature']) : '';
+            $referralCouponCode = sanitize($request['referral_coupon_code'] ?? '');
             $askReview = true;
+
+            if ($referralCouponCode !== '' && !ReferralCoupon::where('pos_code', company()->pos_code)
+                ->where('code', strtoupper($referralCouponCode))
+                ->where('status', 'active')
+                ->exists()) {
+                return response(json_encode([
+                    'error' => 1,
+                    'msg' => 'Coupon is invalid or has already been redeemed.',
+                ]));
+            }
 
             $rand = date('d-m-Y-h-i-s') . '-' . rand(0, 9999999) . '.pdf';
             $inName = str_replace(' ', '-', str_replace('.', '-', $bill_no[0])) . '-Delivery-' . $rand;
@@ -270,9 +313,14 @@ class PosDataController extends Controller
                     ]);
                 }
 
-                personalCredits::where('bill_no', $id)->update([
+            personalCredits::where('bill_no', $id)->update([
                     'status' => 'Delivered',
                 ]);
+            }
+
+            $couponError = $this->redeemReferralCoupon($referralCouponCode, implode(',', $bill_no));
+            if ($couponError) {
+                return response(json_encode(['error' => 1, 'msg' => $couponError]));
             }
 
             $repairs = Repairs::where('bill_no', $bill_no[0])->get('customer')[0];
