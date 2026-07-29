@@ -12,6 +12,7 @@ use App\Models\personalCredits;
 use App\Models\posData;
 use App\Models\posUsers;
 use App\Models\Products;
+use App\Models\POSSettings;
 use App\Models\repairCommissions;
 use App\Models\ReferralCoupon;
 use App\Models\ReferralCouponRedemption;
@@ -58,6 +59,12 @@ class PosDataController extends Controller
 
             return null;
         });
+    }
+
+    private function referralCouponsEnabled(): bool
+    {
+        $settings = POSSettings::where('pos_code', company()->pos_code)->first();
+        return !$settings || $settings->referral_coupons_enabled !== 'unactive';
     }
 
     /**
@@ -178,6 +185,7 @@ class PosDataController extends Controller
         if ($this->check()) {
             $data = posData::where('pos_code', Crypt::decrypt(get_Cookie('pos_session')))->get(['pos_code', 'plan', 'currency']);
             if ($data && $data->count() > 0) {
+                $data[0]->referral_coupons_enabled = $this->referralCouponsEnabled();
                 return (object)$data[0];
             }
             return defaultValues();
@@ -218,6 +226,9 @@ class PosDataController extends Controller
             $service_warranty = sanitize($request['service_warranty'] ?? 0);
             $signature = isset($request['signature']) ? sanitize($request['signature']) : '';
             $referralCouponCode = sanitize($request['referral_coupon_code'] ?? '');
+            if (!$this->referralCouponsEnabled()) {
+                $referralCouponCode = '';
+            }
             $askReview = true;
 
             if ($referralCouponCode !== '' && !ReferralCoupon::where('pos_code', company()->pos_code)

@@ -1030,6 +1030,12 @@ export default {
             return repair.type === 'sale';
         },
         async askReferralCoupon() {
+            if (this.posData.referral_coupons_enabled === false) {
+                this.referralCouponCode = '';
+                this.getSignaure('show', 'checkout');
+                return;
+            }
+
             const code = window.prompt('Referral coupon code (leave empty for no coupon):', '');
             this.referralCouponCode = code === null ? '' : code.trim().toUpperCase();
 

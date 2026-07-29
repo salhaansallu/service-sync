@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\ReferralCoupon;
+use App\Models\POSSettings;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -64,6 +65,11 @@ class ReferralCouponController extends Controller
     public function verify(Request $request)
     {
         abort_unless(Auth::check() && isCashier(), 403);
+        $settings = POSSettings::where('pos_code', company()->pos_code)->first();
+        if ($settings && $settings->referral_coupons_enabled === 'unactive') {
+            return response()->json(['error' => 1, 'msg' => 'Referral coupons are disabled in POS.'], 422);
+        }
+
         $code = strtoupper(trim((string) $request->input('code')));
         $coupon = ReferralCoupon::where('pos_code', company()->pos_code)->where('code', $code)->first();
 
@@ -75,6 +81,26 @@ class ReferralCouponController extends Controller
             'error' => 0,
             'coupon' => ['code' => $coupon->code, 'amount' => $coupon->amount],
         ]);
+    }
+
+    public function toggle(Request $request)
+    {
+        abort_unless(Auth::check() && isAdmin(), 403);
+        $enabled = $request->boolean('enabled');
+        $settings = POSSettings::where('pos_code', company()->pos_code);
+
+        if ($settings->exists()) {
+            $settings->update(['referral_coupons_enabled' => $enabled ? 'active' : 'unactive']);
+        } else {
+            POSSettings::insert([
+                'pos_code' => company()->pos_code,
+                'referral_coupons_enabled' => $enabled ? 'active' : 'unactive',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        }
+
+        return back()->with('success', 'Referral coupons are now ' . ($enabled ? 'enabled' : 'disabled') . ' in POS.');
     }
 
     public function markPaid(ReferralCoupon $coupon)

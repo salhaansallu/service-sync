@@ -167,6 +167,7 @@ Route::get('/', [DashboardController::class, 'dashboard']);
 Route::prefix('dashboard')->group(function () {
     Route::get('referral-coupons', [ReferralCouponController::class, 'index']);
     Route::post('referral-coupons', [ReferralCouponController::class, 'store']);
+    Route::post('referral-coupons/toggle', [ReferralCouponController::class, 'toggle']);
     Route::post('referral-coupons/{coupon}/paid', [ReferralCouponController::class, 'markPaid']);
     Route::get('products', [DashboardController::class, 'listProducts']);
     Route::get('products/create', [DashboardController::class, 'createProduct']);

@@ -10,6 +10,20 @@
                         <h4 class="mb-2">Referral Coupons</h4>
                         <p class="mb-0">Create referral cashback coupons and verify redemptions by code or phone number.</p>
                     </div>
+                    @php
+                        $couponFeatureEnabled = !isset(POSSettings()->referral_coupons_enabled)
+                            || POSSettings()->referral_coupons_enabled !== 'unactive';
+                    @endphp
+                    <form method="post" action="/dashboard/referral-coupons/toggle">
+                        @csrf
+                        <input type="hidden" name="enabled" value="{{ $couponFeatureEnabled ? '0' : '1' }}">
+                        <button class="btn {{ $couponFeatureEnabled ? 'btn-danger' : 'btn-success' }}" type="submit">
+                            {{ $couponFeatureEnabled ? 'Turn Off in POS' : 'Turn On in POS' }}
+                        </button>
+                        <div class="text-center mt-1">
+                            <small>POS: {{ $couponFeatureEnabled ? 'Enabled' : 'Disabled' }}</small>
+                        </div>
+                    </form>
                 </div>
                 @if(session('success')) <div class="alert alert-success">{{ session('success') }}</div> @endif
                 @if($errors->any()) <div class="alert alert-danger">{{ $errors->first() }}</div> @endif

@@ -910,6 +910,12 @@ export default {
         reformatPhoneNumbers,
         isNumber,
         async askReferralCoupon() {
+            if (this.posData.referral_coupons_enabled === false) {
+                this.referralCouponCode = '';
+                this.proceed();
+                return;
+            }
+
             const code = window.prompt('Referral coupon code (leave empty for no coupon):', '');
             this.referralCouponCode = code === null ? '' : code.trim().toUpperCase();
 
