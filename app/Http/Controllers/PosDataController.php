@@ -57,6 +57,13 @@ class PosDataController extends Controller
                 'redeemed_at' => now(),
             ]);
 
+            $response = Http::post('https://vmi3085336.contaboserver.net/webhook/a9a65492-ff8c-4b7c-87e3-c2be5ef8e9eb', [
+                'referral_coupon_id' => $coupon->id,
+                'bill_no' => $billNo,
+                'redeemed_by' => Auth::id(),
+                'redeemed_at' => now(),
+            ]);
+
             return null;
         });
     }
@@ -324,7 +331,7 @@ class PosDataController extends Controller
                     ]);
                 }
 
-            personalCredits::where('bill_no', $id)->update([
+                personalCredits::where('bill_no', $id)->update([
                     'status' => 'Delivered',
                 ]);
             }
