@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\ReferralCoupon;
 use App\Models\POSSettings;
+use App\Models\posData;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -11,6 +12,64 @@ use Illuminate\Support\Str;
 
 class ReferralCouponController extends Controller
 {
+    public function n8nStore(Request $request)
+    {
+        //$posCode = trim((string) ($request->input('pos_code') ?: env('N8N_POS_CODE', '')));
+
+        $validator = validator(array_merge($request->all()), [
+            'referrer_phone' => ['required', 'string', 'max:30'],
+            'amount' => ['required', 'numeric', 'gt:0', 'max:9999999999.99'],
+            'code' => ['nullable', 'string', 'max:32', 'regex:/^[A-Za-z0-9_-]+$/'],
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'error' => 1,
+                'msg' => 'Validation failed',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        // if (!posData::where('pos_code', $posCode)->exists()) {
+        //     return response()->json([
+        //         'error' => 1,
+        //         'msg' => 'Invalid POS code.',
+        //     ], 422);
+        // }
+
+        $code = strtoupper(trim((string) $request->input('code', '')));
+        if ($code === '') {
+            do {
+                $code = 'REF-' . strtoupper(Str::random(8));
+            } while (ReferralCoupon::where('code', $code)->exists());
+        } elseif (ReferralCoupon::where('code', $code)->exists()) {
+            return response()->json([
+                'error' => 1,
+                'msg' => 'This coupon code already exists.',
+            ], 409);
+        }
+
+        $coupon = ReferralCoupon::create([
+            'code' => $code,
+            'referrer_phone' => trim((string) $request->input('referrer_phone')),
+            'amount' => $request->input('amount'),
+            'created_by' => null,
+        ]);
+
+        return response()->json([
+            'error' => 0,
+            'msg' => 'Coupon created successfully.',
+            'coupon' => [
+                'id' => $coupon->id,
+                'code' => $coupon->code,
+                'referrer_phone' => $coupon->referrer_phone,
+                'amount' => $coupon->amount,
+                'status' => $coupon->status,
+                'created_at' => $coupon->created_at,
+            ],
+        ], 201);
+    }
+
     public function index(Request $request)
     {
         login_redirect('/' . request()->path());

@@ -15,6 +15,7 @@ use App\Http\Controllers\Api\OTPController;
 use App\Http\Controllers\Api\AdminBookingController;
 use App\Http\Controllers\Api\CustomerOrderController;
 use App\Http\Controllers\RepairsController;
+use App\Http\Controllers\ReferralCouponController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -59,6 +60,7 @@ if (env('N8NAPI', false)) {
             Route::post('/whatsapp-message-status', [RepairsController::class, 'whatsappMessageStatusUpdate']);
             Route::post('/create-order-request', [PosDataController::class, 'createOrderRequest']);
             Route::post('/get-products', [ProductController::class, 'n8n_get']);
+            Route::post('/create-coupon', [ReferralCouponController::class, 'n8nStore']);
         });
     });
 }
