@@ -23,6 +23,12 @@
             </div>
 
             <div class="favourits">
+                <button @click="openFixAiPos" class="primary-btn submit-btn border-only">
+                    <i class="fa-solid fa-arrow-up-right-from-square"></i>FixAI POS
+                </button>
+            </div>
+
+            <div class="favourits">
                 <button @click="newOrder('show')" class="primary-btn submit-btn border-only"><i
                         class="fa-solid fa-plus"></i>New Order</button>
             </div>
@@ -1176,6 +1182,9 @@ export default {
         },
         goTo(location) {
             window.location.href = location;
+        },
+        openFixAiPos() {
+            window.open('/fixai/sso', '_blank', 'noopener,noreferrer');
         },
         multipleFaultToggle() {
             this.multipleFult = this.multipleFult ? false : true;

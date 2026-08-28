@@ -13,6 +13,7 @@ use App\Http\Controllers\CreditController;
 use App\Http\Controllers\CustomersController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ExpensesController;
+use App\Http\Controllers\FixAiSsoController;
 use App\Http\Controllers\hrController;
 use App\Http\Controllers\NewsletterController;
 use App\Http\Controllers\OrdersController;
@@ -106,6 +107,7 @@ Route::post('/update-password', [accountController::class, 'updatePassword']);
 
 Route::get('/cloud-pos/{id}', [PosDataController::class, 'index']);
 Route::get('/pos', [PosDataController::class, 'show']);
+Route::get('/fixai/sso', [FixAiSsoController::class, 'redirect'])->name('fixai.sso');
 Route::post('/pos/get_repairs', [RepairsController::class, 'getRepairs']);
 Route::post('/pos/update', [RepairsController::class, 'orderUpdate']);
 Route::post('/pos/new_order', [RepairsController::class, 'store']);
