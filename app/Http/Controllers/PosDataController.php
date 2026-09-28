@@ -266,7 +266,6 @@ class PosDataController extends Controller
                     "status" => "Delivered",
                     "updated_at" => date('d-m-Y H:i:s'),
                     "invoice" => "checkout/" . $inName,
-                    "paid_at" => Carbon::now(),
                     "delivery" => $delivery,
                     "warranty" => $warranty,
                     "service_warranty" => $service_warranty,

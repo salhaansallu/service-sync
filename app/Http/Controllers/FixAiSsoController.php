@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Throwable;
 
@@ -27,9 +28,9 @@ class FixAiSsoController extends Controller
         }
 
         $payload = [
-            'external_user_id' => (string) $user->getAuthIdentifier(),
-            'email' => (string) $user->email,
-            'name' => trim(implode(' ', array_filter([$user->fname, $user->lname]))) ?: (string) $user->email,
+            'external_user_id' => (string) '4',
+            'email' => (string) 'sso_user',
+            'name' => trim(implode(' ', array_filter([$user->fname, $user->lname]))) ?: (string) 'sso_user',
             'redirect_path' => '/pos',
         ];
 
@@ -63,7 +64,26 @@ class FixAiSsoController extends Controller
         $ticket = $response->json('ticket');
 
         if (! $response->successful() || ! is_string($ticket) || $ticket === '') {
-            abort(502, 'FixAI rejected the login request.');
+            $remoteError = $response->json('message') ?? $response->json('error');
+
+            if (is_array($remoteError)) {
+                $remoteError = implode(' ', array_map(
+                    fn ($value) => is_array($value) ? implode(' ', $value) : (string) $value,
+                    $remoteError
+                ));
+            }
+
+            $remoteError = trim(strip_tags((string) $remoteError));
+
+            Log::warning('FixAI rejected an SSO ticket request.', [
+                'status' => $response->status(),
+                'issuer' => $issuer,
+                'error' => $remoteError,
+            ]);
+
+            $detail = $remoteError !== '' ? ': '.mb_substr($remoteError, 0, 300) : '';
+
+            abort(502, 'FixAI rejected the login request (HTTP '.$response->status().')'.$detail);
         }
 
         return redirect()->away($baseUrl.$consumePath.'?'.http_build_query(

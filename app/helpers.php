@@ -999,7 +999,7 @@ function generateInvoice($order_id, $inName, $bill_type)
                         <th style="width: 50%; padding: 8px; text-align: left;">Delivery Date:</th>
                     </tr>
                     <tr>
-                        <td style="padding: 8px;' . ($repairs->status == 'Delivered' ? '' : 'display:none;') . '">' . date('d-m-Y H:i:s', strtotime($repairs->paid_at)) . '</td>
+                        <td style="padding: 8px;' . ($repairs->status == 'Delivered' ? '' : 'display:none;') . '">' . $repairs->paid_at != null ? date('d-m-Y H:i:s', strtotime($repairs->paid_at)) : date('d-m-Y H:i:s', strtotime($repairs->updated_at)) . '</td>
                     </tr>
                 </table>
             </div>
@@ -1351,7 +1351,7 @@ function generateThermalInvoice($order_id, $inName, $bill_type)
 
                 <tr>
                     <td style="font-size: 12px;">Delivery Date:</td>
-                    <td style="font-size: 12px; text-align: right;">' . ($repairs->paid_at ? date('d-m-Y H:i:s', strtotime($repairs->paid_at)) : 'N/A') . '</td>
+                    <td style="font-size: 12px; text-align: right;">' . ($repairs->paid_at ? date('d-m-Y H:i:s', strtotime($repairs->paid_at)) : date('d-m-Y H:i:s', strtotime($repairs->updated_at))) . '</td>
                 </tr>
             </table>
 
