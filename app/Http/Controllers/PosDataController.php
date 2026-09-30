@@ -262,7 +262,7 @@ class PosDataController extends Controller
                     $askReview = false;
                 }
 
-                $reps->update([
+                $upArr = [
                     "status" => "Delivered",
                     "updated_at" => date('d-m-Y H:i:s'),
                     "invoice" => "checkout/" . $inName,
@@ -270,7 +270,13 @@ class PosDataController extends Controller
                     "warranty" => $warranty,
                     "service_warranty" => $service_warranty,
                     "signature" => $signature,
-                ]);
+                ];
+
+                if ($cashin >= $total) {
+                    $upArr['paid_date'] = date('d-m-Y H:i:s');
+                }
+
+                $reps->update($upArr);
 
                 // Create warranty record if parts or service warranty months > 0
                 if ($warranty > 0 || $service_warranty > 0) {
