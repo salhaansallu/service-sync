@@ -75,13 +75,22 @@ class CreditController extends Controller
             $paymentAmount = sanitize($request->input('params')['amount']);
             $paymentType = sanitize($request->input('params')['type']);
             $paid = $paymentAmount;
+            if (!is_numeric($paymentAmount) || (float) $paymentAmount <= 0) {
+                return response(json_encode(['error' => 1, 'msg' => 'Payment amount must be positive']));
+            }
+            $paymentAmount = (float) $paymentAmount;
 
             if ($paymentType == 'manual') {
-                $credit = Credit::where('id', $customerId)->first();
+                $credit = Credit::where('id', $customerId)
+                    ->where('pos_code', company()->pos_code)->first();
                 if ($credit) {
+                    if ($paymentAmount > (float) $credit->ammount || $credit->ammount <= 0) {
+                        return response(json_encode(['error' => 1, 'msg' => 'Payment exceeds this bill balance']));
+                    }
 
 
                     $total_due = DB::table('credits')
+                        ->where('pos_code', company()->pos_code)
                         ->where('customer_id', $credit->customer_id)
                         ->where('ammount', '>', 0) // Select bills with balance remaining
                         ->sum('ammount');
@@ -90,17 +99,11 @@ class CreditController extends Controller
                         ->where('id', $credit->id)
                         ->update([
                             'ammount' => ($credit->ammount - $paymentAmount < 0 ? 0 : $credit->ammount - $paymentAmount), // Reduce balance
-                            'status' => ($credit->ammount - $paymentAmount < 0 ? 'paid' : 'partially paid'),
+                            'status' => ($credit->ammount - $paymentAmount <= 0 ? 'paid' : 'partially paid'),
                             'updated_at' => now()
                         ]);
 
                     $this->recordPayment($credit, $paymentAmount);
-
-                    if ($total_due < $paymentAmount) {
-                        if ($paymentAmount > 0) {
-                            $this->storeAdvancePayment($credit->customer_id, $total_due - $paymentAmount, 'customer');
-                        }
-                    }
 
                     $bill_name = time() . rand(1111, 9999999) . rand(111, 9999) . '.pdf';
                     $payment = generateCreditPay($total_due, $paid, $credit->customer_id, Carbon::now(), $bill_name);
@@ -113,11 +116,13 @@ class CreditController extends Controller
 
 
             $total_due = DB::table('credits')
+                ->where('pos_code', company()->pos_code)
                 ->where('customer_id', $customerId)
                 ->where('ammount', '>', 0) // Select bills with balance remaining
                 ->sum('ammount');
 
             $bills = DB::table('credits')
+                ->where('pos_code', company()->pos_code)
                 ->where('customer_id', $customerId)
                 ->where('ammount', '>', 0) // Select bills with balance remaining
                 ->orderBy('created_at', 'asc') // FIFO order
@@ -312,10 +317,18 @@ class CreditController extends Controller
             $partner_id = sanitize($request->input('params')['partner_id']);
             $paymentAmount = sanitize($request->input('params')['amount']);
             $paid = $paymentAmount;
+            if (!is_numeric($paymentAmount) || (float) $paymentAmount <= 0) {
+                return response(json_encode(['error' => 1, 'msg' => 'Payment amount must be positive']));
+            }
+            $paymentAmount = (float) $paymentAmount;
 
             if (sanitize($request->input('params')['type']) == 'manual') {
-                $credit = Credit::where('id', $credit)->first();
+                $credit = Credit::where('id', $credit)
+                    ->where('pos_code', company()->pos_code)->first();
                 if ($credit) {
+                    if ($paymentAmount > (float) $credit->ammount || $credit->ammount <= 0) {
+                        return response(json_encode(['error' => 1, 'msg' => 'Payment exceeds this bill balance']));
+                    }
 
                     foreach (Repairs::where('partner', $partner_id)->where('status', 'Delivered')->get() as $key => $value) {
                         $billNumbers[] = $value->bill_no;
@@ -335,17 +348,11 @@ class CreditController extends Controller
                         ->where('id', $credit->id)
                         ->update([
                             'ammount' => ($credit->ammount - $paymentAmount < 0 ? 0 : $credit->ammount - $paymentAmount), // Reduce balance
-                            'status' => ($credit->ammount - $paymentAmount < 0 ? 'paid' : 'partially paid'),
+                            'status' => ($credit->ammount - $paymentAmount <= 0 ? 'paid' : 'partially paid'),
                             'updated_at' => now()
                         ]);
 
                     $this->recordPayment($credit, $paymentAmount);
-
-                    if ($total_due < $paymentAmount) {
-                        if ($paymentAmount > 0) {
-                            $this->storeAdvancePayment($partner_id, $total_due - $paymentAmount, 'partner');
-                        }
-                    }
 
                     $bill_name = time() . rand(1111, 9999999) . rand(111, 9999) . '.pdf';
                     $payment = generateCreditPay($total_due, $paid, $credit->customer_id, Carbon::now(), $bill_name);

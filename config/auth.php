@@ -75,11 +75,6 @@ return [
             'model' => App\Models\ApiUser::class,
         ],
         
-        'api_users' => [
-            'driver' => 'eloquent',
-            'model' => App\Models\ApiUser::class,
-        ],
-
         // 'users' => [
         //     'driver' => 'database',
         //     'table' => 'users',
@@ -109,6 +104,12 @@ return [
         'users' => [
             'provider' => 'users',
             'table' => 'password_reset_tokens',
+            'expire' => 60,
+            'throttle' => 60,
+        ],
+        'api_users' => [
+            'provider' => 'api_users',
+            'table' => 'api_password_reset_tokens',
             'expire' => 60,
             'throttle' => 60,
         ],

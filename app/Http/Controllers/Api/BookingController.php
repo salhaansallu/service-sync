@@ -14,19 +14,13 @@ class BookingController extends Controller
 {
     public function create(Request $request)
     {
-        // --------------------------------
-        // Accept GET + POST data
-        // --------------------------------
-        $input = array_merge(
-            $request->query(),              // GET parameters
-            $request->request->all()         // POST parameters
-        );
+        $input = $request->all();
 
         // --------------------------------
         // POS key validation (API only)
         // --------------------------------
         if (
-            request()->path() == 'api/bookings' &&
+            $request->is('api/bookings') && !Auth::guard('api')->check() &&
             (!isset($input['pos_key']) || sanitize($input['pos_key']) != env('WEBSITE_KEY'))
         ) {
             return response()->json([
@@ -43,6 +37,11 @@ class BookingController extends Controller
             'address'          => 'required|string',
             'phone'            => 'required|string|max:20',
             'customerName'     => 'required|string|max:255',
+            'tvBrand'          => 'nullable|string|max:255',
+            'tvModel'          => 'nullable|string|max:255',
+            'issueType'        => 'required|string|max:255',
+            'issueDescription' => 'required|string',
+            'pickupOption'     => 'required|string|max:255',
         ]);
 
         if ($validator->fails()) {
@@ -68,10 +67,11 @@ class BookingController extends Controller
         // --------------------------------
         $booking = Booking::create([
             'booking_id'         => $booking_id,
+            'user_id'            => Auth::guard('api')->id(),
             'customer_name'      => $input['customerName'],
             'customer_phone'     => formatOriginalPhoneNumber($input['phone']),
-            'tv_brand'           => $input['tvBrand'],
-            'tv_model'           => $input['tvModel'],
+            'tv_brand'           => $input['tvBrand'] ?? null,
+            'tv_model'           => $input['tvModel'] ?? null,
             'issue_type'         => $input['issueType'],
             'issue_description'  => $input['issueDescription'],
             'address'            => $input['address'],
@@ -159,7 +159,7 @@ class BookingController extends Controller
         }
 
         $user = $request->user();
-        $booking = Booking::where('id', $bookingId)
+        $booking = Booking::where('booking_id', $bookingId)
             ->where('user_id', $user->id)
             ->first();
 
@@ -213,7 +213,7 @@ class BookingController extends Controller
     {
         $data = [
             'id' => $booking->booking_id,
-            'userId' => 'user_' . $booking->user_id,
+            'userId' => $booking->user_id ? 'user_' . $booking->user_id : null,
             'customerName' => $booking->customer_name,
             'customerPhone' => $booking->customer_phone,
             'tvBrand' => $booking->tv_brand,

@@ -8,6 +8,7 @@ use App\Models\Products;
 use App\Models\Repairs;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use SMS;
 
 class OrdersController extends Controller
@@ -49,7 +50,7 @@ class OrdersController extends Controller
      */
     public function edit($id)
     {
-        if (!Auth::check() && DashboardController::check(true)) {
+        if (!Auth::check() || !DashboardController::check(true)) {
             return redirect('/signin');
         }
 
@@ -113,26 +114,20 @@ class OrdersController extends Controller
             ]);
 
             if ($product) {
-                if ($status == "Delivered") {
+                if ($status == "Delivered" && $id_verify[0]->status !== 'Delivered') {
                     $invoice = generateDeliveryInvoice($id, $inName)->url;
 
-                    $products = Repairs::where('bill_no', $id_verify[0]->bill_no)->where('pos_code', company()->pos_code)->get();
-
-                    $sms = new SMS();
-                    $sms->contact = array(array(
-                        "number" => getCustomer($products[0]["customer"])->phone
-                    ));
-                    $sms->message = "Dear customer, Thank you for placing your order at ".company()->company_name. ". Your order has been dispatched and is on the way. Courrier Service: ".$delivery.", Tracking No: ".$tracking_code;
-                    $sms->Send();
-
-                    if ($products->count() > 0) {
-                        foreach (json_decode(htmlspecialchars_decode($products[0]->products)) as $key => $value) {
-                            $stock = Products::where('id', $value->id)->where('pos_code', company()->pos_code)->get();
-                            Products::where('id', $value->id)->update([
-                                "qty" => (float)$stock[0]['qty'] - $value->qty
-                            ]);
-                        }
+                    $repair = Repairs::where('bill_no', $id_verify[0]->bill_no)
+                        ->where('pos_code', company()->pos_code)->first();
+                    $customer = $repair ? getCustomer($repair->customer) : null;
+                    if ($customer && $customer->phone) {
+                        $sms = new SMS();
+                        $sms->contact = [['number' => $customer->phone]];
+                        $sms->message = "Dear customer, Thank you for placing your order at ".company()->company_name. ". Your order has been dispatched and is on the way. Courrier Service: ".$delivery.", Tracking No: ".$tracking_code;
+                        $sms->Send();
                     }
+
+                    // Sales checkout reserves the stock when the order is created.
                 }
 
                 return response(json_encode(array("error" => 0, "msg" => "Order Updated Successfully", 'id' => $id, "url" => $invoice)));
@@ -155,36 +150,44 @@ class OrdersController extends Controller
                 return response(json_encode(array("error" => 1, "msg" => "Invalid Update Attempt")));
             }
 
-            $product = orders::where('id', $id)->update([
-                "status" => "Return",
-                "updated_at" => date('Y-m-d H:i:s'),
-            ]);
-
-            if ($product) {
-
-                $products = Repairs::where('bill_no', $id_verify[0]->bill_no)->where('pos_code', company()->pos_code)->get();
-
-                $sms = new SMS();
-                $sms->contact = array(array(
-                    "number" => getCustomer($products[0]["customer"])->phone
-                ));
-                $sms->message = "Dear customer, Your order has been returned to our store and has been cancelled. If you did not cancel, please contact us via ".formatPhoneNumber(getUserData(company()->admin_id)->phone);
-                $sms->Send();
-
-                if ($products->count() > 0) {
-                    foreach (json_decode(htmlspecialchars_decode($products[0]->products)) as $key => $value) {
-                        $stock = Products::where('id', $value->id)->where('pos_code', company()->pos_code)->get();
-                        Products::where('id', $value->id)->update([
-                            "qty" => (float)$stock[0]['qty'] + $value->qty
-                        ]);
-                    }
+            $returned = DB::transaction(function () use ($id) {
+                $order = orders::where('id', $id)->where('pos_code', company()->pos_code)
+                    ->lockForUpdate()->first();
+                if (!$order || $order->status === 'Return') {
+                    return false;
                 }
 
-                $products = Repairs::where('id', $products[0]->id)->update([
-                    "total" => 0,
-                    "cost" => $id_verify[0]->charge,
-                    "status" => "Return",
-                ]);
+                $repair = Repairs::where('bill_no', $order->bill_no)
+                    ->where('pos_code', company()->pos_code)->first();
+                if (!$repair) {
+                    return false;
+                }
+
+                foreach (json_decode(htmlspecialchars_decode($repair->products ?? '[]')) ?: [] as $item) {
+                    Products::where('id', $item->id)
+                        ->where('pos_code', company()->pos_code)
+                        ->increment('qty', (float) $item->qty);
+                }
+
+                $order->status = 'Return';
+                $order->save();
+                $repair->total = 0;
+                $repair->cost = $order->charge;
+                $repair->status = 'Return';
+                $repair->save();
+
+                return $repair;
+            });
+
+            if ($returned) {
+
+                $customer = getCustomer($returned->customer);
+                if ($customer && $customer->phone) {
+                    $sms = new SMS();
+                    $sms->contact = [['number' => $customer->phone]];
+                    $sms->message = "Dear customer, Your order has been returned to our store and has been cancelled. If you did not cancel, please contact us via ".formatPhoneNumber(getUserData(company()->admin_id)->phone);
+                    $sms->Send();
+                }
 
                 return response(json_encode(array("error" => 0, "msg" => "Order Returned Successfully")));
             }

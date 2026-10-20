@@ -7,6 +7,7 @@ use App\Models\Products;
 use App\Models\purchaseTransactions;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class ProductPurchasesController extends Controller
 {
@@ -221,7 +222,12 @@ class ProductPurchasesController extends Controller
 
                         if ($status == 'approved' && $purchase != null && $purchase->stock_updated != 'Y') {
                             $stock_updated = 'Y';
-                            $temp->qty = $temp->qty + sanitize($request->input('qty_'.$i));
+                            $alreadyReceived = DB::table('product_purchase_stock_receipts')
+                                ->where('purchase_id', $purchase->id)
+                                ->where('product_id', $temp->id)->exists();
+                            if (!$alreadyReceived) {
+                                $temp->qty = $temp->qty + sanitize($request->input('qty_'.$i));
+                            }
                         }
 
                         if ($status == 'approved') {
@@ -261,35 +267,35 @@ class ProductPurchasesController extends Controller
         if (Auth::check() && DashboardController::check(true)) {
             $id = sanitize($request->input('sku'));
             $purchase_number = sanitize($request->input('purchase_number'));
-
-            $purchase = ProductPurchases::where('id', $purchase_number)->first();
-
-            if ($purchase == null) {
-                return response(json_encode(array("error" => 1, "msg" => "Purchase not found")));
-            }
-
-            $update = false;
-
-            foreach (json_decode($purchase->products) as $key => $value) {
-                if ($value->id == $id) {
-                    $product = Products::where('id', $id)->first();
-
-                    if ($product == null) {
-                        return response(json_encode(array("error" => 1, "msg" => "Product not found")));
-                        break;
-                    }
-
-                    $update = Products::where('id', $product->id)->update([
-                        "qty" => $product->qty + $value->qty,
-                    ]);
+            return DB::transaction(function () use ($id, $purchase_number) {
+                $purchase = ProductPurchases::where('id', $purchase_number)->lockForUpdate()->first();
+                if (!$purchase || $purchase->stock_updated === 'Y') {
+                    return response(json_encode(['error' => 1, 'msg' => 'Purchase stock was already updated or purchase was not found']));
                 }
-            }
 
-            if ($update) {
-                return response(json_encode(array("error" => 0, "msg" => "Product Stock Updated Successfully")));
-            }
+                $items = collect(json_decode($purchase->products, true) ?: [])
+                    ->filter(fn ($product) => (string) ($product['id'] ?? '') === (string) $id);
+                if ($items->isEmpty() || $items->contains(fn ($product) => !is_numeric($product['qty'] ?? null) || (float) $product['qty'] <= 0)) {
+                    return response(json_encode(['error' => 1, 'msg' => 'Product not found in purchase']));
+                }
+                $quantity = $items->sum(fn ($product) => (float) $product['qty']);
+                if (!Products::where('id', $id)->exists()) {
+                    return response(json_encode(['error' => 1, 'msg' => 'Product no longer exists']));
+                }
 
-            return response(json_encode(array("error" => 1, "msg" => "Something went wrong please, try again later")));
+                $inserted = DB::table('product_purchase_stock_receipts')->insertOrIgnore([
+                    'purchase_id' => $purchase->id,
+                    'product_id' => $id,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+                if (!$inserted) {
+                    return response(json_encode(['error' => 1, 'msg' => 'Product stock was already updated']));
+                }
+
+                Products::where('id', $id)->increment('qty', $quantity);
+                return response(json_encode(['error' => 0, 'msg' => 'Product Stock Updated Successfully']));
+            });
         }
     }
 
@@ -300,14 +306,21 @@ class ProductPurchasesController extends Controller
             $amount = sanitize($request->input('amount'));
             $to = sanitize($request->input('to'));
 
-            if (!is_numeric($amount)) {
-                return response(json_encode(array("error" => 1, "msg" => "Please use only numbers on amount")));
+            if (!is_numeric($amount) || (float) $amount <= 0) {
+                return response(json_encode(array("error" => 1, "msg" => "Please enter a positive payment amount")));
+            }
+            $amount = (float) $amount;
+            if (!in_array($to, ['supplier', 'shipper'], true)) {
+                return response(json_encode(array("error" => 1, "msg" => "Invalid payment recipient")));
             }
 
             $purchase = ProductPurchases::where('id', $id)->first();
 
             if ($purchase == null) {
                 return response(json_encode(array("error" => 1, "msg" => "Purchase not found")));
+            }
+            if ($to === 'supplier' && $amount > (float) $purchase->pending) {
+                return response(json_encode(array("error" => 1, "msg" => "Payment exceeds the supplier balance")));
             }
 
             $update = true;
@@ -320,7 +333,7 @@ class ProductPurchasesController extends Controller
 
             if ($update) {
                 $transaction = new purchaseTransactions();
-                $transaction->amount = ($purchase->pending - $amount) > 0? $amount : $purchase->pending;
+                $transaction->amount = $amount;
                 $transaction->note = in_array($to, ['supplier', 'shipper']) ? $to.'-payment' : $to;
                 $transaction->purchase_id = $purchase->id;
                 $transaction->save();

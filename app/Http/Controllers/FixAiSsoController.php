@@ -28,9 +28,9 @@ class FixAiSsoController extends Controller
         }
 
         $payload = [
-            'external_user_id' => (string) '4',
-            'email' => (string) 'sso_user',
-            'name' => trim(implode(' ', array_filter([$user->fname, $user->lname]))) ?: (string) 'sso_user',
+            'external_user_id' => (string) $user->id,
+            'email' => (string) $user->email,
+            'name' => trim(implode(' ', array_filter([$user->fname, $user->lname]))) ?: (string) $user->email,
             'redirect_path' => '/pos',
         ];
 

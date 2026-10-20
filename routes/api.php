@@ -41,10 +41,12 @@ Route::prefix('products')->group(function () {
 
 Route::prefix('bookings')->group(function () {
     Route::post('/', [BookingController::class, 'create']);
-    Route::get('/user', [BookingController::class, 'getUserBookings']);
-    Route::get('/{bookingId}', [BookingController::class, 'getBooking']);
-    Route::put('/{bookingId}/cancel', [BookingController::class, 'cancelBooking']);
-    Route::delete('/{bookingId}', [BookingController::class, 'deleteBooking']);
+    Route::middleware('auth:api')->group(function () {
+        Route::get('/user', [BookingController::class, 'getUserBookings']);
+        Route::get('/{bookingId}', [BookingController::class, 'getBooking']);
+        Route::put('/{bookingId}/cancel', [BookingController::class, 'cancelBooking']);
+        Route::delete('/{bookingId}', [BookingController::class, 'deleteBooking']);
+    });
 });
 
 // Public Routes - Warranty

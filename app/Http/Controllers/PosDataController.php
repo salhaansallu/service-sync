@@ -225,6 +225,9 @@ class PosDataController extends Controller
             $request = filter_var_array($request->input('params'), FILTER_SANITIZE_STRING);
             $cashin = sanitize($request['cashin']);
             $bill_no = filter_var_array($request["bill_no"], FILTER_SANITIZE_STRING);
+            if (!is_numeric($cashin) || $cashin < 0 || !is_array($bill_no) || !$bill_no || count($bill_no) !== count(array_unique($bill_no))) {
+                return response(json_encode(['error' => 1, 'msg' => 'Invalid checkout amount or bill list']));
+            }
             $company = PosDataController::company();
             $total = 0;
             $advance = 0;
@@ -248,15 +251,33 @@ class PosDataController extends Controller
                 ]));
             }
 
+            DB::beginTransaction();
+            try {
+            $checkoutRepairs = Repairs::where('pos_code', $company->pos_code)
+                ->whereIn('bill_no', $bill_no)->orderBy('id')->lockForUpdate()->get()->keyBy('bill_no');
+            if ($checkoutRepairs->count() !== count($bill_no) || $checkoutRepairs->contains(fn ($repair) => $repair->status === 'Delivered')) {
+                DB::rollBack();
+                return response(json_encode(['error' => 1, 'msg' => 'A bill is missing or already delivered']));
+            }
+
+            $couponError = $this->redeemReferralCoupon($referralCouponCode, implode(',', $bill_no));
+            if ($couponError) {
+                DB::rollBack();
+                return response(json_encode(['error' => 1, 'msg' => $couponError]));
+            }
+
+            $totalDue = $checkoutRepairs->sum(
+                fn ($repair) => max(0, (float) $repair->total - (float) $repair->advance)
+            );
+
             $rand = date('d-m-Y-h-i-s') . '-' . rand(0, 9999999) . '.pdf';
             $inName = str_replace(' ', '-', str_replace('.', '-', $bill_no[0])) . '-Delivery-' . $rand;
             $ThermalinName = str_replace(' ', '-', str_replace('.', '-', $bill_no[0])) . '-Thermal-delivery-' . $rand;
 
             foreach ($bill_no as $key => $id) {
-                $total += Repairs::where('bill_no', $id)->sum('total');
-                $advance += Repairs::where('bill_no', $id)->sum('advance');
-
-                $reps =  Repairs::where('bill_no', $id)->first();
+                $reps = $checkoutRepairs[$id];
+                $total += (float) $reps->total;
+                $advance += (float) $reps->advance;
 
                 if ($reps && $reps->status == 'Return') {
                     $askReview = false;
@@ -272,7 +293,7 @@ class PosDataController extends Controller
                     "signature" => $signature,
                 ];
 
-                if ($cashin >= $total) {
+                if ($cashin >= $totalDue) {
                     $upArr['paid_date'] = date('d-m-Y H:i:s');
                 }
 
@@ -341,26 +362,29 @@ class PosDataController extends Controller
                 ]);
             }
 
-            $couponError = $this->redeemReferralCoupon($referralCouponCode, implode(',', $bill_no));
-            if ($couponError) {
-                return response(json_encode(['error' => 1, 'msg' => $couponError]));
-            }
+            $repairs = $checkoutRepairs[$bill_no[0]];
 
-            $repairs = Repairs::where('bill_no', $bill_no[0])->get('customer')[0];
-
-            if ($cashin < $total) {
-                $minusAmt = count($bill_no) > 0 ? ($cashin / count($bill_no)) : 0;
-                foreach ($bill_no as $key => $id) {
-                    $repair = Repairs::where('bill_no', $id)->first(['customer', 'total', 'advance']);
-                    if ($repair) {
+            $remainingCash = (float) $cashin;
+            foreach ($bill_no as $id) {
+                $repair = $checkoutRepairs[$id];
+                $due = max(0, (float) $repair->total - (float) $repair->advance);
+                $paidForBill = min($remainingCash, $due);
+                $remainingCash -= $paidForBill;
+                $balance = $due - $paidForBill;
+                if ($balance > 0) {
                         $credit = new Credit();
                         $credit->customer_id = $repair->customer;
-                        $credit->ammount = ($repair->total - $repair->advance) - $minusAmt;
+                        $credit->ammount = $balance;
                         $credit->pos_code = $company->pos_code;
                         $credit->order_id = $id;
                         $credit->save();
-                    }
                 }
+            }
+
+            DB::commit();
+            } catch (\Throwable $exception) {
+                DB::rollBack();
+                throw $exception;
             }
 
             $generate_invoice = generateInvoice($bill_no, $inName, 'checkout');
@@ -480,7 +504,10 @@ class PosDataController extends Controller
                         "name" => $value['pro_name'],
                     ];
                 } else {
-                    $stock = Products::where('id', $value['id'])->orWhere('sku', $value['sku'])->first();
+                    $stock = Products::where('pos_code', company()->pos_code)
+                        ->where(function ($query) use ($value) {
+                            $query->where('id', $value['id'])->orWhere('sku', $value['sku']);
+                        })->first();
                 }
 
                 if (!$isThirdPartyProduct && $stock != null) {
@@ -681,8 +708,12 @@ class PosDataController extends Controller
         //
     }
 
-    public function runCron()
+    public function runCron(Request $request)
     {
+        $expectedKey = (string) env('CRON_KEY', '');
+        abort_if($expectedKey === '', 503, 'Cron key is not configured.');
+        abort_unless(hash_equals($expectedKey, (string) $request->bearerToken()), 403);
+
         $this->reminder();
         //$this->termination();
 

@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 
 class AuthController extends Controller
@@ -18,7 +19,7 @@ class AuthController extends Controller
             'name' => 'required|string|max:255',
             'phone' => 'required|string|max:20|unique:api_users,phone',
             'password' => 'required|string|min:8',
-            'email' => 'sometimes|nullable|email|max:255',
+            'email' => 'sometimes|nullable|email|max:255|unique:api_users,email',
         ]);
 
         if ($validator->fails()) {
@@ -144,7 +145,7 @@ class AuthController extends Controller
     public function forgotPassword(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'email' => 'required|email|exists:users,email',
+            'email' => 'required|email|exists:api_users,email',
         ]);
 
         if ($validator->fails()) {
@@ -156,10 +157,21 @@ class AuthController extends Controller
             ]);
         }
 
-        // In production, you would send an actual email here
-        // For now, we'll just return success
-        $status = Password::sendResetLink(
-            $request->only('email')
+        $users = ApiUser::where('email', $request->email)->limit(2)->get();
+        if ($users->count() !== 1) {
+            return response()->json(['success' => false, 'message' => 'This email cannot be reset automatically.'], 409);
+        }
+        $user = $users->first();
+        $broker = Password::broker('api_users');
+        if ($broker->getRepository()->recentlyCreatedToken($user)) {
+            return response()->json(['success' => false, 'message' => 'Please wait before requesting another reset.'], 429);
+        }
+        $token = $broker->createToken($user);
+        Mail::raw(
+            "Your password reset token is: {$token}\n\nSubmit it with your email and newPassword to POST /api/auth/reset-password. The token expires in 60 minutes.",
+            function ($message) use ($user) {
+                $message->to($user->email)->subject('WeFix password reset');
+            }
         );
 
         return response()->json([
@@ -171,6 +183,7 @@ class AuthController extends Controller
     public function resetPassword(Request $request)
     {
         $validator = Validator::make($request->all(), [
+            'email' => 'required|email',
             'token' => 'required',
             'newPassword' => 'required|string|min:8',
         ]);
@@ -184,8 +197,27 @@ class AuthController extends Controller
             ]);
         }
 
-        // In a real implementation, verify the token and reset password
-        // For now, simplified version
+        $status = Password::broker('api_users')->reset(
+            [
+                'email' => $request->email,
+                'token' => $request->token,
+                'password' => $request->newPassword,
+                'password_confirmation' => $request->newPassword,
+            ],
+            function (ApiUser $user, string $password) {
+                $user->forceFill(['password' => Hash::make($password)])->save();
+                $user->tokens()->delete();
+            }
+        );
+
+        if ($status !== Password::PASSWORD_RESET) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid or expired reset token',
+                'error' => 'INVALID_RESET_TOKEN',
+            ], 400);
+        }
+
         return response()->json([
             'success' => true,
             'message' => 'Password reset successfully'
