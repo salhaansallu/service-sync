@@ -113,13 +113,14 @@
                             <div class="col-2 form-text">Fault</div>
                             <div class="col-2 form-text">Customer</div>
                             <div class="col-1 form-text" style="width: 200px;">Status</div>
+                            <div class="col-1 form-text">Technician</div>
                         </div>
                     </div>
                 </div>
 
                 <div v-for="repair in repairs"
-                    :class="'col-12 mt-2 py-2 bg-light pos-status-' + getStatus(repair.status) + ' ' + repair.selectStatus"
-                    style="border-radius: 5px;box-shadow: 0px 0px 2px 0px #00000029;"
+                    :class="'col-12 mt-2 py-2 pos-status-' + getStatus(repair.status) + ' ' + repair.selectStatus"
+                    :style="technicianRowStyle(repair.techie)"
                     @contextmenu.prevent="openContext(repair.bill_no, $event)">
                     <div class="order-display">
                         <div class="row">
@@ -139,6 +140,9 @@
                             <div class="col-1 form-text mt-0 d-flex align-items-center control-text-overflow"
                                 style="width: 200px;"><span :class="'badge bg-' + getStatus(repair.status)">{{
                                     repair.status }}</span></div>
+                            <div class="col-1 form-text mt-0 d-flex align-items-center control-text-overflow" :title="technicianName(repair.techie)">
+                                {{ technicianName(repair.techie) }}
+                            </div>
 
                             <div class="col-1 form-text mt-0 d-flex align-items-center control-text-overflow"
                                 style="width: 50px;" v-if="bulkInvoiceList.includes(repair.bill_no)"><i
@@ -458,6 +462,16 @@
                                 </div>
                             </div>
 
+                            <div class="col-6 mt-3">
+                                <div class="input">
+                                    <label for="new_order_technician" class="mb-1">Technician</label>
+                                    <select id="new_order_technician" ref="new_order_technician" required>
+                                        <option value="">Select technician</option>
+                                        <option v-for="cashier in cashiers" :key="cashier.user_id" :value="cashier.user_id">{{ cashier.fname }} {{ cashier.lname }}</option>
+                                    </select>
+                                </div>
+                            </div>
+
                             <div class="col-12 border pb-3 my-5" v-if="new_bill">
                                 <label class="form-text text-secondary fs-6" for="" style="margin-top: -15px;position: absolute; background-color: #fff;">Customer Details</label>
                                 <div class="row">
@@ -638,16 +652,6 @@
                                 <div class="input">
                                     <label for="" class="mb-1">Note</label>
                                     <textarea ref="finish_note" name="" rows="4" placeholder="Note"></textarea>
-                                </div>
-                            </div>
-
-                            <div class="col-3 mt-3">
-                                <div class="input">
-                                    <label for="" class="mb-1">Technician</label>
-                                    <select ref="techie" name="" class="select2-multiple">
-                                        <option value=""></option>
-                                        <option v-for="cashier in cashiers" :value="cashier.user_id">{{ cashier.fname }}</option>
-                                    </select>
                                 </div>
                             </div>
 
@@ -903,6 +907,17 @@ export default {
         thirdPartySpares() {
             return this.Spares.filter(spare => spare.source === '3rd_party');
         },
+        technicianDisplay() {
+            const display = {};
+            [...this.cashiers].sort((a, b) => Number(a.user_id) - Number(b.user_id)).forEach((person, index) => {
+                const hue = Math.round((index * 137.508) % 360);
+                display[String(person.user_id)] = {
+                    name: `${person.fname} ${person.lname || ''}`.trim(),
+                    style: { backgroundColor: `hsl(${hue}, 80%, 93%)`, borderLeft: `6px solid hsl(${hue}, 65%, 38%)` },
+                };
+            });
+            return display;
+        },
     },
     methods: {
         currency,
@@ -934,6 +949,13 @@ export default {
         },
         formatSpareLabel(spare) {
             return spare.pro_name + (spare.source === '3rd_party' ? ' (Fix AI)' : '');
+        },
+        technicianName(id) {
+            return this.technicianDisplay[String(id)]?.name || 'Unassigned';
+        },
+        technicianRowStyle(id) {
+            const base = { borderRadius: '5px', boxShadow: '0px 0px 2px 0px #00000029' };
+            return { ...base, ...(this.technicianDisplay[String(id)]?.style || { backgroundColor: '#f8f9fa', borderLeft: '6px solid #adb5bd' }) };
         },
         async fetchWhatsappStatuses() {
             if (this.repairs.length === 0) return;
@@ -1038,6 +1060,10 @@ export default {
             })
         },
         getCashierModel(action) {
+            if (action == 'show' && !this.$refs.new_order_technician.value) {
+                toastr.error('Please select a technician', 'Error');
+                return;
+            }
             if (action == 'show' && this.new_bill) {
                 var model_no = this.new_bill == true ? this.$refs.model_no.value : '';
                 var customer = this.new_bill == true ? this.$refs.customer.value : '';
@@ -1103,18 +1129,6 @@ export default {
             }
 
             $("#FinishOrder").modal(action);
-
-            const myModalEl = document.getElementById('FinishOrder')
-            myModalEl.addEventListener('shown.bs.modal', event => {
-                $('.select2-multiple').select2({
-                    tags: true,
-                    dropdownParent: $("#FinishOrder"),
-                    createTag: function () {
-                        // Disable tagging
-                        return null;
-                    }
-                });
-            })
         },
         changeBillType() {
             this.new_bill = this.$refs.bill_type.value == 'new-order' ? true : false
@@ -1524,7 +1538,6 @@ export default {
                 var total = this.$refs.finish_total.value;
                 var note = this.$refs.finish_note.value;
                 var status = this.$refs.finish_status.value;
-                var techie = this.$refs.techie.value;
                 var commission = this.$refs.commission.value;
                 var sparePro = [];
                 var service_cost = 0;
@@ -1536,11 +1549,6 @@ export default {
 
                 if (status.trim() == "") {
                     toastr.error("Please select a status", "Error");
-                    return;
-                }
-
-                if (techie.trim() == "") {
-                    toastr.error("Please select technician", "Error");
                     return;
                 }
 
@@ -1591,7 +1599,6 @@ export default {
                     note: note,
                     spares: sparePro,
                     service_cost: service_cost,
-                    techie: techie,
                     commission: commission,
                     status: status,
 
@@ -1606,7 +1613,6 @@ export default {
                     toastr.success(data.msg, "Success");
                     this.getRepairs();
                     this.reloadPOS();
-                    $(this.$refs.techie).val("").trigger("change");
                     this.finishOrderNo = 0;
                     this.selectedRepair = [];
                     setTimeout(() => { this.fetchWhatsappStatuses(); }, 10000);
@@ -1639,10 +1645,16 @@ export default {
             var bill_type = this.$refs.bill_type.value;
             var parent_bill_no = this.new_bill == false ? this.$refs.parent_bill_no.value : '';
             var new_order_qty = this.$refs.new_order_qty.value;
+            var techie = this.$refs.new_order_technician.value;
             var customer_name = this.new_bill == true ? this.$refs.new_bill_customer_name.value : '';
             var customer_phone = this.new_bill == true ? this.$refs.new_bill_customer_phone.value : '';
             var faults = [];
             var send_sms = false;
+
+            if (!techie) {
+                toastr.error("Please select a technician", "Error");
+                return;
+            }
 
             if (cashier_no.trim() == "") {
                 toastr.error("Please enter cashier code", "Error");
@@ -1704,6 +1716,7 @@ export default {
                     bill_type: bill_type,
                     parent_bill_no: parent_bill_no,
                     new_order_qty: new_order_qty,
+                    techie: techie,
                     has_multiple_faults: this.multipleFult,
                     faults: JSON.stringify(faults),
                     send_sms: send_sms,
@@ -1734,6 +1747,7 @@ export default {
                     this.$refs.fault.value = "";
                     this.$refs.advance.value = "0";
                     this.$refs.new_order_qty.value = "1";
+                    this.$refs.new_order_technician.value = "";
                     this.$refs.finish_note.value = "";
                     this.$refs.cashier_no.value = "";
                     this.newOrder('hide');

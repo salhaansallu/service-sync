@@ -433,7 +433,7 @@ class RepairsController extends Controller
             $spares = $request->input('spares');
             $service_cost = $request->input('service_cost');
             $status = sanitize($request->input('status'));
-            $techie = sanitize($request->input('techie'));
+            $techie = $request->filled('techie') ? sanitize($request->input('techie')) : null;
             $commission = sanitize($request->input('commission'));
             $parts = [];
             $customerData = [];
@@ -543,7 +543,11 @@ class RepairsController extends Controller
                 //     }
                 // }
 
-                if ($update->update(["note" => $note, "techie" => $techie, "commission" => (is_numeric($commission) ? $commission : 0), "status" => $status, "total" => $total, "cost" => $cost, "spares" => json_encode($parts), "repaired_date" => date('Y-m-d H:i:s')])) {
+                $changes = ["note" => $note, "commission" => (is_numeric($commission) ? $commission : 0), "status" => $status, "total" => $total, "cost" => $cost, "spares" => json_encode($parts), "repaired_date" => date('Y-m-d H:i:s')];
+                if ($techie !== null) {
+                    $changes['techie'] = $techie;
+                }
+                if ($update->update($changes)) {
 
                     $customerData = customers::where('id', $update->get()[0]["customer"])->get();
 
@@ -713,6 +717,11 @@ class RepairsController extends Controller
                 $bill_type = sanitize($request->input('bill_type'));
                 $parent_bill_no = sanitize($request->input('parent_bill_no'));
                 $new_order_qty = sanitize($request->input('new_order_qty'));
+                $techie = $request->input('techie');
+                $isOtherRepair = $request->query('source') === 'other-pos';
+                if ($isOtherRepair && (!is_scalar($techie) || !posUsers::where('pos_code', company()->pos_code)->where('user_id', $techie)->exists())) {
+                    return response(json_encode(array("error" => 1, "msg" => "Please select a valid technician")));
+                }
                 $has_multiple_faults = sanitize($request->input('has_multiple_faults'));
                 $signature = $request->has('signature') ? sanitize($request->input('signature')) : '';
                 $faults = json_decode($request->input('faults'));
@@ -784,7 +793,7 @@ class RepairsController extends Controller
                             $repair = null;
                             $bill_no = null;
 
-                            DB::transaction(function () use (&$repair, &$bill_no, $model_no, $serial_no, $fault, $has_multiple_faults, $faults, $note, $advance, $lineTotal, $customerData, $partner, $cashier_no, $bill_type, $parent_bill_no, $signature) {
+                            DB::transaction(function () use (&$repair, &$bill_no, $model_no, $serial_no, $fault, $has_multiple_faults, $faults, $note, $advance, $lineTotal, $customerData, $partner, $cashier_no, $bill_type, $parent_bill_no, $signature, $techie, $isOtherRepair) {
                                 $bill_no = $this->nextRepairBillNumber();
 
                                 $repair = new Repairs();
@@ -800,7 +809,7 @@ class RepairsController extends Controller
                                 $repair->customer = $customerData->id;
                                 $repair->partner = $partner == "" ? 0 : $partner;
                                 $repair->cashier = $cashier_no;
-                                $repair->techie = '';
+                                $repair->techie = $isOtherRepair ? $techie : '';
                                 $repair->status = "Pending";
                                 $repair->parent = $bill_type == 'new-order' ? NULL : $parent_bill_no;
                                 $repair->signature = $signature;
