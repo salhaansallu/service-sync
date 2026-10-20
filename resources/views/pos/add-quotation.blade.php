@@ -28,12 +28,9 @@
                                             <select name="bill_no" class="form-control" required id="quotation_bill_selector">
                                                 <option value="">-- Select Repair Bill --</option>
                                                 <option value="custom" @if (isset($quotation) && $quotation->bill_no == "custom") selected @endif>Custom Quotation</option>
-                                                @foreach ($bills as $bill)
-                                                    <option @if (isset($quotation) && $quotation->bill_no == $bill->bill_no) selected @endif
-                                                        value="{{ $bill->bill_no }}">{{ $bill->bill_no }} -
-                                                        {{ getCustomer($bill->customer)->name }}
-                                                        ({{ getCustomer($bill->customer)->phone }})</option>
-                                                @endforeach
+                                                @if (isset($quotation) && $quotation->bill_no !== 'custom')
+                                                    <option value="{{ $quotation->bill_no }}" selected>{{ $selectedBillLabel }}</option>
+                                                @endif
                                             </select>
                                             <div class="help-block with-errors"></div>
                                         </div>
@@ -141,13 +138,14 @@
 
     @isset($quotation)
         <script>
+            var quotationBillEmail = @json($selectedBillEmail ?? '');
             $("#repairsCreate").submit(function(e) {
                 e.preventDefault();
 
                 $('#save_btn').prop('disabled', true);
                 var formData = new FormData(this);
 
-                var email = prompt("Please enter customer email for sending quotation", "@isset($quotation){{ getCustomer($quotation->customer)->email }}@endisset");
+                var email = prompt("Please enter customer email for sending quotation", quotationBillEmail);
 
                 formData.append('email', email);
 
@@ -175,6 +173,7 @@
         </script>
     @else
         <script>
+            var quotationBillEmail = '';
             $("#repairsCreate").submit(function(e) {
                 e.preventDefault();
 
@@ -182,7 +181,7 @@
 
                 var formData = new FormData(this);
 
-                var email = prompt("Please enter customer email for sending quotation", "@isset($quotation){{ getCustomer($quotation->customer)->email }}@endisset");
+                var email = prompt("Please enter customer email for sending quotation", quotationBillEmail);
 
                 formData.append('email', email);
 
@@ -214,6 +213,24 @@
     @endisset
 
     <script>
+        $('#quotation_bill_selector').on('select2:select', function (e) {
+            quotationBillEmail = e.params.data.email || '';
+        });
+
+        if ($.fn.select2) {
+            $('#quotation_bill_selector').select2({
+                width: '100%',
+                minimumInputLength: 0,
+                ajax: {
+                    url: '/dashboard/quotations/bills',
+                    dataType: 'json',
+                    delay: 250,
+                    data: function (params) { return { q: params.term }; },
+                    processResults: function (data) { return data; }
+                }
+            });
+        }
+
         $('#quotation_bill_selector').change(function (e) {
             //console.log(e.target.value);
             if (e.target.value == 'custom') {

@@ -6,6 +6,7 @@ use App\Models\quotations;
 use App\Models\Repairs;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class QuotationsController extends Controller
 {
@@ -22,12 +23,60 @@ class QuotationsController extends Controller
      */
     public function create()
     {
-        if (!Auth::check() && isCashier()) {
+        if (!Auth::check() || !isCashier()) {
             return redirect('/signin');
         }
 
-        $product = Repairs::where('pos_code', company()->pos_code)->get();
-        return view('pos.add-quotation')->with(['bills' => $product]);
+        return view('pos.add-quotation');
+    }
+
+    public function searchBills(Request $request)
+    {
+        abort_unless(Auth::check() && isCashier(), 403);
+
+        $term = trim((string) $request->query('q', ''));
+        if (mb_strlen($term) < 2) {
+            return response()->json(['results' => [['id' => 'custom', 'text' => 'Custom Quotation']]]);
+        }
+        $term = mb_substr($term, 0, 100);
+        $like = '%' . $term . '%';
+
+        $bills = $this->billOptionsQuery()
+            ->where(function ($query) use ($like) {
+                $query->where('repairs.bill_no', 'like', $like)
+                    ->orWhere('customers.name', 'like', $like)
+                    ->orWhere('customers.phone', 'like', $like);
+            })
+            ->orderByDesc('repairs.id')
+            ->limit(20)
+            ->get();
+
+        $results = $bills->map(fn ($bill) => [
+            'id' => $bill->bill_no,
+            'text' => $this->billLabel($bill),
+            'email' => $bill->email,
+        ])->all();
+        if (str_contains(strtolower('custom'), strtolower($term))) {
+            array_unshift($results, ['id' => 'custom', 'text' => 'Custom Quotation']);
+        }
+
+        return response()->json(['results' => $results]);
+    }
+
+    private function billOptionsQuery()
+    {
+        return DB::table('repairs')
+            ->leftJoin('customers', function ($join) {
+                $join->on('customers.id', '=', 'repairs.customer')
+                    ->on('customers.pos_code', '=', 'repairs.pos_code');
+            })
+            ->where('repairs.pos_code', company()->pos_code)
+            ->select('repairs.bill_no', 'customers.name', 'customers.phone', 'customers.email');
+    }
+
+    private function billLabel($bill): string
+    {
+        return $bill->bill_no . ($bill->name ? ' - ' . $bill->name . ' (' . $bill->phone . ')' : '');
     }
 
     /**
@@ -134,8 +183,13 @@ class QuotationsController extends Controller
         $quotations = quotations::where('q_no', sanitize($id))->where('pos_code', company()->pos_code)->first();
 
         if ($quotations != null) {
-            $product = Repairs::where('pos_code', company()->pos_code)->get();
-            return view('pos.add-quotation')->with(['quotation' => $quotations, 'bills' => $product]);
+            $selectedBill = $quotations->bill_no === 'custom' ? null : $this->billOptionsQuery()
+                ->where('repairs.bill_no', $quotations->bill_no)->first();
+            return view('pos.add-quotation')->with([
+                'quotation' => $quotations,
+                'selectedBillLabel' => $selectedBill ? $this->billLabel($selectedBill) : $quotations->bill_no,
+                'selectedBillEmail' => $selectedBill->email ?? '',
+            ]);
         } else {
             return display404();
         }

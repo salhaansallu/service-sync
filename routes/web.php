@@ -210,6 +210,7 @@ Route::prefix('dashboard')->group(function () {
 
     Route::get('quotations', [DashboardController::class, 'listQuotations']);
     Route::get('quotations/create', [QuotationsController::class, 'create']);
+    Route::get('quotations/bills', [QuotationsController::class, 'searchBills']);
     Route::post('quotations/create', [QuotationsController::class, 'store']);
     Route::get('/quotations/edit/{id}', [QuotationsController::class, 'edit']);
     Route::post('/quotations/edit', [QuotationsController::class, 'update']);

@@ -310,7 +310,30 @@ class DashboardController extends Controller
 
         if (Auth::check() && isCashier()) {
             $company = company();
-            $results = DB::select('select quotations.total AS quote_total, quotations.bill_no AS quote_bill, quotations.id AS q_id, quotations.*, repairs.* from quotations, repairs WHERE (quotations.bill_no = repairs.bill_no OR quotations.bill_no = "custom") AND quotations.pos_code = "' . $company->pos_code . '" AND repairs.pos_code = "' . $company->pos_code . '" GROUP BY quotations.q_no ORDER BY quotations.id DESC');
+            $latestRepairs = DB::table('repairs')
+                ->where('pos_code', $company->pos_code)
+                ->select('pos_code', 'bill_no')
+                ->selectRaw('MAX(id) AS repair_id')
+                ->groupBy('pos_code', 'bill_no');
+
+            $results = DB::table('quotations as q')
+                ->leftJoinSub($latestRepairs, 'latest', function ($join) {
+                    $join->on('latest.bill_no', '=', 'q.bill_no')
+                        ->on('latest.pos_code', '=', 'q.pos_code');
+                })
+                ->leftJoin('repairs as r', 'r.id', '=', 'latest.repair_id')
+                ->leftJoin('customers as c', function ($join) {
+                    $join->on('c.id', '=', 'r.customer')
+                        ->on('c.pos_code', '=', 'q.pos_code');
+                })
+                ->where('q.pos_code', $company->pos_code)
+                ->orderByDesc('q.id')
+                ->get([
+                    'q.id as q_id', 'q.q_no', 'q.bill_no as quote_bill',
+                    'q.total as quote_total', 'q.cargo_type', 'q.expiry_date',
+                    'q.created_at', 'r.advance', 'c.name as customer_name',
+                    'c.phone as customer_phone',
+                ]);
             return view('pos.list-quotations')->with(['quotations' => $results]);
         } else {
             return redirect('/signin');

@@ -36,10 +36,10 @@
                                             <td class="text-start">{{ $item->q_no }}</td>
                                             <td class="text-start">{{ $item->quote_bill }}</td>
                                             <td class="text-start">{{ $item->cargo_type }}</td>
-                                            <td class="text-start">{{ currency($item->advance) }}</td>
-                                            <td class="text-start">{{ currency($item->quote_total - $item->advance) }}</td>
+                                            <td class="text-start">{{ currency($item->advance ?? 0) }}</td>
+                                            <td class="text-start">{{ currency($item->quote_total - ($item->advance ?? 0)) }}</td>
                                             <td class="text-start">{{ currency($item->quote_total) }}</td>
-                                            <td class="text-start">{{ $item->quote_bill != "custom"? getCustomer($item->customer)->phone : "N/A" }} ({{ $item->quote_bill != "custom"? getCustomer($item->customer)->name : "N/A" }})</td>
+                                            <td class="text-start">{{ $item->quote_bill != 'custom' ? ($item->customer_phone ?? 'N/A') : 'N/A' }} ({{ $item->quote_bill != 'custom' ? ($item->customer_name ?? 'N/A') : 'N/A' }})</td>
                                             <td class="text-start">{{ date('d-m-Y', strtotime($item->expiry_date)) }}</td>
                                             <td class="text-start">{{ date('d-m-Y', strtotime($item->created_at)) }}</td>
                                             <td class="text-start">
