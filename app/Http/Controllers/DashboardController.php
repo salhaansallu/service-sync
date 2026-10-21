@@ -932,6 +932,15 @@ class DashboardController extends Controller
                 $query->whereDate('paid_at', '<=', Carbon::parse($todate)->format('Y-m-d'));
             })->get();
 
+            // Keep unpaid bills actionable without adding them to the paid sales totals.
+            $unpaidRepairs = Repairs::with('credit')->where('pos_code', company()->pos_code)
+                ->where('type', sanitize($type))->where('status', '!=', 'Pending')
+                ->whereNull('paid_at')
+                ->whereDate('updated_at', '>=', $fromdate)
+                ->whereDate('updated_at', '<=', $todate)
+                ->get();
+            $displayRepairs = $repairs->concat($unpaidRepairs)->sortByDesc('id')->values();
+
             $tvRepairs = Repairs::with('credit')->where('pos_code', company()->pos_code)->where('type','repair')->where('status', '!=', 'Pending')
             ->when($fromdate, function ($query) use ($fromdate){
                 $query->whereDate('paid_at', '>=', Carbon::parse($fromdate)->format('Y-m-d'));
@@ -985,7 +994,7 @@ class DashboardController extends Controller
                 }
             }
 
-            foreach ($repairs as $key => $repair) {
+            foreach ($displayRepairs as $key => $repair) {
                 $repair->finaltotal = $repair->total;
                 $repair->creditAmount = 0;
 
@@ -995,14 +1004,15 @@ class DashboardController extends Controller
                     $repair->creditAmount = $repair->credit->ammount;
                 }
 
-                $spareCost += $repair->cost;
-                $commission += $repair->commission;
-
-                if (Carbon::parse($repair->created_at)->format('d-m-Y') != Carbon::parse($repair->paid_at)->format('d-m-Y')) {
-                    $repair->finaltotal -= $repair->advance;
+                if ($repair->paid_at !== null) {
+                    $spareCost += $repair->cost;
+                    $commission += $repair->commission;
+                    $repairSales += $repair->total;
                 }
 
-                $repairSales += $repair->total;
+                if ($repair->paid_at !== null && Carbon::parse($repair->created_at)->format('d-m-Y') != Carbon::parse($repair->paid_at)->format('d-m-Y')) {
+                    $repair->finaltotal -= $repair->advance;
+                }
             }
 
             //dd($repairs);
@@ -1053,6 +1063,7 @@ class DashboardController extends Controller
                 'rent',
                 'fbCash',
                 'repairs',
+                'displayRepairs',
             ]));
         }
 

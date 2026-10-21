@@ -32,7 +32,8 @@
                             </div>
                         </form>
                     </div>
-                    <h5 class="mb-3 mt-5">Paid Bills</h5>
+                    <h5 class="mb-3 mt-5">Bills without Credit</h5>
+                    <p class="text-muted">Paid bills use the payment date; unpaid bills use their last updated date.</p>
                     <div class="table-responsive rounded mb-3 border-bottom" style="overflow-y: auto;max-height: 300px;">
                         <table class="table mb-0 tbl-server-info">
                             <thead class="bg-white text-uppercase">
@@ -49,8 +50,8 @@
                                 </tr>
                             </thead>
                             <tbody class="ligth-body">
-                                @if (isset($repairs) && $repairs->count() > 0)
-                                @foreach ($repairs as $item)
+                                @if ($displayRepairs->isNotEmpty())
+                                @foreach ($displayRepairs as $item)
                                 @if ($item->creditAmount == 0)
                                     <tr>
                                         <td class="text-start"><a href="/dashboard/repairs/edit/{{ $item->id }}" target="_blank">{{ $item->bill_no }}</a></td>
@@ -102,8 +103,8 @@
                                 </tr>
                             </thead>
                             <tbody class="ligth-body">
-                                @if (isset($repairs) && $repairs->count() > 0)
-                                @foreach ($repairs as $item)
+                                @if ($displayRepairs->isNotEmpty())
+                                @foreach ($displayRepairs as $item)
                                 @if ($item->creditAmount > 0)
                                     <tr>
                                         <td class="text-start"><a href="/dashboard/repairs/edit/{{ $item->id }}" target="_blank">{{ $item->bill_no }}</a></td>
