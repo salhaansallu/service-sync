@@ -879,9 +879,13 @@ class DashboardController extends Controller
     public function accounts(Request $request, $type)
     {
         if (Auth::check() && isCashier()) {
+            $request->merge([
+                'fromdate' => $request->input('fromdate') ?: Carbon::today()->toDateString(),
+                'todate' => $request->input('todate') ?: Carbon::today()->toDateString(),
+            ]);
             $request->validate([
-                'fromdate' => ['nullable', 'date_format:Y-m-d'],
-                'todate' => ['nullable', 'date_format:Y-m-d', 'after_or_equal:fromdate'],
+                'fromdate' => ['required', 'date_format:Y-m-d'],
+                'todate' => ['required', 'date_format:Y-m-d', 'after_or_equal:fromdate'],
             ]);
             $fromdate = sanitize($request->input('fromdate'));
             $todate = sanitize($request->input('todate'));
@@ -894,11 +898,6 @@ class DashboardController extends Controller
 
             if (!in_array(sanitize($type), ['repair', 'other'])) {
                 abort(404);
-            }
-
-            if (!$request->has('fromdate') || !$request->has('todate')) {
-                $fromdate = Carbon::now()->format('Y-m-d');
-                $todate = Carbon::now()->format('Y-m-d');
             }
 
             $staffCommission = employee_expenses::with('user')->whereHas('user', function ($query) use ($type) {$query->where('type', str_replace(['repair', 'other'], ['tv-repairs', 'other-repairs'], sanitize($type)));})->where('type', 'Commission')->whereDate('created_at', '>=', $fromdate)->whereDate('created_at', '<=', $todate)->sum('amount');
@@ -1046,6 +1045,8 @@ class DashboardController extends Controller
             }
 
             return view('pos.accounts', compact([
+                'fromdate',
+                'todate',
                 'tvRepairs',
                 'otherRepairs',
                 'repairSales',

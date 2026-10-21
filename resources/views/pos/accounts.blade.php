@@ -17,11 +17,11 @@
                             <div class="row m-0 align-items-end">
                                 <div class="col-lg-2">
                                     <label for="">From:</label>
-                                    <input type="date" class="form-control" name="fromdate" value="{{ isset($_GET['fromdate'])? sanitize($_GET['fromdate']) : date('Y-m-d') }}">
+                                    <input type="date" class="form-control" name="fromdate" value="{{ $fromdate }}">
                                 </div>
                                 <div class="col-lg-2">
                                     <label for="">To:</label>
-                                    <input type="date" class="form-control" name="todate" value="{{ isset($_GET['todate'])? sanitize($_GET['todate']) : date('Y-m-d') }}">
+                                    <input type="date" class="form-control" name="todate" value="{{ $todate }}">
                                 </div>
                                 <div class="col-lg-1">
                                     <button type="submit" class="primary-btn border-only submit-btn">Filter</button>
@@ -31,6 +31,9 @@
                                 </div>
                             </div>
                         </form>
+                        @if ($errors->any())
+                            <div class="alert alert-danger mt-3" role="alert">{{ $errors->first() }}</div>
+                        @endif
                     </div>
                     <h5 class="mb-3 mt-5">Bills without Credit</h5>
                     <p class="text-muted">Paid bills use the payment date; unpaid bills use their last updated date.</p>
