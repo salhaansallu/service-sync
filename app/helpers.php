@@ -3394,7 +3394,7 @@ function sendInvitation($email)
     return false;
 }
 
-function getOrder($type = "", $order_number, $pos_id)
+function getOrder($type, $order_number, $pos_id)
 {
     $order_number = $order_number;
     $pos_id = $pos_id;

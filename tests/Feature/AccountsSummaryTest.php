@@ -32,6 +32,10 @@ class AccountsSummaryTest extends TestCase
         Schema::create('users', function (Blueprint $table) {
             $table->id();
             $table->string('type')->nullable();
+            $table->string('fname')->nullable();
+            $table->string('lname')->nullable();
+            $table->string('email')->nullable();
+            $table->timestamps();
         });
         Schema::create('pos_users', function (Blueprint $table) {
             $table->id();
@@ -41,6 +45,15 @@ class AccountsSummaryTest extends TestCase
         Schema::create('pos_data', function (Blueprint $table) {
             $table->id();
             $table->string('pos_code');
+            $table->integer('admin_id')->default(1);
+            $table->integer('plan')->default(2);
+        });
+        Schema::create('user_data', function (Blueprint $table) {
+            $table->id();
+            $table->integer('user_id');
+        });
+        Schema::create('suppliers', function (Blueprint $table) {
+            $table->id();
         });
         Schema::create('categories', function (Blueprint $table) {
             $table->id();
@@ -56,6 +69,8 @@ class AccountsSummaryTest extends TestCase
             $table->string('pos_code');
             $table->string('type');
             $table->string('status');
+            $table->string('model_no')->default('Test TV');
+            $table->string('techie')->nullable();
             $table->decimal('total', 12, 2)->default(0);
             $table->decimal('advance', 12, 2)->default(0);
             $table->decimal('cost', 12, 2)->default(0);
@@ -65,8 +80,8 @@ class AccountsSummaryTest extends TestCase
         });
         DB::table('pos_data')->insert(['pos_code' => 'TEST']);
         DB::table('pos_users')->insert(['user_id' => 1, 'pos_code' => 'TEST']);
-        $user = new User();
-        $user->id = 1;
+        DB::table('users')->insert(['id' => 1, 'type' => 'tv-repairs', 'fname' => 'Test', 'lname' => 'Technician', 'email' => 'test@example.com', 'created_at' => now()]);
+        $user = User::findOrFail(1);
         $this->actingAs($user);
         $this->app['request']->cookies->set('pos_session', Crypt::encrypt('TEST'));
     }
@@ -174,5 +189,26 @@ class AccountsSummaryTest extends TestCase
     {
         $this->expectException(ValidationException::class);
         $this->summary(['fromdate' => '2026-10-22', 'todate' => '2026-10-21']);
+    }
+
+    public function test_accounts_page_renders_and_payment_actions_work_through_http(): void
+    {
+        $this->withoutVite();
+        $this->repair(1, ['paid_at' => '2026-10-21 11:00:00', 'techie' => '1']);
+        $this->repair(2, ['techie' => '1']);
+        $this->withCookie('pos_session', Crypt::encrypt('TEST'))->withCredentials();
+
+        $this->get('/dashboard/accounts/repair')->assertOk()
+            ->assertSee('Accounts Summery')
+            ->assertSee('data-id="1" data-status="unpaid"', false)
+            ->assertSee('data-id="2" data-status="paid"', false);
+        $this->postJson('/dashboard/repairs/mark-paid', ['modelid' => 2, 'status' => 'paid'])
+            ->assertOk()->assertJson(['error' => 0]);
+        $this->get('/dashboard/accounts/repair')->assertOk()
+            ->assertSee('data-id="2" data-status="unpaid"', false);
+        $this->postJson('/dashboard/repairs/mark-paid', ['modelid' => 2, 'status' => 'unpaid'])
+            ->assertOk()->assertJson(['error' => 0]);
+        $this->get('/dashboard/accounts/repair')->assertOk()
+            ->assertSee('data-id="2" data-status="paid"', false);
     }
 }

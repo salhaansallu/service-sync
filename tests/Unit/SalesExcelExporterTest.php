@@ -7,7 +7,7 @@ use PHPUnit\Framework\TestCase;
 
 class SalesExcelExporterTest extends TestCase
 {
-    public function test_it_creates_an_excel_file_for_sales_data():
+    public function test_it_creates_an_excel_file_for_sales_data(): void
     {
         $exporter = new SalesExcelExporter();
         $sales = [

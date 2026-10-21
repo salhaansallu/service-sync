@@ -22,7 +22,7 @@ class SalesExcelExporter
         }
 
         $rows = [];
-        $rows[] = [trim($companyName) ?: 'Sales Export'];
+        $rows[] = [trim($companyName ?? '') ?: 'Sales Export'];
         $rows[] = ['Generated At', date('Y-m-d H:i:s')];
         $rows[] = [];
         $rows[] = [
