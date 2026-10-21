@@ -540,12 +540,12 @@
                                 class="iq-submenu collapse {{ Request::is('dashboard/accounts*') ? 'show' : '' }}"
                                 data-parent="#iq-sidebar-toggle">
 
-                                <li class="{{ Auth::user()->type == 'tv-repair' || $layoutIsAdmin? '' : 'd-none' }} {{ Request::is('/dashboard/accounts/repair') ? 'active' : '' }}">
+                                <li class="{{ in_array(Auth::user()->type, ['tv-repair', 'tv-repairs']) || $layoutIsAdmin ? '' : 'd-none' }} {{ Request::is('dashboard/accounts/repair') ? 'active' : '' }}">
                                     <a href="/dashboard/accounts/repair">
                                         <i class="fa-solid fa-minus"></i><span>TV Repair Summery</span>
                                     </a>
                                 </li>
-                                <li class="{{ Auth::user()->type == 'other-repair' || $layoutIsAdmin? '' : 'd-none' }} {{ Request::is('/dashboard/accounts/other') ? 'active' : '' }}">
+                                <li class="{{ in_array(Auth::user()->type, ['other-repair', 'other-repairs']) || $layoutIsAdmin ? '' : 'd-none' }} {{ Request::is('dashboard/accounts/other') ? 'active' : '' }}">
                                     <a href="/dashboard/accounts/other">
                                         <i class="fa-solid fa-minus"></i><span>Other Repair Summery</span>
                                     </a>

@@ -63,9 +63,9 @@
                                         <td class="text-start">{{ currency($item->finaltotal, '') }}</td>
                                         <td class="text-start">
                                             @if ($item->paid_at != null)
-                                                <button type="button" id="paid_btn" data-id="{{ $item->id }}" data-status="unpaid" class="btn btn-sm btn-danger mr-2">Mark as Unpaid</button>
+                                                <button type="button" data-id="{{ $item->id }}" data-status="unpaid" class="paid-btn btn btn-sm btn-danger mr-2">Mark as Unpaid</button>
                                             @else
-                                                <button type="button" id="paid_btn" data-id="{{ $item->id }}" data-status="paid" class="btn btn-sm btn-success mr-2">Mark as Paid</button>
+                                                <button type="button" data-id="{{ $item->id }}" data-status="paid" class="paid-btn btn btn-sm btn-success mr-2">Mark as Paid</button>
                                             @endif
                                         </td>
                                     </tr>
@@ -117,9 +117,9 @@
                                         <td class="text-start">{{ currency($item->creditAmount, '') }}</td>
                                         <td class="text-start">
                                             @if ($item->paid_at != null)
-                                                <button type="button" id="paid_btn" data-id="{{ $item->id }}" data-status="unpaid" class="btn btn-sm btn-danger mr-2">Mark as Unpaid</button>
+                                                <button type="button" data-id="{{ $item->id }}" data-status="unpaid" class="paid-btn btn btn-sm btn-danger mr-2">Mark as Unpaid</button>
                                             @else
-                                                <button type="button" id="paid_btn" data-id="{{ $item->id }}" data-status="paid" class="btn btn-sm btn-success mr-2">Mark as Paid</button>
+                                                <button type="button" data-id="{{ $item->id }}" data-status="paid" class="paid-btn btn btn-sm btn-success mr-2">Mark as Paid</button>
                                             @endif
                                         </td>
                                     </tr>
@@ -330,21 +330,19 @@
                 location.reload();
             });
 
-            $("#paid_btn").click(function(e) {
+            $(".paid-btn").click(function(e) {
                 e.preventDefault();
-
-                var formData = new FormData($("#repairsCreate")[0]);
-                formData.append('status', $(this).data('status'));
-                formData.append('modelid', $(this).data('id'));
-                formData.append('_token', '{{ csrf_token() }}');
-                $('#paid_btn').prop('disabled', true);
+                const button = $(this);
+                button.prop('disabled', true);
                 $.ajax({
                     type: "post",
                     url: '/dashboard/repairs/mark-paid',
-                    data: formData,
+                    data: {
+                        status: button.data('status'),
+                        modelid: button.data('id'),
+                        _token: '{{ csrf_token() }}'
+                    },
                     dataType: "json",
-                    contentType: false,
-                    processData: false,
 
                     success: function(response) {
                         if (response.error == 0) {
@@ -353,10 +351,14 @@
                         } else {
                             toastr.error(response.msg, 'Error');
                         }
-                    }
+                    },
+                    error: function() {
+                        toastr.error('Unable to update payment status', 'Error');
+                    },
+                    complete: function() {
+                        button.prop('disabled', false);
+                    },
                 });
-
-                $('#paid_btn').prop('disabled', false);
             });
 
         });

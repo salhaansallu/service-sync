@@ -655,7 +655,11 @@ class RepairsController extends Controller
             $modelid = sanitize($request->input('modelid'));
             $status = sanitize($request->input('status'));
 
-            $update = Repairs::where('id', $modelid);
+            if (!in_array($status, ['paid', 'unpaid'], true)) {
+                return response()->json(['error' => 1, 'msg' => 'Invalid payment status'], 422);
+            }
+
+            $update = Repairs::where('id', $modelid)->where('pos_code', company()->pos_code);
 
             if ($update->update(["paid_at" => $status == "paid" ? date('Y-m-d H:i:s') : null])) {
                 return response(json_encode(array("error" => 0, "msg" => "Payment status updated successfully")));
@@ -663,6 +667,8 @@ class RepairsController extends Controller
 
             return response(json_encode(array("error" => 1, "msg" => "Failed to update payment status")));
         }
+
+        return response()->json(['error' => 1, 'msg' => 'Not authorized'], 403);
     }
 
     public function getInvoicePDF(Request $request)
