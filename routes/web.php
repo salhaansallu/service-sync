@@ -39,6 +39,8 @@ use App\Models\customers;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
+require __DIR__.'/deployment.php';
+
 /*
 |--------------------------------------------------------------------------
 | Web Routes

@@ -661,7 +661,7 @@ class RepairsController extends Controller
 
             $update = Repairs::where('id', $modelid)->where('pos_code', company()->pos_code);
 
-            if ($update->update(["paid_at" => $status == "paid" ? date('Y-m-d H:i:s') : null])) {
+            if ($update->update(["paid_at" => $status == "paid" ? now() : null])) {
                 return response(json_encode(array("error" => 0, "msg" => "Payment status updated successfully")));
             }
 
