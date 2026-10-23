@@ -80,7 +80,7 @@
         message.textContent = payload.get('action') === 'status' ? 'Loading last run…' : 'Starting deployment…'; message.className = '';
         document.getElementById('password').value = '';
         try {
-            const response = await fetch(form.action, {method: 'POST', body: payload, headers: {'Accept': 'application/json'}});
+            const response = await fetch(form.getAttribute('action'), {method: 'POST', body: payload, headers: {'Accept': 'application/json'}});
             const data = await response.json();
             if (response.status === 409 && data.run) { show(data.run); poll(data.run.id); return; }
             if (!response.ok) throw new Error(data.message || 'Deployment could not start. Reload the page and try again.');
