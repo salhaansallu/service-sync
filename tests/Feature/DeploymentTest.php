@@ -105,9 +105,10 @@ class DeploymentTest extends TestCase
         };
         $id = $service->start();
         $spec = json_decode(file_get_contents($this->directory.'/'.$id.'.spec.json'), true);
+        $repository = str_replace('\\', '/', realpath(base_path()) ?: base_path());
         $this->assertSame([
-            [config('deployment.git_binary'), 'fetch', '--all'],
-            [config('deployment.git_binary'), 'reset', '--hard', 'origin/master'],
+            [config('deployment.git_binary'), '-c', 'safe.directory='.$repository, 'fetch', '--all'],
+            [config('deployment.git_binary'), '-c', 'safe.directory='.$repository, 'reset', '--hard', 'origin/master'],
             [PHP_BINARY, 'artisan', 'migrate', '--force', '--no-interaction'],
             [config('deployment.npm_binary'), 'run', 'build'],
         ], array_column($spec['commands'], 'args'));
@@ -115,6 +116,25 @@ class DeploymentTest extends TestCase
         $this->assertSame('queued', $service->status($id)['status']);
         $this->expectException(LogicException::class);
         $service->start();
+    }
+
+    public function test_git_commands_trust_this_checkout_when_the_web_user_is_not_its_owner(): void
+    {
+        // Git's test switch reproduces the server's ownership rejection without
+        // changing checkout ownership or writing global Git configuration.
+        $environment = ['GIT_TEST_ASSUME_DIFFERENT_OWNER' => '1'];
+        $untrusted = new Process([config('deployment.git_binary'), '-c', 'safe.directory=', 'rev-parse', '--show-toplevel'], base_path(), $environment);
+        $untrusted->run();
+        $this->assertSame(128, $untrusted->getExitCode());
+        $this->assertStringContainsString('dubious ownership', $untrusted->getErrorOutput());
+
+        foreach (array_slice((new DeploymentService())->commands(), 0, 2) as $command) {
+            $prefix = array_slice($command['args'], 0, 3);
+            $trusted = new Process([$prefix[0], '-c', 'safe.directory=', ...array_slice($prefix, 1), 'rev-parse', '--show-toplevel'], base_path(), $environment);
+            $trusted->run();
+            $this->assertSame(0, $trusted->getExitCode(), $trusted->getErrorOutput());
+            $this->assertSame(str_replace('\\', '/', realpath(base_path())), trim($trusted->getOutput()));
+        }
     }
 
     public function test_worker_executes_all_steps_in_order(): void

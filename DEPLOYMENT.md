@@ -11,6 +11,8 @@ The background worker executes these fixed commands in the application directory
 
 Migrations use `--force --no-interaction` because a production web-triggered deployment cannot answer Artisan's interactive confirmation. The reset discards edits to tracked server files. Ignored files, including `.env`, are retained. This is an in-place deployment: a failed migration or build leaves the already completed steps applied; there is no automatic rollback.
 
+Both Git commands receive `-c safe.directory=<canonical application path>` so they can run when the checkout owner differs from the web server user. This trusts only this application directory for those commands; it does not modify global Git configuration or filesystem permissions. The web server user still needs write access and Git credentials as described below.
+
 ## One-time server setup
 
 Deploy this feature to the server once using your existing deployment method, then:

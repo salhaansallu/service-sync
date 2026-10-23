@@ -11,9 +11,14 @@ class DeploymentService
 {
     public function commands(): array
     {
+        // This checkout is explicitly selected by the server, not by the request.
+        // Trust only its canonical path when the web user differs from its owner.
+        $repository = str_replace('\\', '/', realpath(base_path()) ?: base_path());
+        $git = [config('deployment.git_binary'), '-c', 'safe.directory='.$repository];
+
         return [
-            ['label' => 'git fetch --all', 'args' => [config('deployment.git_binary'), 'fetch', '--all']],
-            ['label' => 'git reset --hard origin/master', 'args' => [config('deployment.git_binary'), 'reset', '--hard', 'origin/master']],
+            ['label' => 'git fetch --all', 'args' => [...$git, 'fetch', '--all']],
+            ['label' => 'git reset --hard origin/master', 'args' => [...$git, 'reset', '--hard', 'origin/master']],
             ['label' => 'php artisan migrate --force --no-interaction', 'args' => [config('deployment.php_binary'), 'artisan', 'migrate', '--force', '--no-interaction']],
             ['label' => 'npm run build', 'args' => [config('deployment.npm_binary'), 'run', 'build']],
         ];
